@@ -10,18 +10,19 @@ import net.minecraftforge.fml.client.GuiModList
 import net.minusmc.minusbounce.MinusBounce
 import net.minusmc.minusbounce.ui.client.altmanager.GuiAltManager
 import net.minusmc.minusbounce.ui.font.Fonts
+import net.minecraft.client.Minecraft
 import java.awt.Color
 
 class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
     override fun initGui() {
         val defaultHeight = (this.height / 2.5).toInt()
 
-        this.buttonList.add(GuiButton(1, this.width / 2 - 120, defaultHeight, 100, 20, "Singleplayer"))
-        this.buttonList.add(GuiButton(2, this.width / 2 + 20, defaultHeight, 100, 20, "Multiplayer"))
-        this.buttonList.add(GuiButton(100, this.width / 2 - 120, defaultHeight + 24, 100, 20, "Alt manager"))
-        this.buttonList.add(GuiButton(103, this.width / 2 + 20, defaultHeight + 24, 100, 20, "Mods and plugins"))
-        this.buttonList.add(GuiButton(0, this.width / 2 - 120, defaultHeight + 24 * 2, 100, 20, "Options"))
-        this.buttonList.add(GuiButton(4, this.width / 2 + 20, defaultHeight + 24 * 2, 100, 20, "Quit"))
+        this.buttonList.add(MainMenuButton(1, this.width / 2 - 120, defaultHeight, "Singleplayer"))
+        this.buttonList.add(MainMenuButton(2, this.width / 2 + 20, defaultHeight, "Multiplayer"))
+        this.buttonList.add(MainMenuButton(100, this.width / 2 - 120, defaultHeight + 24, "Alt manager"))
+        this.buttonList.add(MainMenuButton(103, this.width / 2 + 20, defaultHeight + 24, "Mods and plugins"))
+        this.buttonList.add(MainMenuButton(0, this.width / 2 - 120, defaultHeight + 24 * 2, "Options"))
+        this.buttonList.add(MainMenuButton(4, this.width / 2 + 20, defaultHeight + 24 * 2, "Quit"))
 
         super.initGui()
     }
@@ -52,4 +53,11 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
     }
 
     override fun keyTyped(typedChar: Char, keyCode: Int) {}
+}
+
+class MainMenuButton(val buttonId: Int, x: Int, y: Int, buttonText: String): GuiButton(buttonId, x, y, buttonText) {
+    override fun drawButton(mc: Minecraft, mouseX: Int, mouseY: Int) {
+        Gui.drawRect(xPosition, yPosition, 100, 20, Color(237, 234, 222).rgb)
+        Fonts.font40.drawCenteredString(displayString, (xPosition + width / 2).toFloat(), (yPosition + (height - 8) / 2).toFloat(), Color.WHITE.rgb, false)
+    }
 }

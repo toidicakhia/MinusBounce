@@ -17,6 +17,7 @@ import net.minecraft.entity.passive.EntityAnimal
 import net.minecraft.entity.passive.EntityBat
 import net.minecraft.entity.passive.EntitySquid
 import net.minecraft.entity.passive.EntityVillager
+import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.scoreboard.ScorePlayerTeam
 import net.minusmc.minusbounce.MinusBounce
@@ -31,6 +32,9 @@ object EntityUtils : MinecraftInstance() {
         val teams = MinusBounce.moduleManager[Teams::class.java]!!
         if (entity is EntityLivingBase) {
             // From augustus
+            if (entity is EntityArmorStand)
+                return false
+
             if (!targetsModule.dead.get() && entity.isDead)
                 return false
 
@@ -66,6 +70,9 @@ object EntityUtils : MinecraftInstance() {
         val teams = MinusBounce.moduleManager[Teams::class.java] as Teams
         if (entity is EntityLivingBase) {
             // From augustus
+            if (entity is EntityArmorStand)
+                return false
+            
             if (!targetsModule.dead.get() && entity.isDead)
                 return false
 
