@@ -2,7 +2,7 @@
 
 # MinusBounce                                  
 
-### Info: [Discord](https://discord.gg/tuansocool)
+### Info: [Discord](https://discord.gg/qYSCCmsgBe)
 
 # Getting Started
 
