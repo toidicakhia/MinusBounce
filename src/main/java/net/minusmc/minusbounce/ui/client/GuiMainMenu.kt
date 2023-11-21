@@ -15,7 +15,7 @@ import net.minecraft.client.Minecraft
 import java.awt.Color
 
 class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
-    private val buttons = hashMapOf<Int, Class<GuiScreen>>()
+    private val buttons = hashMapOf<Int, Class<out GuiScreen>>()
 
     override fun initGui() {
         val defaultHeight = (this.height / 2.5).toInt()

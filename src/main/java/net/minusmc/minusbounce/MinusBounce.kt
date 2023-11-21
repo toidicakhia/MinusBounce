@@ -66,7 +66,11 @@ object MinusBounce {
 
     var playTimeStart: Long = 0L
 
-    val mainMenuButton = hashMapOf<String, Class<GuiScreen>>()
+    val mainMenuButton = hashMapOf<String, Class<out GuiScreen>>()
+
+    fun addMenuButton(name: String, gui: Class<out GuiScreen>) {
+        mainMenuButton[name] = gui
+    }
 
     /**
      * Execute if client will be started
