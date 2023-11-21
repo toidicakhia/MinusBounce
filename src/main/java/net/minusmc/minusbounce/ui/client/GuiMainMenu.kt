@@ -25,7 +25,7 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
         this.buttonList.add(MainMenuButton(100, this.width / 2 - 120, defaultHeight + 30, "Alt manager"))
         this.buttonList.add(MainMenuButton(103, this.width / 2 + 20, defaultHeight + 30, "Mods and plugins"))
         this.buttonList.add(MainMenuButton(0, this.width / 2 - 120, defaultHeight + 30 * 2, "Options"))
-        this.buttonList.add(MainMenuButton(4, this.width / 2 + 20, defaultHeight + 30 * 2, "Quit"))
+        this.buttonList.add(MainMenuButton(120, this.width / 2 + 20, defaultHeight + 30 * 2, "Quit"))
 
         var id = 201
         MinusBounce.mainMenuButton.forEach {
@@ -58,12 +58,12 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
             0 -> mc.displayGuiScreen(GuiOptions(this, mc.gameSettings))
             1 -> mc.displayGuiScreen(GuiSelectWorld(this))
             2 -> mc.displayGuiScreen(GuiMultiplayer(this))
-            4 -> mc.shutdown()
+            120 -> mc.shutdown()
             100 -> mc.displayGuiScreen(GuiAltManager(this))
             103 -> mc.displayGuiScreen(GuiModList(this))
             else -> {
                 val clazzButton = buttons[button.id] ?: return
-                mc.displayGuiScreen(clazzButton.newInstance())
+                mc.displayGuiScreen(clazzButton.getConstructor(GuiScreen::class.java).newInstance(this) as GuiScreen)
             }
         }
     }
