@@ -112,7 +112,7 @@ jar {
             "FMLAT": "minusbounce_at.cfg",
     )
 
-    enabled = false
+    enabled = true
 }
 
 mixin {
@@ -138,12 +138,12 @@ tasks.reobfJar.dependsOn(shadowJar)
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        maven(MavenPublication) {
             groupId = project.group
             artifactId = project.name
             version = project.version
-            from components.java
 
+            from components.java
         }
     }
 }
