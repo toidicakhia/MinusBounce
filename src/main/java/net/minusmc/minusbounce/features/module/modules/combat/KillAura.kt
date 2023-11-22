@@ -44,6 +44,7 @@ import net.minusmc.minusbounce.value.BoolValue
 import net.minusmc.minusbounce.value.FloatValue
 import net.minusmc.minusbounce.value.IntegerValue
 import net.minusmc.minusbounce.value.ListValue
+import net.minusmc.minusbounce.value.IntRangeValue
 import org.lwjgl.input.Keyboard
 import org.lwjgl.opengl.GL11
 import java.util.*
@@ -52,6 +53,8 @@ import kotlin.math.*
 @ModuleInfo(name = "KillAura", spacedName = "Kill Aura", description = "Automatically attacks targets around you.",
         category = ModuleCategory.COMBAT, keyBind = Keyboard.KEY_R)
 class KillAura : Module() {
+
+    private val cps = IntRangeValue("CPS", 5, 8, 1, 20)
 
     // CPS - Attack speed
     private val maxCPS: IntegerValue = object : IntegerValue("MaxCPS", 8, 1, 20) {
