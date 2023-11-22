@@ -127,12 +127,7 @@ object ColorUtils {
         val b = (colour and 0xFF) / 255.0f
         glColor4f(r, g, b, a)
     }
-
-    @JvmStatic
-    fun interpolateInt(oldValue: Int, newValue: Int, interpolationValue: Double): Int {
-        return interpolate(oldValue.toDouble(), newValue.toDouble(), interpolationValue.toFloat().toDouble())!!.toInt()
-    }
-
+    
     @JvmStatic
     fun reAlpha(color: Color, alpha: Int): Color = Color(color.red, color.green, color.blue, alpha.coerceIn(0, 255))
 

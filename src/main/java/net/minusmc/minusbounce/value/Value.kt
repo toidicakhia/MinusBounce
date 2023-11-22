@@ -233,15 +233,15 @@ open class IntRangeValue(name: String, minValue: Int, maxValue: Int, val minimum
     fun getMinValue() = value.getMin()
     fun getMaxValue() = value.getMax()
 
-    fun setMinValue(newValue: Int) {
-        if (newValue < value.getMax()) value.setMin(newValue)
+    fun setMinValue(newValue: Number) {
+        if (newValue.toInt() < value.getMax()) value.setMin(newValue.toInt())
     }
 
-    fun setMaxValue(newValue: Int) {
-        if (newValue > value.getMin()) value.setMax(newValue)
+    fun setMaxValue(newValue: Number) {
+        if (newValue.toInt() > value.getMin()) value.setMax(newValue.toInt())
     }
 
-    override fun toJson() = JsonObject(Gson().toJson(value))
+    override fun toJson() = Gson().toJsonTree(value)
     override fun fromJson(element: JsonElement) {
         if (element.isJsonObject) {
             changeValue(Gson().fromJson(element.asString, IntRange::class.java))
