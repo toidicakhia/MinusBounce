@@ -141,6 +141,7 @@ object Fonts {
 
     private fun downloadFonts() {
         try {
+            val outputFile = File(MinusBounce.fileManager.fontsDir, "fonts.zip")
             if (!isExistFonts()) {
                 ClientUtils.logger.info("Downloading fonts...")
                 download(MinusBounce.CLIENT_CLOUD + "/fonts/fonts.zip", outputFile)
