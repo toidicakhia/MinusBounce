@@ -23,6 +23,9 @@ object Fonts {
     @field:FontDetails(fontName = "Roboto Medium", fontSize = 40)
     lateinit var font40: GameFontRenderer
 
+    @field:FontDetails(fontName = "Roboto Medium", fontSize = 50)
+    lateinit var font50: GameFontRenderer
+
     @field:FontDetails(fontName = "Roboto Medium", fontSize = 72)
     lateinit var font72: GameFontRenderer
 
@@ -61,6 +64,7 @@ object Fonts {
         downloadFonts()
         font35 = GameFontRenderer(getFont("Roboto-Medium.ttf", 35))
         font40 = GameFontRenderer(getFont("Roboto-Medium.ttf", 40))
+        font50 = GameFontRenderer(getFont("Roboto-Medium.ttf", 50))
         font72 = GameFontRenderer(getFont("Roboto-Medium.ttf", 72))
         fontSmall = GameFontRenderer(getFont("Roboto-Medium.ttf", 30))
         fontTiny = GameFontRenderer(getFont("Roboto-Medium.ttf", 24))
