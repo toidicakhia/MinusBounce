@@ -234,17 +234,53 @@ open class IntRangeValue(name: String, minValue: Int, maxValue: Int, val minimum
     fun getMaxValue() = value.getMax()
 
     fun setMinValue(newValue: Number) {
-        if (newValue.toInt() < value.getMax()) value.setMin(newValue.toInt())
+        if (newValue.toInt() <= value.getMax()) value.setMin(newValue.toInt())
     }
 
     fun setMaxValue(newValue: Number) {
-        if (newValue.toInt() > value.getMin()) value.setMax(newValue.toInt())
+        if (newValue.toInt() >= value.getMin()) value.setMax(newValue.toInt())
     }
 
-    override fun toJson() = Gson().toJsonTree(value)
+    fun changeValue(minValue: Int, maxValue: Int) {
+        setMaxValue(maxValue)
+        setMinValue(minValue)
+    }
+
+    override fun toJson(): JsonElement = Gson().toJsonTree(value)
     override fun fromJson(element: JsonElement) {
         if (element.isJsonObject) {
             changeValue(Gson().fromJson(element.asString, IntRange::class.java))
+        }
+    }
+}
+
+class FloatRange(minimum: Float, maximum: Float): MinMaxRange<Float>(minimum, maximum)
+
+open class FloatRangeValue(name: String, minValue: Float, maxValue: Float, val minimum: Float = 0f, val maximum: Float = Float.MAX_VALUE, val suffix: String = "", displayable: () -> Boolean): Value<FloatRange>(name, FloatRange(minValue, maxValue), displayable) {
+    constructor(name: String, minValue: Float, maxValue: Float, minimum: Float, maximum: Float, displayable: () -> Boolean): this(name, minValue, maxValue, minimum, maximum, "", displayable)
+    constructor(name: String, minValue: Float, maxValue: Float, minimum: Float, maximum: Float, suffix: String): this(name, minValue, maxValue, minimum, maximum, suffix, {true})
+    constructor(name: String, minValue: Float, maxValue: Float, minimum: Float, maximum: Float): this(name, minValue, maxValue, minimum, maximum, "", {true})
+
+    fun getMinValue() = value.getMin()
+    fun getMaxValue() = value.getMax()
+
+    fun setMinValue(newValue: Number) {
+        if (newValue.toFloat() <= value.getMax()) value.setMin(newValue.toFloat())
+    }
+
+    fun setMaxValue(newValue: Number) {
+        if (newValue.toFloat() >= value.getMin()) value.setMax(newValue.toFloat())
+    }
+
+    fun changeValue(minValue: Float, maxValue: Float) {
+        setMaxValue(maxValue)
+        setMinValue(minValue)
+    }
+
+    override fun toJson(): JsonElement = Gson().toJsonTree(value)
+    override fun fromJson(element: JsonElement) {
+        if (element.isJsonObject) {
+            changeValue(Gson().fromJson(element.asString, FloatRange::class.java))
         }
     }
 }
