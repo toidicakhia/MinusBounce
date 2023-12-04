@@ -32,9 +32,10 @@ jobs:
           gradle-version: wrapper
       - name: Upload releases
         run: |
+          echo "commit=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
           cd build/libs
-          zip minusbounce.zip .
-          curl -X POST -F "artifact=@minusbounce.zip" -H "Authorization: ${{ secrets.SERVER_TOKEN }}" -F "commit=${{ github.event.head_commit.id }}" -F "version=${{ github.head_ref }}" https://api.minusbounce.lol/releases
+          zip minusbounce.zip MinusBounce-${{env.VERSION}}.jar
+          curl --connect-timeout 30 -m 300 -X POST -F "artifact=@minusbounce.zip" -H "Authorization: ${{ secrets.SERVER_TOKEN }}" -F "commit=${{ env.commit }}" -F "version=${{ env.VERSION }}" https://api.minusbounce.lol/releases
 
 #      - name: Publish package
 #        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
