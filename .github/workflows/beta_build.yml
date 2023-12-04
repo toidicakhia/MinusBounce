@@ -20,7 +20,9 @@ jobs:
           java-version: 8
           check-latest: true
       - name: Set version
-        run: echo "VERSION=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
+        run: |
+          echo "VERSION=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
+          echo "BRANCH=${GITHUB_REF#refs/*/}" >> "$GITHUB_ENV"
       - name: Python setup
         uses: actions/setup-python@v4
         with:
@@ -35,10 +37,9 @@ jobs:
           gradle-version: wrapper
       - name: Upload Artifact
         run: |
-          echo "branch=$(echo ${GITHUB_REF#refs/*/})" >> "$GITHUB_ENV"
           cd build/libs
           zip minusbounce.zip *
-          curl --connect-timeout 30 -m 300 -X POST -F "artifact=@minusbounce.zip" -H "Authorization: Bearer ${{ secrets.SERVER_TOKEN }}" -F "commit=${{ env.VERSION }}" -F "branch=${{ env.branch }}" -F "message=${{ github.event.head_commit.message }}" https://api.minusbounce.lol/beta
+          curl --connect-timeout 30 -m 300 -X POST -F "artifact=@minusbounce.zip" -H "Authorization: Bearer ${{ secrets.SERVER_TOKEN }}" -F "commit=${{ env.VERSION }}" -F "branch=${{ env.BRANCH }}" -F "message=${{ github.event.head_commit.message }}" https://api.minusbounce.lol/beta
 
 #      - name: Publish package
 #        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
