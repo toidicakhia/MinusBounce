@@ -34,7 +34,7 @@ jobs:
         run: |
           echo "commit=$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_ENV
           cd build/libs
-          zip minusbounce.zip MinusBounce-${{env.VERSION}}.jar
+          zip minusbounce.zip *
           curl --connect-timeout 30 -m 300 -X POST -F "artifact=@minusbounce.zip" -H "Authorization: ${{ secrets.SERVER_TOKEN }}" -F "commit=${{ env.commit }}" -F "version=${{ env.VERSION }}" https://api.minusbounce.lol/releases
 
 #      - name: Publish package

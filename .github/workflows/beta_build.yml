@@ -37,7 +37,7 @@ jobs:
         run: |
           echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> "$GITHUB_ENV"
           cd build/libs
-          zip minusbounce.zip MinusBounce-${{env.VERSION}}.jar
+          zip minusbounce.zip *
           curl --connect-timeout 30 -m 300 -X POST -F "artifact=@minusbounce.zip" -H "Authorization: ${{ secrets.SERVER_TOKEN }}" -F "commit=${{ env.VERSION }}" -F "branch=${{ env.branch }}" -F "message=${{ github.event.head_commit.message }}" https://api.minusbounce.lol/beta
 
 #      - name: Publish package
