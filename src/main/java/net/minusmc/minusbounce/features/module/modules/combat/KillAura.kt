@@ -1061,9 +1061,9 @@ class KillAura : Module() {
     private val canBlock: Boolean
         get() = mc.thePlayer.heldItem != null && mc.thePlayer.heldItem.item is ItemSword
 
-    private fun getRange(entity: Entity): Float
+    private val range: Float
         get() = max(rangeValue.get(), throughWallsRangeValue.get())
-        
+
     override val tag: String
         get() = targetModeValue.get()
 }
