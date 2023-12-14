@@ -333,20 +333,21 @@ class KillAura : Module() {
             updateHitable()
 
             // AutoBlock
-            if (autoBlockModeValue.get().equals("AfterTick", true) && canBlock)
-                startBlocking(currentTarget!!, hitable)
+            // if (autoBlockModeValue.get().equals("AfterTick", true) && canBlock)
+            //     startBlocking(currentTarget!!, hitable)
 
-            if (autoBlockModeValue.get().equals("RightHold", true) && canBlock) {
-                mc.gameSettings.keyBindUseItem.pressed = mc.thePlayer.getDistanceToEntityBox(target!!) < range
-            }
+            // if (autoBlockModeValue.get().equals("RightHold", true) && canBlock) {
+            //     mc.gameSettings.keyBindUseItem.pressed = mc.thePlayer.getDistanceToEntityBox(target!!) < range
+            // }
 
-            if (autoBlockModeValue.get().equals("OldHypixel", true)) {
-                when (mc.thePlayer.swingProgressInt) {
-                    1 -> stopBlocking()
-                    2 -> startBlocking(currentTarget!!, interactAutoBlockValue.get() && mc.thePlayer.getDistanceToEntityBox(currentTarget!!) < range)
-                }
-            }
+            // if (autoBlockModeValue.get().equals("OldHypixel", true)) {
+            //     when (mc.thePlayer.swingProgressInt) {
+            //         1 -> stopBlocking()
+            //         2 -> startBlocking(currentTarget!!, interactAutoBlockValue.get() && mc.thePlayer.getDistanceToEntityBox(currentTarget!!) < range)
+            //     }
+            // }
         }
+
 
         if (rotationStrafeValue.get().equals("Off", true))
             update()
@@ -994,16 +995,17 @@ class KillAura : Module() {
 
     private fun postBlocking(entity: EntityLivingBase) {
         if (mc.thePlayer.isBlocking || (!autoBlockModeValue.get().equals("None", true) && !autoBlockModeValue.get().equals("Fake", true) && canBlock)) {
-            if (blockRate.get() > 0 && Random().nextInt(100) <= blockRate.get()) {
-                if (smartAutoBlockValue.get() && clicks != 1 && mc.thePlayer.getDistanceToEntityBox(entity) < range && mc.thePlayer.hurtTime < 4)
-                    return
+            if (!(blockRate.get() > 0 && Random().nextInt(100) <= blockRate.get())) 
+                return
 
-                when (autoBlockModeValue.get().lowercase()) {
-                    "vanilla" -> startBlocking(entity, interactAutoBlockValue.get())
-                    "test" -> if (mc.thePlayer.ticksExisted.let { it in 0..15 && it % 5 == 0 }) startBlocking(entity, interactAutoBlockValue.get())
-                    "polar" -> if (mc.thePlayer.hurtTime < 8 && mc.thePlayer.hurtTime != 1 && mc.thePlayer.fallDistance > 0) startBlocking(entity, interactAutoBlockValue.get())
-                    else -> null
-                }
+            if (smartAutoBlockValue.get() && clicks != 1 && mc.thePlayer.getDistanceToEntityBox(entity) < range && mc.thePlayer.hurtTime < 4)
+                return
+
+            when (autoBlockModeValue.get().lowercase()) {
+                "vanilla" -> startBlocking(entity, interactAutoBlockValue.get())
+                "test" -> if (mc.thePlayer.ticksExisted.let { it in 0..15 && it % 5 == 0 }) startBlocking(entity, interactAutoBlockValue.get())
+                "polar" -> if (mc.thePlayer.hurtTime < 8 && mc.thePlayer.hurtTime != 1 && mc.thePlayer.fallDistance > 0) startBlocking(entity, interactAutoBlockValue.get())
+                else -> null
             }
         }
         
