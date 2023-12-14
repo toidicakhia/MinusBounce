@@ -212,8 +212,7 @@ object ColorUtils {
         "e" -> Color(255, 255, 85, alpha)
         else -> Color(255, 255, 255, alpha)
     }
-}
-    @JvmStatic
+
     fun getGradientOffset(one: Color, two: Color, offset: Double, alpha: Int): Color {
         val offset = if (offset > 1) {
             val off = offset.toInt()

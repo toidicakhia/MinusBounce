@@ -9,9 +9,11 @@ import net.minecraft.entity.passive.EntityPig
 import net.minecraft.init.Blocks
 import net.minecraft.item.ItemBlock
 import net.minecraft.item.ItemStack
+import net.minecraft.item.Item
 import net.minecraft.network.play.client.C09PacketHeldItemChange
 import net.minecraft.network.play.client.C0APacketAnimation
 import net.minecraft.network.play.client.C0BPacketEntityAction
+import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.stats.StatList
 import net.minecraft.util.*
 import net.minusmc.minusbounce.event.*
@@ -909,7 +911,7 @@ class Scaffold: Module() {
                 GlStateManager.enableBlend()
                 mc.renderItem.renderItemIntoGUI(stack, width / 2 - 9, (height * 0.8 - 20).toInt())
                 RenderHelper.disableStandardItemLighting()
-                mc.fontRendererObj.drawCenteredString(info, width / 2f, height * 0.8f, Color(255,255,255, fadeAlpha(255)).rgb, false)
+                mc.fontRendererObj.drawString(info, width / 2f, height * 0.8f, Color(255,255,255).rgb, false)
                 GlStateManager.disableAlpha()
                 GlStateManager.disableBlend()
                 GlStateManager.popMatrix()
