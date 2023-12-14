@@ -106,7 +106,7 @@ object MinusBounce {
         pluginManager.registerCommands()
         // plugin load command
 
-        fileManager.loadConfigs(fileManager.modulesConfig, fileManager.valuesConfig, fileManager.accountsConfig)
+        fileManager.loadConfigs(fileManager.modulesConfig, fileManager.valuesConfig, fileManager.accountsConfig, fileManager.friendsConfig)
 
         val clickGuiModule = moduleManager[ClickGUI::class.java]!!
         clickGuiModule.styles = clickGuiModule.styleClazzes.map {it.newInstance() as StyleMode}.sortedBy { it.styleName }

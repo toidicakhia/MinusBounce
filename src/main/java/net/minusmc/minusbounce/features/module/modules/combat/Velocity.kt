@@ -15,6 +15,7 @@ import net.minusmc.minusbounce.value.BoolValue
 import net.minusmc.minusbounce.utils.ClassUtils
 import net.minusmc.minusbounce.features.module.modules.combat.velocitys.VelocityMode
 import net.minecraft.network.play.server.S27PacketExplosion
+import net.minusmc.minusbounce.value.IntegerValue
 
 
 @ModuleInfo(name = "Velocity", description = "Allows you to modify the amount of knockback you take.", category = ModuleCategory.COMBAT)
@@ -37,18 +38,8 @@ class Velocity : Module() {
         }
     }
 
-    /**
-     * OPTIONS
-     */
-    val horizontalValue = FloatValue("Horizontal", 0F, -1F, 1F, "x")
-    val verticalValue = FloatValue("Vertical", 0F, -1F, 1F, "x")
-    private val onExplosionValue = BoolValue("OnExplosion", true)
-    private val horizontalExplosionValue = FloatValue("HorizontalExplosion", 0F, 0F, 1F) { onExplosionValue.get() }
-    private val verticalExplosionValue = FloatValue("VerticalExplosion", 0F, 0F, 1F) { onExplosionValue.get() }
-
-    // Affect chance
     private val reduceChance = FloatValue("Reduce-Chance", 100F, 0F, 100F, "%")
-    private var shouldAffect : Boolean = true
+    private var shouldAffect: Boolean = true
 
     override fun onInitialize() {
         modes.map { mode -> mode.values.forEach { value -> value.name = "${mode.modeName}-${value.name}" } }
@@ -67,18 +58,6 @@ class Velocity : Module() {
     }
 
     @EventTarget
-    fun onPacket(event: PacketEvent) {
-        mode.onPacket(event)
-        val packet = event.packet
-        if (onExplosionValue.get() && packet is S27PacketExplosion) {
-            mc.thePlayer.motionX += packet.func_149149_c() * (horizontalExplosionValue.get())
-            mc.thePlayer.motionY += packet.func_149144_d() * (verticalExplosionValue.get())
-            mc.thePlayer.motionZ += packet.func_149147_e() * (horizontalExplosionValue.get())
-            event.cancelEvent()
-        }
-    }
-
-    @EventTarget
     fun onJump(event: JumpEvent) {
         if (mc.thePlayer == null || mc.thePlayer.isInWater || mc.thePlayer.isInLava || mc.thePlayer.isInWeb || !shouldAffect)
             return
@@ -89,9 +68,10 @@ class Velocity : Module() {
     fun onMotion(event: MotionEvent) {
         mode.onMotion(event)
     }
+    
     override val tag: String
         get() = modeValue.get()
-        
+
     override val values = super.values.toMutableList().also {
         modes.map {
             mode -> mode.values.forEach { value ->

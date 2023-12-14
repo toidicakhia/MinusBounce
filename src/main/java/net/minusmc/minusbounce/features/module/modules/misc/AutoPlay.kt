@@ -48,6 +48,7 @@ class AutoPlay : Module() {
         mode.onPacket(event)
     }
 
+
     @EventTarget
     fun onWorld(event: WorldEvent) {
         mode.onWorld()

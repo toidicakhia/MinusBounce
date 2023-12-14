@@ -94,7 +94,8 @@ class KillAura : Module() {
             "Verus",
             "Test",
             "RightHold",
-            "OldHypixel"
+            "OldHypixel",
+            "Watchdog"
         ),
         "None"
     )
@@ -208,6 +209,17 @@ class KillAura : Module() {
     var blockingStatus = false
     private var verusBlocking = false
 
+    //Hypixel Autoblock
+    private var watchdogc02 = 0
+    private var watchdogdelay = 0
+    private var watchdogcancelTicks = 0
+    private var watchdogunblockdelay = 0
+    private var watchdogkaing = false
+    private var watchdogblinking = false
+    private var watchdogblock = false
+    private var watchdogblocked = false
+    private var watchdogcancelc02 = false
+
     // Rotation
     private var rotSpeed = 15.0
 
@@ -243,6 +255,11 @@ class KillAura : Module() {
             if (autoBlockModeValue.get().equals("Verus", true))
                 PacketUtils.sendPacketNoEvent(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
         }
+
+        watchdogkaing = false
+        watchdogblocked = false
+        watchdogc02 = 0
+        watchdogdelay = 0
     }
 
     @EventTarget
@@ -253,6 +270,59 @@ class KillAura : Module() {
         if (event.eventState == EventState.PRE) {
             if (canBlock && currentTarget != null) {
                 startBlocking(currentTarget!!, interactAutoBlockValue.get())
+            }
+
+            if (autoBlockModeValue.get().equals("Watchdog", true)) {
+                if (mc.thePlayer.heldItem.item is ItemSword && currentTarget != null) {
+                    watchdogkaing = true
+                    watchdogcancelc02 = false
+                    watchdogcancelTicks = 0
+                    watchdogunblockdelay = 0
+                    if (!watchdogblinking) {
+                        BlinkUtils.setBlinkState(all = true)
+                        watchdogblinking = true
+                        watchdogblocked = false
+                    }
+                    if (watchdogblinking && !watchdogblock) {
+                        watchdogdelay++
+                        if (watchdogdelay >= 2) {
+                            mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
+                            mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
+                            watchdogblocked = false
+                            watchdogblock = true
+                            watchdogdelay = 0
+                        }
+                    }
+                    if (watchdogblinking && watchdogblock) {
+                        if (watchdogc02 > 1) {
+                            BlinkUtils.setBlinkState(off = true, release = true)
+                            mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement())
+                            watchdogblinking = false
+                            watchdogblock = false
+                            watchdogblocked = true
+                            watchdogc02 = 0
+                        }
+                    }
+                }
+                if (watchdogkaing && currentTarget == null) {
+                    watchdogkaing = false
+                    watchdogblocked = false
+                    watchdogc02 = 0
+                    watchdogdelay = 0
+                    BlinkUtils.setBlinkState(off = true, release = true)
+                    watchdogcancelc02 = true
+                    watchdogcancelTicks = 0
+                    if (mc.thePlayer.heldItem.item is ItemSword) {
+                        mc.netHandler.addToSendQueue(C07PacketPlayerDigging())
+                    }
+                }
+                if (watchdogcancelc02) {
+                    watchdogcancelTicks++
+                    if (watchdogcancelTicks >= 3) {
+                        watchdogcancelc02 = false
+                        watchdogcancelTicks = 0
+                    }
+                }
             }
         }
 
@@ -406,6 +476,23 @@ class KillAura : Module() {
 
         if (packet is C09PacketHeldItemChange)
             verusBlocking = false
+
+        if (autoBlockModeValue.get().equals("Watchdog", true)) {
+            if (mc.thePlayer.heldItem?.item is ItemSword && currentTarget != null && watchdogkaing) {
+                if (packet is C08PacketPlayerBlockPlacement || packet is C07PacketPlayerDigging) {
+                    event.cancelEvent()
+                }
+            }
+            if (mc.thePlayer.heldItem?.item is ItemSword && currentTarget != null && watchdogblocked || watchdogcancelc02) {
+                if (packet is C02PacketUseEntity) {
+                    event.cancelEvent()
+                    watchdogblocked = false
+                }
+            }
+            if (packet is C02PacketUseEntity && watchdogblinking) {
+                watchdogc02++
+            }
+        }
     }
 
     fun update() {
@@ -564,7 +651,7 @@ class KillAura : Module() {
                 for (entity in mc.theWorld.loadedEntityList) {
                     val distance = mc.thePlayer.getDistanceToEntityBox(entity)
 
-                    if (entity is EntityLivingBase && isEnemy(entity) && distance <= getRange(entity)) {
+                    if (entity is EntityLivingBase && isEnemy(entity) && distance <= range) {
                         attackEntity(entity)
 
                         targets += 1
@@ -976,9 +1063,6 @@ class KillAura : Module() {
 
     private val range: Float
         get() = if (mc.thePlayer.canEntityBeSeen(target!!)) rangeValue.get() else throughWallsRangeValue.get()
-
-    private fun getRange(entity: Entity) =
-        if (mc.thePlayer.getDistanceToEntityBox(entity) >= throughWallsRangeValue.get()) rangeValue.get() else throughWallsRangeValue.get()
 
     override val tag: String
         get() = targetModeValue.get()
