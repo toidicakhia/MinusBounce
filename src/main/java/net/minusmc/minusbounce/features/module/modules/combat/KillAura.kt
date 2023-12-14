@@ -753,6 +753,9 @@ class KillAura : Module() {
     }
 
     private fun attackEntity(entity: EntityLivingBase) {
+        if (mc.thePlayer.isBlocking || blockingStatus)
+            stopBlocking()
+
         // Call attack event
         val event = AttackEvent(entity)
         MinusBounce.eventManager.callEvent(event)
@@ -957,40 +960,40 @@ class KillAura : Module() {
     }
 
     private fun preBlocking() {
-        if (!mc.thePlayer.isBlocking && !blockingStatus) return
-        when (autoBlockModeValue.get().lowercase()) {
-            "vanilla", "packet" -> mc.netHandler.addToSendQueue(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
-            "grim" -> {
-                mc.netHandler.addToSendQueue(C09PacketHeldItemChange((mc.thePlayer.inventory.currentItem + 1) % 9))
-                mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
-            }
-            "vulcan" -> if (autoBlockModeValue.get().equals("Vulcan", true) && blockTimer.hasTimePassed(50)) {
-                PacketUtils.sendPacketNoEvent(C08PacketPlayerBlockPlacement(mc.thePlayer.inventory.getCurrentItem()))
-                blockTimer.reset()
-            }
-            "watchdog" -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.keyCode, mc.thePlayer.hurtTime > 6)
-            "oldintave" -> {
-                mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
-                mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
-                blockingStatus = false
-            }
-            "aftertick" -> stopBlocking()
-            "test" -> {
-                if (mc.thePlayer.swingProgressInt == 0) stopBlocking()
-                when (mc.thePlayer.ticksExisted % 20) {
-                    in 0..9 -> {
-                        mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
-                        mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
-                    }
-                    else -> PacketUtils.sendPacketNoEvent(C08PacketPlayerBlockPlacement(mc.thePlayer.inventory.getCurrentItem()))
+        if (mc.thePlayer.isBlocking || blockingStatus) 
+            when (autoBlockModeValue.get().lowercase()) {
+                "vanilla", "packet" -> mc.netHandler.addToSendQueue(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+                "grim" -> {
+                    mc.netHandler.addToSendQueue(C09PacketHeldItemChange((mc.thePlayer.inventory.currentItem + 1) % 9))
+                    mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
                 }
+                "vulcan" -> if (autoBlockModeValue.get().equals("Vulcan", true) && blockTimer.hasTimePassed(50)) {
+                    PacketUtils.sendPacketNoEvent(C08PacketPlayerBlockPlacement(mc.thePlayer.inventory.getCurrentItem()))
+                    blockTimer.reset()
+                }
+                "watchdog" -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.keyCode, mc.thePlayer.hurtTime > 6)
+                "oldintave" -> {
+                    mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
+                    mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
+                    blockingStatus = false
+                }
+                "aftertick" -> stopBlocking()
+                "test" -> {
+                    if (mc.thePlayer.swingProgressInt == 0) stopBlocking()
+                    when (mc.thePlayer.ticksExisted % 20) {
+                        in 0..9 -> {
+                            mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
+                            mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
+                        }
+                        else -> PacketUtils.sendPacketNoEvent(C08PacketPlayerBlockPlacement(mc.thePlayer.inventory.getCurrentItem()))
+                    }
+                }
+                else -> null
             }
-            else -> return
-        }
     }
 
     private fun postBlocking(entity: EntityLivingBase) {
-        if (mc.thePlayer.isBlocking && !autoBlockModeValue.get().equals("None", true) && !autoBlockModeValue.get().equals("Fake", true) && canBlock) {
+        if (mc.thePlayer.isBlocking || (!autoBlockModeValue.get().equals("None", true) && !autoBlockModeValue.get().equals("Fake", true) && canBlock)) {
             if (blockRate.get() > 0 && Random().nextInt(100) <= blockRate.get()) {
                 if (smartAutoBlockValue.get() && clicks != 1 && mc.thePlayer.getDistanceToEntityBox(entity) < range && mc.thePlayer.hurtTime < 4)
                     return
