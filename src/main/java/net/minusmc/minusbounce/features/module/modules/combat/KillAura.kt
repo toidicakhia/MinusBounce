@@ -82,7 +82,6 @@ class KillAura : Module() {
         "AutoBlock",
         arrayOf(
             "None",
-            "Fake",
             "AfterTick",
             "Vanilla",
             "Packet",
@@ -95,24 +94,25 @@ class KillAura : Module() {
             "Test",
             "RightHold",
             "OldHypixel",
+            "OldWatchdog"
         ),
         "None"
     )
 
     private val autoBlockRangeValue = FloatValue("AutoBlock-Range", 5f, 0f, 8f, "m") {
-        !autoBlockModeValue.get().equals("None", true) && !autoBlockModeValue.get().equals("Fake", true)
+        !autoBlockModeValue.get().equals("None", true)
     }
     private val interactAutoBlockValue = BoolValue("InteractAutoBlock", true) {
-        !autoBlockModeValue.get().equals("None", true) && !autoBlockModeValue.get().equals("Fake", true)
+        !autoBlockModeValue.get().equals("None", true)
     }
     private val abThruWallValue = BoolValue("AutoBlockThroughWalls", false) {
-        !autoBlockModeValue.get().equals("None", true) && !autoBlockModeValue.get().equals("Fake", true)
+        !autoBlockModeValue.get().equals("None", true)
     }
     private val smartAutoBlockValue = BoolValue("SmartAutoBlock", false) {
-        !autoBlockModeValue.get().equals("None", true) && !autoBlockModeValue.get().equals("Fake", true)
+        !autoBlockModeValue.get().equals("None", true)
     }
     private val blockRate = IntegerValue("BlockRate", 100, 1, 100, "%") {
-        !autoBlockModeValue.get().equals("None", true) && !autoBlockModeValue.get().equals("Fake", true)
+        !autoBlockModeValue.get().equals("None", true)
     }
 
     // Raycast
@@ -162,6 +162,7 @@ class KillAura : Module() {
     private val outborderValue = BoolValue("Outborder", false)
 
     // Bypass
+    private val fakeSwingValue = BoolValue("FakeSwing", true)
     private val failRateValue = FloatValue("FailRate", 0f, 0f, 100f)
     private val noInventoryAttackValue = BoolValue("NoInvAttack", false)
     private val noInventoryDelayValue = IntegerValue("NoInvDelay", 200, 0, 500, "ms") { noInventoryAttackValue.get() }
@@ -206,6 +207,7 @@ class KillAura : Module() {
 
     // Fake block status
     var blockingStatus = false
+    var fakeBlock = false
     private var verusBlocking = false
 
     //Hypixel Autoblock
@@ -247,6 +249,7 @@ class KillAura : Module() {
         attackTimer.reset()
         clicks = 0
         stopBlocking()
+        mc.gameSettings.keyBindUseItem.pressed = false
 
         if (verusBlocking && !blockingStatus && !mc.thePlayer.isBlocking) {
             verusBlocking = false
@@ -266,10 +269,6 @@ class KillAura : Module() {
             updateKA()
 
         if (event.eventState == EventState.PRE) {
-            if (canBlock && currentTarget != null) {
-                startBlocking(currentTarget!!, interactAutoBlockValue.get())
-            }
-
             if (autoBlockModeValue.get().equals("Watchdog", true)) {
                 if (mc.thePlayer.heldItem.item is ItemSword && currentTarget != null) {
                     watchdogkaing = true
@@ -333,6 +332,10 @@ class KillAura : Module() {
             //AutoBlock
             if (autoBlockModeValue.get().equals("AfterTick", true) && canBlock)
                 startBlocking(currentTarget!!, hitable)
+
+            if (autoBlockModeValue.get().equals("RightHold", true) && canBlock) {
+                mc.gameSettings.keyBindUseItem.pressed = mc.thePlayer.getDistanceToEntityBox(target!!) < range
+            }
 
             if (autoBlockModeValue.get().equals("OldHypixel", true)) {
                 when (mc.thePlayer.swingProgressInt) {
@@ -635,7 +638,8 @@ class KillAura : Module() {
 
         // Check is not hitable or check failrate
         if (!hitable || failHit) {
-            runSwing()
+            if (!swingValue.get().equals("None") && (!fakeSwingValue.get() || failHit))
+                runSwing()
         } else {
             // Attack
             if (!multi) {
@@ -748,9 +752,6 @@ class KillAura : Module() {
     }
 
     private fun attackEntity(entity: EntityLivingBase) {
-        if (mc.thePlayer.isBlocking || blockingStatus)
-            stopBlocking()
-
         // Call attack event
         val event = AttackEvent(entity)
         MinusBounce.eventManager.callEvent(event)
@@ -966,6 +967,7 @@ class KillAura : Module() {
                     PacketUtils.sendPacketNoEvent(C08PacketPlayerBlockPlacement(mc.thePlayer.inventory.getCurrentItem()))
                     blockTimer.reset()
                 }
+                "oldwatchdog" -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.keyCode, mc.thePlayer.hurtTime > 6)
                 "oldintave" -> {
                     mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
                     mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
@@ -987,7 +989,7 @@ class KillAura : Module() {
     }
 
     private fun postBlocking(entity: EntityLivingBase) {
-        if (mc.thePlayer.isBlocking || (!autoBlockModeValue.get().equals("None", true) && !autoBlockModeValue.get().equals("Fake", true) && canBlock)) {
+        if (mc.thePlayer.isBlocking || (!autoBlockModeValue.get().equals("None", true) && canBlock)) {
             if (!(blockRate.get() > 0 && Random().nextInt(100) <= blockRate.get())) 
                 return
 
@@ -1011,7 +1013,10 @@ class KillAura : Module() {
         if (blockingStatus) return
 
         if (!abThruWallValue.get() && interactEntity is EntityLivingBase) {
-            if (!interactEntity.canEntityBeSeen(mc.thePlayer!!)) return
+            if (!interactEntity.canEntityBeSeen(mc.thePlayer!!)) {
+                fakeBlock = true
+                return
+            }
         }
 
         if (interact) {
@@ -1044,6 +1049,8 @@ class KillAura : Module() {
     }
 
     private fun stopBlocking() {
+        fakeBlock = false
+
         if (blockingStatus) {
             mc.netHandler.addToSendQueue(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
 
