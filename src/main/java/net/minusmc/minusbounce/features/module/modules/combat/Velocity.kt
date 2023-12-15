@@ -50,6 +50,18 @@ class Velocity : Module() {
     }
 
     @EventTarget
+    fun onPacket(event: PacketEvent) {
+        mode.onPacket(event)
+        val packet = event.packet
+        if (onExplosionValue.get() && packet is S27PacketExplosion) {
+            mc.thePlayer.motionX += packet.func_149149_c() * horizontalExplosionValue.get()
+            mc.thePlayer.motionY += packet.func_149144_d() * verticalExplosionValue.get()
+            mc.thePlayer.motionZ += packet.func_149147_e() * horizontalExplosionValue.get()
+            event.cancelEvent()
+        }
+    }
+
+    @EventTarget
     fun onUpdate(event: UpdateEvent) {
         if (mc.thePlayer.hurtTime <= 0) shouldAffect = (Math.random().toFloat() < reduceChance.get() / 100F)
         if (mc.thePlayer.isInWater || mc.thePlayer.isInLava || mc.thePlayer.isInWeb || !shouldAffect)
