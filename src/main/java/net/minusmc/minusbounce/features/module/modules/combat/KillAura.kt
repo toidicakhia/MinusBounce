@@ -330,7 +330,7 @@ class KillAura : Module() {
 
             updateHitable()
 
-            AutoBlock
+            //AutoBlock
             if (autoBlockModeValue.get().equals("AfterTick", true) && canBlock)
                 startBlocking(currentTarget!!, hitable)
 
