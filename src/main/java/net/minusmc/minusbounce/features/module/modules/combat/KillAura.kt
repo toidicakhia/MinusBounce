@@ -95,7 +95,6 @@ class KillAura : Module() {
             "Test",
             "RightHold",
             "OldHypixel",
-            "Watchdog"
         ),
         "None"
     )
@@ -248,7 +247,6 @@ class KillAura : Module() {
         attackTimer.reset()
         clicks = 0
         stopBlocking()
-        mc.gameSettings.keyBindUseItem.pressed = false
 
         if (verusBlocking && !blockingStatus && !mc.thePlayer.isBlocking) {
             verusBlocking = false
@@ -332,20 +330,16 @@ class KillAura : Module() {
 
             updateHitable()
 
-            // AutoBlock
-            // if (autoBlockModeValue.get().equals("AfterTick", true) && canBlock)
-            //     startBlocking(currentTarget!!, hitable)
+            AutoBlock
+            if (autoBlockModeValue.get().equals("AfterTick", true) && canBlock)
+                startBlocking(currentTarget!!, hitable)
 
-            // if (autoBlockModeValue.get().equals("RightHold", true) && canBlock) {
-            //     mc.gameSettings.keyBindUseItem.pressed = mc.thePlayer.getDistanceToEntityBox(target!!) < range
-            // }
-
-            // if (autoBlockModeValue.get().equals("OldHypixel", true)) {
-            //     when (mc.thePlayer.swingProgressInt) {
-            //         1 -> stopBlocking()
-            //         2 -> startBlocking(currentTarget!!, interactAutoBlockValue.get() && mc.thePlayer.getDistanceToEntityBox(currentTarget!!) < range)
-            //     }
-            // }
+            if (autoBlockModeValue.get().equals("OldHypixel", true)) {
+                when (mc.thePlayer.swingProgressInt) {
+                    1 -> stopBlocking()
+                    2 -> startBlocking(currentTarget!!, interactAutoBlockValue.get() && mc.thePlayer.getDistanceToEntityBox(currentTarget!!) < range)
+                }
+            }
         }
 
 
@@ -972,7 +966,6 @@ class KillAura : Module() {
                     PacketUtils.sendPacketNoEvent(C08PacketPlayerBlockPlacement(mc.thePlayer.inventory.getCurrentItem()))
                     blockTimer.reset()
                 }
-                "watchdog" -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.keyCode, mc.thePlayer.hurtTime > 6)
                 "oldintave" -> {
                     mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
                     mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
