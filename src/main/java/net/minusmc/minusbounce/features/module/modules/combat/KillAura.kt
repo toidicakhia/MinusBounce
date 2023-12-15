@@ -320,7 +320,8 @@ class KillAura : Module() {
                         watchdogcancelTicks = 0
                     }
                 }
-            }
+            } else if (!autoBlockModeValue.get().equals("None") && canBlock && currentTarget != null)
+                startBlocking(currentTarget!!, interactAutoBlockValue.get())
         }
 
         if (event.eventState == EventState.POST) {
