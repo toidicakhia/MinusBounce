@@ -38,6 +38,10 @@ class Velocity : Module() {
         }
     }
 
+    private val onExplosionValue = BoolValue("OnExplosion", true)
+    private val horizontalExplosionValue = FloatValue("HorizontalExplosion", 0F, 0F, 1F) { onExplosionValue.get() }
+    private val verticalExplosionValue = FloatValue("VerticalExplosion", 0F, 0F, 1F) { onExplosionValue.get() }
+
     private val reduceChance = FloatValue("Reduce-Chance", 100F, 0F, 100F, "%")
     private var shouldAffect: Boolean = true
 
