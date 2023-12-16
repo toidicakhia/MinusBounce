@@ -320,8 +320,11 @@ class KillAura : Module() {
                         watchdogcancelTicks = 0
                     }
                 }
-            } else if (!autoBlockModeValue.get().equals("None") && canBlock && currentTarget != null)
-                startBlocking(currentTarget!!, interactAutoBlockValue.get())
+            } else {
+                when (autoBlockModeValue.get().lowercase()) {
+                    "oldintave", "packet", "test" -> startBlocking(currentTarget!!, interactAutoBlockValue.get())
+                }
+            }
         }
 
         if (event.eventState == EventState.POST) {
@@ -999,6 +1002,7 @@ class KillAura : Module() {
 
             when (autoBlockModeValue.get().lowercase()) {
                 "vanilla" -> startBlocking(entity, interactAutoBlockValue.get())
+                "grim" -> startBlocking(entity, interactAutoBlockValue.get())
                 "test" -> if (mc.thePlayer.ticksExisted.let { it in 0..15 && it % 5 == 0 }) startBlocking(entity, interactAutoBlockValue.get())
                 "polar" -> if (mc.thePlayer.hurtTime < 8 && mc.thePlayer.hurtTime != 1 && mc.thePlayer.fallDistance > 0) startBlocking(entity, interactAutoBlockValue.get())
                 else -> null
