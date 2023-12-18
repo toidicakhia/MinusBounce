@@ -211,8 +211,6 @@ class KillAura : Module() {
     var fakeBlock = false
     private var verusBlocking = false
 
-    private val blockTimer = MSTimer()
-
     //Hypixel Autoblock
     private var watchdogc02 = 0
     private var watchdogdelay = 0
@@ -618,7 +616,7 @@ class KillAura : Module() {
             attackDelay = TimeUtils.randomClickDelay(cps.get().getMin(), cps.get().getMax())
         }
 
-        if (currentTarget != null && attackTimer.hasTimePassed((attackDelay.toDouble() * 0.9).toLong()) && autoBlockPacketValue.get().equals("KeyBlock", true) && canBlock) {
+        if (currentTarget != null && attackTimer.hasTimePassed((attackDelay.toDouble() * 0.9).toLong()) && autoBlockModeValue.get().equals("KeyBlock", true) && canBlock) {
              mc.gameSettings.keyBindUseItem.pressed = false
         }
 
@@ -1017,7 +1015,7 @@ class KillAura : Module() {
                 "grim" -> startBlocking(entity, interactAutoBlockValue.get())
                 "test" -> if (mc.thePlayer.ticksExisted.let { it in 0..15 && it % 5 == 0 }) startBlocking(entity, interactAutoBlockValue.get())
                 "polar" -> if (mc.thePlayer.hurtTime < 8 && mc.thePlayer.hurtTime != 1 && mc.thePlayer.fallDistance > 0) startBlocking(entity, interactAutoBlockValue.get())
-                "keyblock" -> delayBlockTimer.reset()
+                "keyblock" -> blockTimer.reset()
                 else -> null
             }
         }
