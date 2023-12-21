@@ -799,10 +799,10 @@ class KillAura : Module() {
     private fun updateRotations(entity: Entity): Boolean {
         if (rotations.get().equals("none", true)) return true
 
-        val disabler = MinusBounce.moduleManager[Disabler::class.java]!!
-        val watchdogDisabler = disabler.modes.find { it.modeName.equals("Watchdog", true) } as WatchdogDisabler
+        // val disabler = MinusBounce.moduleManager[Disabler::class.java]!!
+        // val watchdogDisabler = disabler.modes.find { it.modeName.equals("Watchdog", true) } as WatchdogDisabler
 
-        if (watchdogDisabler.canModifyRotation) return true
+        // if (watchdogDisabler.canModifyRotation) return true
 
         val defRotation = getTargetRotation(entity) ?: return false
         fixedRotation!!.updateRotations(defRotation.yaw, defRotation.pitch)
