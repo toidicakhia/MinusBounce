@@ -799,10 +799,10 @@ class KillAura : Module() {
     private fun updateRotations(entity: Entity): Boolean {
         if (rotations.get().equals("none", true)) return true
 
-        // val disabler = MinusBounce.moduleManager[Disabler::class.java]!!
-        // val watchdogDisabler = disabler.modes.find { it.modeName.equals("Watchdog", true) } as WatchdogDisabler
+        val disabler = MinusBounce.moduleManager[Disabler::class.java]!!
+        val watchdogDisabler = disabler.modes.find { it.modeName.equals("Watchdog", true) } as WatchdogDisabler
 
-        // if (watchdogDisabler.canModifyRotation) return true
+        if (watchdogDisabler.canModifyRotation) return true
 
         val defRotation = getTargetRotation(entity) ?: return false
         fixedRotation!!.updateRotations(defRotation.yaw, defRotation.pitch)
@@ -875,7 +875,7 @@ class KillAura : Module() {
                         predictValue.get(),
                         throughWallsRangeValue.get() > 0f
                 ) ?: return null
-                val diffAngle = RotationUtils.getRotationDifference(RotationUtils.serverRotation!!, rotation)
+                var diffAngle = RotationUtils.getRotationDifference(RotationUtils.serverRotation!!, rotation)
                 if (diffAngle < 0) diffAngle = -diffAngle
                 if (diffAngle > 180.0) diffAngle = 180.0
                 RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, rotation, diffAngle.toFloat() / rotationSmoothValue.get())
