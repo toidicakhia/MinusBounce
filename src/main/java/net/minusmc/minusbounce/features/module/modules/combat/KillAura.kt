@@ -808,7 +808,7 @@ class KillAura : Module() {
         fixedRotation!!.updateRotations(defRotation.yaw, defRotation.pitch)
 
         if (silentRotationValue.get()) {
-            RotationUtils.setTargetRot(defRotation, if (aacValue.get() && !rotations.get().equals("Spin", ignoreCase = true)) 15 else 0)
+            RotationUtils.setTargetRot(defRotation, if (aacValue.get() && !rotations.get().equals("Spin", ignoreCase = true)) 15 else 1)
         } else {
             defRotation.toPlayer(mc.thePlayer!!)
         }
@@ -849,8 +849,6 @@ class KillAura : Module() {
         }
 
         val rotationSpeed = (Math.random() * (turnSpeed.get().getMax() - turnSpeed.get().getMin()) + turnSpeed.get().getMin()).toFloat()
-        
-        val rotation = 
 
         return when (rotations.get().lowercase()) {
             "vanilla" -> {
@@ -878,6 +876,8 @@ class KillAura : Module() {
                         throughWallsRangeValue.get() > 0f
                 ) ?: return null
                 val diffAngle = RotationUtils.getRotationDifference(RotationUtils.serverRotation!!, rotation)
+                if (diffAngle < 0) diffAngle = -diffAngle
+                if (diffAngle > 180.0) diffAngle = 180.0
                 RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, rotation, diffAngle.toFloat() / rotationSmoothValue.get())
             }
             "backtrack" -> {

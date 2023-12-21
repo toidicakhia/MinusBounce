@@ -647,10 +647,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
                     val rotation = toRotation(vec3, predict)
                     if (throughWalls || isVisible(vec3)) {
                         val currentVec = VecRotation(vec3, rotation)
-                        if (vecRotation == null || getRotationDifference(currentVec.rotation) < getRotationDifference(
-                                vecRotation.rotation
-                            )
-                        ) {
+                        if (vecRotation == null || getRotationDifference(currentVec.rotation) < getRotationDifference(vecRotation.rotation)) {
                             vecRotation = currentVec
                             curVec3 = vec3
                         }
