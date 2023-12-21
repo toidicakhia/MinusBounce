@@ -81,9 +81,10 @@ class AutoWeapon : Module() {
             spoofedSlot--
         }
 
-        if (resetSlot && tickTimer.hasTimePassed(10)) {
+        if (resetSlot && tickTimer.hasTimePassed(5)) {
             mc.thePlayer.inventory.currentItem = (slot + 1) % 9
             resetSlot = false
+            tickTimer.reset()
         }
     }
 }
