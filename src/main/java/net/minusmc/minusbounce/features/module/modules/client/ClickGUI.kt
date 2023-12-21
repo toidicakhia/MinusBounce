@@ -79,5 +79,4 @@ object ClickGUI: Module() {
     override fun onEnable() {
         changeClickGui()
     }
-
 }
