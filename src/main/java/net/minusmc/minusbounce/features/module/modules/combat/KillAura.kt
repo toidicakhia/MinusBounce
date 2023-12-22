@@ -97,7 +97,6 @@ class KillAura : Module() {
         ),
         "None"
     )
-
     private val autoBlockRangeValue = FloatValue("AutoBlock-Range", 5f, 0f, 8f, "m") {
         !autoBlockModeValue.get().equals("None", true)
     }
@@ -268,7 +267,7 @@ class KillAura : Module() {
             updateKA()
 
         if (event.eventState == EventState.PRE) {
-            if (canBlock && autoBlockModeValue.get().equals("Test", true)) {
+            if ((autoBlockModeValue.get().equals("OldIntave", true) || autoBlockModeValue.get().equals("Test", true)) && currentTarget != null && canBlock) {
                 startBlocking(currentTarget!!, interactAutoBlockValue.get())
             }
 
@@ -335,7 +334,6 @@ class KillAura : Module() {
             //AutoBlock
             if (autoBlockModeValue.get().equals("AfterTick", true) && canBlock)
                 startBlocking(currentTarget!!, hitable)
-
             if (autoBlockModeValue.get().equals("OldHypixel", true)) {
                 when (mc.thePlayer.swingProgressInt) {
                     1 -> stopBlocking()
@@ -343,7 +341,6 @@ class KillAura : Module() {
                 }
             }
         }
-
 
         if (rotationStrafeValue.get().equals("Off", true))
             update()
@@ -980,11 +977,10 @@ class KillAura : Module() {
                     mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
                     blockingStatus = false
                 }
-                "aftertick" -> stopBlocking()
                 "test" -> {
                     if (mc.thePlayer.swingProgressInt == 0) stopBlocking()
                     when (mc.thePlayer.ticksExisted % 20) {
-                        in 0..12 -> {
+                        in 0..16 -> {
                             mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
                             mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
                         }
@@ -1005,7 +1001,7 @@ class KillAura : Module() {
                 return
 
             when (autoBlockModeValue.get().lowercase()) {
-                "vanilla", "verus", "oldintave" -> startBlocking(entity, interactAutoBlockValue.get())
+                "vanilla" -> startBlocking(entity, interactAutoBlockValue.get())
                 "test" -> if (mc.thePlayer.ticksExisted.let { it in 0..15 && it % 5 == 0 }) startBlocking(entity, interactAutoBlockValue.get())
                 "polar" -> if (mc.thePlayer.hurtTime < 8 && mc.thePlayer.hurtTime != 1 && mc.thePlayer.fallDistance > 0) startBlocking(entity, interactAutoBlockValue.get())
                 "keyblock" -> blockTimer.reset()
