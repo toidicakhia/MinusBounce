@@ -417,18 +417,13 @@ class Scaffold: Module() {
 
         if (mc.thePlayer.onGround) {
             // Smooth Zitter
-            if (zitterModeValue.get().equals("smooth", true)) {
-                if (!GameSettings.isKeyDown(mc.gameSettings.keyBindRight))
-                    mc.gameSettings.keyBindRight.pressed = false
-
-                if (!GameSettings.isKeyDown(mc.gameSettings.keyBindLeft))
-                    mc.gameSettings.keyBindLeft.pressed = false
-
-                if (zitterTimer.hasTimePassed(zitterDelay.get().toLong())) {
+            if (zitterModeValue.equals("smooth")) {
+                if (!GameSettings.isKeyDown(mc.gameSettings.keyBindRight)) mc.gameSettings.keyBindRight.pressed = false
+                if (!GameSettings.isKeyDown(mc.gameSettings.keyBindLeft)) mc.gameSettings.keyBindLeft.pressed = false
+                if (zitterTimer.hasTimePassed(100)) {
                     zitterDirection = !zitterDirection
                     zitterTimer.reset()
                 }
-
                 if (zitterDirection) {
                     mc.gameSettings.keyBindRight.pressed = true
                     mc.gameSettings.keyBindLeft.pressed = false
