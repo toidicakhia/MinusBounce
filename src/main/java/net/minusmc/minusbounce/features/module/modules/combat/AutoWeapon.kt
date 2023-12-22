@@ -83,6 +83,7 @@ class AutoWeapon : Module() {
 
         if (resetSlot && tickTimer.hasTimePassed(5)) {
             mc.thePlayer.inventory.currentItem = (mc.thePlayer.inventory.currentItem + 1) % 9
+            mc.playerController.updateController()
             resetSlot = false
             tickTimer.reset()
         }
