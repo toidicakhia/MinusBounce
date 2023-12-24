@@ -24,6 +24,9 @@ import net.minusmc.minusbounce.ui.client.hud.element.elements.targets.impl.Minus
 @ModuleInfo(name = "Sprint", description = "Automatically sprints all the time.", category = ModuleCategory.MOVEMENT)
 class Sprint : Module() {
 
+    val sprintUseItemValue = BoolValue("SprintOnUseItem", false)
+    val sprintSwordValue = BoolValue("SprintOnSword", false)
+
     val allDirectionsValue = BoolValue("AllDirections", true)
     private val noPacketPatchValue = BoolValue("AllDir-NoPacketsPatch", true) { allDirectionsValue.get() }
     val moveDirPatchValue = BoolValue("AllDir-MoveDirPatch", false) { allDirectionsValue.get() }
@@ -47,11 +50,6 @@ class Sprint : Module() {
     fun onUpdate(event: UpdateEvent) {
         val killAura = MinusBounce.moduleManager[KillAura::class.java]!!
         val noSlow = MinusBounce.moduleManager[NoSlow::class.java]!!
-
-        if (noSlow.state && noSlow.noSprintValue.get() && noSlow.isSlowing) {
-            mc.thePlayer.isSprinting = false
-            return
-        }
 
         if (!MovementUtils.isMoving || mc.thePlayer.isSneaking
             || (blindnessValue.get() && mc.thePlayer.isPotionActive(Potion.blindness))

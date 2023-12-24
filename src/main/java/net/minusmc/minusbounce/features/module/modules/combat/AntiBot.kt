@@ -148,7 +148,7 @@ object AntiBot : Module() {
             }
         } else if (packet is S0CPacketSpawnPlayer) {
             val killAura = MinusBounce.moduleManager[KillAura::class.java]!!
-            if(killAura.target != null && !hasRemovedEntities.contains(packet.entityID)) {
+            if (killAura.target != null && !hasRemovedEntities.contains(packet.entityID)) {
                 spawnInCombat.add(packet.entityID)
             }
         } else if (packet is S13PacketDestroyEntities) {
@@ -271,7 +271,7 @@ object AntiBot : Module() {
             val chestplateMaterial = (chestplate.item as ItemArmor).armorMaterial
             val leggingsMaterial = (leggings.item as ItemArmor).armorMaterial
             val bootsMaterial = (boots.item as ItemArmor).armorMaterial
-            if (!(helmetMaterial == chestplateMaterial && leggingsMaterial == bootsMaterial))
+            if (!(helmetMaterial == ItemArmor.ArmorMaterial.LEATHER && chestplateMaterial == ItemArmor.ArmorMaterial.LEATHER && leggingsMaterial == bootsMaterial))
                 return true
         }
 
