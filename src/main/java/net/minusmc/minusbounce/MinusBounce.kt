@@ -71,7 +71,7 @@ object MinusBounce {
         isStarting = true
 
         ClientUtils.logger.info("Starting $CLIENT_NAME")
-        ClassUtils.INSTANCE.initCacheClass()
+        ClassUtils.initCacheClass()
         lastTick = System.currentTimeMillis()
         playTimeStart = System.currentTimeMillis()
 
