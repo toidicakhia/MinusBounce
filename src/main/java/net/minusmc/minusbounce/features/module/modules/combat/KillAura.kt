@@ -267,10 +267,6 @@ class KillAura : Module() {
             updateKA()
 
         if (event.eventState == EventState.PRE) {
-            if ((autoBlockModeValue.get().equals("OldIntave", true) || autoBlockModeValue.get().equals("Test", true)) && currentTarget != null && canBlock) {
-                startBlocking(currentTarget!!, interactAutoBlockValue.get())
-            }
-
             if (autoBlockModeValue.get().equals("Watchdog", true)) {
                 if (mc.thePlayer.heldItem.item is ItemSword && currentTarget != null) {
                     watchdogkaing = true
@@ -760,12 +756,13 @@ class KillAura : Module() {
     }
 
     private fun attackEntity(entity: EntityLivingBase) {
+        if (mc.thePlayer.isBlocking || blockingStatus)
+            stopBlocking()
+
         // Call attack event
         val event = AttackEvent(entity)
         MinusBounce.eventManager.callEvent(event)
         if (event.isCancelled) return
-
-        preBlocking()
 
         // Attack target
         runSwing()
@@ -796,7 +793,8 @@ class KillAura : Module() {
                 mc.thePlayer.onEnchantmentCritical(target)
         }
 
-        postBlocking(entity)
+        if (!autoBlockModeValue.get().equals("AfterTick", true) && (mc.thePlayer.isBlocking || canBlock))
+            startBlocking(entity, interactAutoBlockValue.get())
     }
 
     private fun updateRotations(entity: Entity): Boolean {
@@ -963,63 +961,36 @@ class KillAura : Module() {
             hitable = RotationUtils.isFaced(currentTarget!!, reach)
     }
 
-    private fun preBlocking() {
-        if (mc.thePlayer.isBlocking || blockingStatus) 
-            when (autoBlockModeValue.get().lowercase()) {
-                "vanilla" -> mc.netHandler.addToSendQueue(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
-                "vulcan" -> if (autoBlockModeValue.get().equals("Vulcan", true) && blockTimer.hasTimePassed(50)) {
-                    PacketUtils.sendPacketNoEvent(C08PacketPlayerBlockPlacement(mc.thePlayer.inventory.getCurrentItem()))
-                    blockTimer.reset()
-                }
-                "oldwatchdog" -> KeyBinding.setKeyBindState(mc.gameSettings.keyBindUseItem.keyCode, mc.thePlayer.hurtTime > 6)
-                "oldintave" -> {
-                    mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
-                    mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
-                    blockingStatus = false
-                }
-                "test" -> {
-                    if (mc.thePlayer.swingProgressInt == 0) stopBlocking()
-                    when (mc.thePlayer.ticksExisted % 20) {
-                        in 0..16 -> {
-                            mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
-                            mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
-                        }
-                        else -> mc.netHandler.addToSendQueue(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
-                    }
-                }
-                "keyblock" -> mc.gameSettings.keyBindUseItem.pressed = false
-                else -> null
-            }
-    }
-
-    private fun postBlocking(entity: EntityLivingBase) {
-        if (mc.thePlayer.isBlocking || (!autoBlockModeValue.get().equals("None", true) && canBlock)) {
-            if (!(blockRate.get() > 0 && Random().nextInt(100) <= blockRate.get())) 
-                return
-
-            if (smartAutoBlockValue.get() && clicks != 1 && mc.thePlayer.getDistanceToEntityBox(entity) < maxRange && mc.thePlayer.hurtTime < 4)
-                return
-
-            when (autoBlockModeValue.get().lowercase()) {
-                "vanilla" -> startBlocking(entity, interactAutoBlockValue.get())
-                "test" -> if (mc.thePlayer.ticksExisted.let { it in 0..15 && it % 5 == 0 }) startBlocking(entity, interactAutoBlockValue.get())
-                "polar" -> if (mc.thePlayer.hurtTime < 8 && mc.thePlayer.hurtTime != 1 && mc.thePlayer.fallDistance > 0) startBlocking(entity, interactAutoBlockValue.get())
-                "keyblock" -> blockTimer.reset()
-                else -> null
-            }
-        }
-        
-    }
-
     private fun startBlocking(interactEntity: Entity, interact: Boolean) {
-        if (mc.thePlayer.getDistanceToEntityBox(interactEntity) > autoBlockRangeValue.get())
+        if (autoBlockModeValue.get().equals("none", true) || !(blockRate.get() > 0 && Random().nextInt(100) <= blockRate.get()))
             return
 
-        if (blockingStatus) return
+        if (smartAutoBlockValue.get() && clicks != 1 && mc.thePlayer.getDistanceToEntityBox(interactEntity) < maxRange && mc.thePlayer.hurtTime < 4)
+            return
 
         if (!abThruWallValue.get() && interactEntity is EntityLivingBase) {
             if (!interactEntity.canEntityBeSeen(mc.thePlayer!!)) {
                 fakeBlock = true
+                return
+            }
+        }
+
+        when (autoBlockModeValue.get().lowercase()) {
+            "vulcan" -> {
+                if (blockTimer.hasTimePassed(50)) {
+                    PacketUtils.sendPacketNoEvent(C08PacketPlayerBlockPlacement(mc.thePlayer.inventory.getCurrentItem()))
+                    blockTimer.reset()
+                }
+                return
+            }
+            "oldwatchdog" -> {
+                if (mc.thePlayer.hurtTime > 6) 
+                    mc.gameSettings.keyBindUseItem.pressed = true
+                return
+            }
+            "polar" -> if (mc.thePlayer.hurtTime < 8 && mc.thePlayer.hurtTime != 1 && mc.thePlayer.fallDistance > 0) return
+            "keyblock" -> {
+                blockTimer.reset()
                 return
             }
         }
@@ -1057,8 +1028,24 @@ class KillAura : Module() {
         fakeBlock = false
 
         if (blockingStatus) {
-            mc.netHandler.addToSendQueue(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+            when (autoBlockModeValue.get().lowercase()) {
+                "test" -> when (mc.thePlayer.ticksExisted % 20) {
+                    in 0..16 -> {
+                        mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
+                        mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
+                    }
+                    else -> mc.netHandler.addToSendQueue(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+                }
+                "oldintave" -> {
+                    mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem % 8 + 1))
+                    mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
+                }
+                "keyblock" -> mc.gameSettings.keyBindUseItem.pressed = false
+                "aftertick" -> return
+                else -> mc.netHandler.addToSendQueue(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.RELEASE_USE_ITEM, BlockPos.ORIGIN, EnumFacing.DOWN))
+            }
 
+            
             blockingStatus = false
         }
     }
@@ -1069,7 +1056,7 @@ class KillAura : Module() {
                 (noScaffValue.get() && MinusBounce.moduleManager[Scaffold::class.java]!!.state)
 
     private val canBlock: Boolean
-        get() = mc.thePlayer.heldItem != null && mc.thePlayer.heldItem.item is ItemSword && !autoBlockModeValue.get().equals("None", true)
+        get() = mc.thePlayer.heldItem != null && mc.thePlayer.heldItem.item is ItemSword 
 
     private val maxRange: Float
         get() = max(rangeValue.get(), throughWallsRangeValue.get())
