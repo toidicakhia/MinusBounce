@@ -298,8 +298,14 @@ open class FloatRangeValue(name: String, minValue: Float, maxValue: Float, val m
     }
 
     fun setForceValue(minValue: Float, maxValue: Float) {
-        value.setMax(maxValue)
-        value.setMin(minValue)
+        if (minValue > maxValue) {
+            value.setMax(minValue)
+            value.setMin(maxValue)
+        } else {
+            value.setMax(maxValue)
+            value.setMin(minValue)
+        }
+        
     }
 
     override fun toJson(): JsonElement = Gson().toJsonTree(value)
