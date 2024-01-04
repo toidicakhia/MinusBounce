@@ -4,6 +4,9 @@ import net.minusmc.minusbounce.features.module.modules.world.scaffold.TowerScaff
 
 class JumpTower: TowerScaffold("Jump") {
 	override fun onPostMotion() {
-		if (mc.thePlayer.onGround) mc.thePlayer.jump()
+		if (mc.thePlayer.onGround) {
+			fakeJump()
+			mc.thePlayer.motionY = 0.42
+		}
 	}
 }

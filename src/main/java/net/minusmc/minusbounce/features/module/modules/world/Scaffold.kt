@@ -94,8 +94,8 @@ class Scaffold: Module() {
 
     private val stopWhenBlockAbove = BoolValue("StopWhenBlockAbove", false) { !onTowerValue.get().equals("None", true) }
 
-    private val sameYValue = ListValue("SameY", arrayOf("Same", "AutoJump", "MotionY", "DelayedTower", "Off"), "Off")
-    private val blocksPerJump = IntegerValue("BlocksPerJump", 5, 0, 10)
+    private val sameYValue = ListValue("SameY", arrayOf("Same", "AutoJump", "MotionY", "DelayedTower", "BlocksJump", "Off"), "Off")
+    private val blocksPerJump = IntegerValue("BlocksPerJump", 5, 0, 10) {sameYValue.get().equals("blocksjump", true)}
 
     private val safeWalkValue = ListValue("SafeWalk", arrayOf("Ground", "Air", "Off"), "Off")
 
@@ -290,7 +290,8 @@ class Scaffold: Module() {
 
     @EventTarget
     fun onPreMotion(event: PreMotionEvent) {
-        towerMode.onPreMotion(event)
+        if (towerStatus)
+            towerMode.onPreMotion(event)
 
         if (!placeCondition || if (!autoBlockMode.get().equals("off", true)) InventoryUtils.findAutoBlockBlock() == -1 else mc.thePlayer.heldItem == null || !(mc.thePlayer.heldItem.item is ItemBlock && isBlockToScaffold(mc.thePlayer.heldItem.item as ItemBlock))) {
             return
@@ -323,7 +324,8 @@ class Scaffold: Module() {
                 else -> false
             }
 
-        towerMode.onPostMotion()
+        if (towerStatus)
+            towerMode.onPostMotion()
 
         if (placeModeValue.get().equals("post", true)) place()
 
