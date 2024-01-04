@@ -31,9 +31,6 @@ class AutoWeapon : Module() {
 
     private var spoofedSlot = 0
 
-    private var resetSlot = true
-    private val msTimer = MSTimer()
-
     @EventTarget
     fun onAttack(event: AttackEvent) {
         attackEnemy = true
@@ -79,14 +76,6 @@ class AutoWeapon : Module() {
             if (spoofedSlot == 1)
                 mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
             spoofedSlot--
-        }
-
-        if (resetSlot && msTimer.hasTimePassed(250)) {
-            println("Switch slot.")
-            mc.thePlayer.inventory.currentItem = (mc.thePlayer.inventory.currentItem + 1) % 9
-            mc.playerController.updateController()
-            resetSlot = false
-            msTimer.reset()
         }
     }
 }
