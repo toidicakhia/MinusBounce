@@ -40,7 +40,7 @@ import kotlin.math.*
 @ModuleInfo(name = "Scaffold", description = "Automatically places blocks beneath your feet.", category = ModuleCategory.WORLD, keyBind = Keyboard.KEY_I)
 class Scaffold: Module() {
     //Tower modes
-    private val towerModes = ClassUtils.resolvePackage("${this.javaClass.`package`.name}.killaura.tower", TowerScaffold::class.java)
+    private val towerModes = ClassUtils.resolvePackage("${this.javaClass.`package`.name}.scaffold.tower", TowerScaffold::class.java)
         .map { it.newInstance() as TowerScaffold }
         .sortedBy { it.modeName }
 
