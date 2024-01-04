@@ -2,6 +2,8 @@ package net.minusmc.minusbounce.features.module.modules.combat.killaura.blocking
 
 import net.minusmc.minusbounce.features.module.modules.combat.killaura.KillAuraBlocking
 import net.minusmc.minusbounce.utils.timer.MSTimer
+import net.minusmc.minusbounce.utils.PacketUtils
+import net.minecraft.network.play.client.C08PacketPlayerBlockPlacement
 
 class VulcanBlocking: KillAuraBlocking("Vulcan") {
     private val blockTimer = MSTimer()
