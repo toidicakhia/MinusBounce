@@ -62,8 +62,6 @@ class AutoWeapon : Module() {
                 mc.playerController.updateController()
             }
 
-            resetSlot = true
-
             mc.netHandler.addToSendQueue(event.packet)
             event.cancelEvent()
         }
