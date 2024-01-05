@@ -147,8 +147,7 @@ object AntiBot : Module() {
                 }
             }
         } else if (packet is S0CPacketSpawnPlayer) {
-            val killAura = MinusBounce.moduleManager[KillAura::class.java]!!
-            if (killAura.currentTarget != null && !hasRemovedEntities.contains(packet.entityID)) {
+            if (MinusBounce.combatManager.target != null && !hasRemovedEntities.contains(packet.entityID)) {
                 spawnInCombat.add(packet.entityID)
             }
         } else if (packet is S13PacketDestroyEntities) {
@@ -254,8 +253,8 @@ object AntiBot : Module() {
         }
 
         /* 
-        Check armor material in bedwars
-        Author: pie, toidicakhia
+         * Check armor material in bedwars
+         * Author: pie, toidicakhia
         */
 
         if (sameArmorOnBedwars.get()) {

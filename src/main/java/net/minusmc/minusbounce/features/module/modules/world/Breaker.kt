@@ -94,9 +94,7 @@ object Breaker : Module() {
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
         if (noHitValue.get()) {
-            val killAura = MinusBounce.moduleManager.getModule(KillAura::class.java) as KillAura
-
-            if (killAura.state && killAura.currentTarget != null)
+            if (MinusBounce.moduleManager[KillAura::class.java]!!.state && MinusBounce.combatManager.target != null)
                 return
         }
 

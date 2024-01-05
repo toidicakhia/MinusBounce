@@ -13,7 +13,7 @@ import net.minusmc.minusbounce.utils.SettingsUtils
 import java.io.File
 import java.io.IOException
 
-class ConfigCommand: Command("config", arrayOf("settings")) {
+class ConfigCommand: Command("config", arrayOf("setting")) {
     /**
      * Execute commands with provided [args]
      */

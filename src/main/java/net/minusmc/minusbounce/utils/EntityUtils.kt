@@ -104,7 +104,7 @@ object EntityUtils : MinecraftInstance() {
                 return false
         }
 
-        return entity is EntityLivingBase && entity != mc.thePlayer && mc.thePlayer.getDistanceToEntity(entity) < MinusBounce.moduleManager[KillAura::class.java]!!.rangeValue.get()
+        return entity is EntityLivingBase && entity != mc.thePlayer
     }
 
     fun closestPerson(): EntityLivingBase? {

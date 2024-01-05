@@ -94,9 +94,7 @@ class TargetStrafe : Module() {
 
     fun strafe(event: MoveEvent, moveSpeed: Double) {
         val killAura = MinusBounce.moduleManager[KillAura::class.java]!!
-        if (killAura.currentTarget == null) return
-
-        val currentTarget = killAura.currentTarget!!
+        currentTarget ?: return
         val rotYaw = RotationUtils.getRotationsEntity(currentTarget).yaw
 
         val forward = if (mc.thePlayer.getDistanceToEntity(currentTarget) <= radius.get()) 0.0 else 1.0
@@ -108,10 +106,6 @@ class TargetStrafe : Module() {
     }
 
     fun getData(): Array<Float> {
-        val killAura = MinusBounce.moduleManager[KillAura::class.java]!!
-        if (killAura.currentTarget == null) return arrayOf(0F, 0F, 0F)
-
-        val currentTarget = killAura.currentTarget!!
         val rotYaw = RotationUtils.getRotationsEntity(currentTarget).yaw
 
         val forward = if (mc.thePlayer.getDistanceToEntity(currentTarget) <= radius.get()) 0F else 1F
@@ -147,7 +141,7 @@ class TargetStrafe : Module() {
             val killAura = MinusBounce.moduleManager[KillAura::class.java]!!
             val speed = MinusBounce.moduleManager[Speed::class.java]!!
             val fly = MinusBounce.moduleManager[Fly::class.java]!!
-            return state && (speed.state || fly.state) && killAura.state && killAura.currentTarget != null && !mc.thePlayer.isSneaking && keyMode
+            return state && (speed.state || fly.state) && currentTarget != null && !mc.thePlayer.isSneaking && keyMode
         }
 
     private fun checkVoid(): Boolean {
@@ -180,14 +174,12 @@ class TargetStrafe : Module() {
 
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
-        val killAura = MinusBounce.moduleManager[KillAura::class.java]!!
-        val target = killAura.currentTarget ?: return
         if ((canStrafe || alwaysRender.get()) && render.get()) {
             GL11.glPushMatrix()
             GL11.glTranslated(
-                target.lastTickPosX + (target.posX - target.lastTickPosX) * mc.timer.renderPartialTicks - mc.renderManager.renderPosX,
-                target.lastTickPosY + (target.posY - target.lastTickPosY) * mc.timer.renderPartialTicks - mc.renderManager.renderPosY,
-                target.lastTickPosZ + (target.posZ - target.lastTickPosZ) * mc.timer.renderPartialTicks - mc.renderManager.renderPosZ
+                currentTarget.lastTickPosX + (currentTarget.posX - currentTarget.lastTickPosX) * mc.timer.renderPartialTicks - mc.renderManager.renderPosX,
+                currentTarget.lastTickPosY + (currentTarget.posY - currentTarget.lastTickPosY) * mc.timer.renderPartialTicks - mc.renderManager.renderPosY,
+                currentTarget.lastTickPosZ + (currentTarget.posZ - currentTarget.lastTickPosZ) * mc.timer.renderPartialTicks - mc.renderManager.renderPosZ
             )
             GL11.glEnable(GL11.GL_BLEND)
             GL11.glEnable(GL11.GL_LINE_SMOOTH)
@@ -254,4 +246,7 @@ class TargetStrafe : Module() {
             GL11.glColor4f(1F, 1F, 1F, 1F)
         }
     }
+
+    val currentTarget: EntityLivingBase
+        get() = MinusBounce.combatManager.target!!
 }
