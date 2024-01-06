@@ -94,21 +94,21 @@ class TargetStrafe : Module() {
 
     fun strafe(event: MoveEvent, moveSpeed: Double) {
         val killAura = MinusBounce.moduleManager[KillAura::class.java]!!
-        currentTarget ?: return
-        val rotYaw = RotationUtils.getRotationsEntity(currentTarget).yaw
+        val target = currentTarget ?: return
+        val rotYaw = RotationUtils.getRotationsEntity(target).yaw
 
-        val forward = if (mc.thePlayer.getDistanceToEntity(currentTarget) <= radius.get()) 0.0 else 1.0
+        val forward = if (mc.thePlayer.getDistanceToEntity(target) <= radius.get()) 0.0 else 1.0
         val strafe = direction.toDouble()
-        val modifySpeed = if (expMode.get()) maximizeSpeed(currentTarget, moveSpeed, killAura.rangeValue.get()) else moveSpeed
+        val modifySpeed = if (expMode.get()) maximizeSpeed(target, moveSpeed, killAura.rangeValue.get()) else moveSpeed
 
         MovementUtils.setSpeed(event, modifySpeed, rotYaw, strafe, forward)
         hasModifiedMovement = true
     }
 
     fun getData(): Array<Float> {
-        val rotYaw = RotationUtils.getRotationsEntity(currentTarget).yaw
-
-        val forward = if (mc.thePlayer.getDistanceToEntity(currentTarget) <= radius.get()) 0F else 1F
+        val target = currentTarget ?: return arrayOf(0f, 0f, 0f)
+        val rotYaw = RotationUtils.getRotationsEntity(target).yaw
+        val forward = if (mc.thePlayer.getDistanceToEntity(target) <= radius.get()) 0F else 1F
         val strafe = direction.toFloat()
 
         return arrayOf(rotYaw, strafe, forward)
@@ -174,12 +174,13 @@ class TargetStrafe : Module() {
 
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
+        val target = currentTarget ?: return
         if ((canStrafe || alwaysRender.get()) && render.get()) {
             GL11.glPushMatrix()
             GL11.glTranslated(
-                currentTarget.lastTickPosX + (currentTarget.posX - currentTarget.lastTickPosX) * mc.timer.renderPartialTicks - mc.renderManager.renderPosX,
-                currentTarget.lastTickPosY + (currentTarget.posY - currentTarget.lastTickPosY) * mc.timer.renderPartialTicks - mc.renderManager.renderPosY,
-                currentTarget.lastTickPosZ + (currentTarget.posZ - currentTarget.lastTickPosZ) * mc.timer.renderPartialTicks - mc.renderManager.renderPosZ
+                target.lastTickPosX + (target.posX - target.lastTickPosX) * mc.timer.renderPartialTicks - mc.renderManager.renderPosX,
+                target.lastTickPosY + (target.posY - target.lastTickPosY) * mc.timer.renderPartialTicks - mc.renderManager.renderPosY,
+                target.lastTickPosZ + (target.posZ - target.lastTickPosZ) * mc.timer.renderPartialTicks - mc.renderManager.renderPosZ
             )
             GL11.glEnable(GL11.GL_BLEND)
             GL11.glEnable(GL11.GL_LINE_SMOOTH)
@@ -247,6 +248,6 @@ class TargetStrafe : Module() {
         }
     }
 
-    val currentTarget: EntityLivingBase
-        get() = MinusBounce.combatManager.target!!
+    val currentTarget: EntityLivingBase?
+        get() = MinusBounce.combatManager.target
 }

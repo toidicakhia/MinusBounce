@@ -74,26 +74,27 @@ object MovementUtils : MinecraftInstance() {
     }
 
     fun getDirection(): Double {
-        val ts = MinusBounce.moduleManager[TargetStrafe::class.java] ?: return getRawDirection().toDouble()
+        val ts = MinusBounce.moduleManager[TargetStrafe::class.java]!!
         return if (ts.canStrafe) 
             ts.getMovingDir()
         else
-            getRawDirection().toDouble()
+            getRawDirection()
     }
 
-    fun getRawDirection(): Float {
-        return getRawDirection(mc.thePlayer.rotationYaw, mc.thePlayer.moveStrafing, mc.thePlayer.moveForward)
+    fun getRawDirection(): Double {
+        return getDirectionRotation(mc.thePlayer.rotationYaw, mc.thePlayer.moveStrafing, mc.thePlayer.moveForward).toDouble()
     }
 
     fun getRawDirection(yaw: Float): Float {
-        return getRawDirection(yaw, mc.thePlayer.moveStrafing, mc.thePlayer.moveForward)
+        return getDirectionRotation(yaw, mc.thePlayer.moveStrafing, mc.thePlayer.moveForward).toFloat()
     }
 
     fun getRawDirection(yaw: Float, strafe: Float, forward: Float): Float {
         var rotationYaw = yaw
         if (forward < 0f) rotationYaw += 180f
         var forward = 1f
-        if (forward < 0f) forward = -0.5f else if (forward > 0f) forward = 0.5f
+        if (forward < 0f) forward = -0.5f
+        else if (forward > 0f) forward = 0.5f
         if (strafe > 0f) rotationYaw -= 90f * forward
         if (strafe < 0f) rotationYaw += 90f * forward
         return rotationYaw

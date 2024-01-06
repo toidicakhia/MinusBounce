@@ -21,8 +21,10 @@ class CombatManager: MinecraftInstance(), Listenable {
 	fun onUpdate(event: UpdateEvent) {
 		mc.theWorld ?: return
 
+		discoveredEntities.clear()
+
 		for (entity in mc.theWorld.loadedEntityList) {
-			if (entity !is EntityLivingBase || !EntityUtils.isEnemy(entity) || prevDiscoveredEntites.contains(entity.entityId))
+			if (entity !is EntityLivingBase || !EntityUtils.isEnemy(entity) || (switchMode && prevDiscoveredEntites.contains(entity.entityId)))
                 continue
 
 			if (!discoveredEntities.contains(entity) && mc.thePlayer.getDistanceToEntityBox(entity) <= 15)
@@ -34,7 +36,8 @@ class CombatManager: MinecraftInstance(), Listenable {
 			return
 		}
 
-		if (target!!.isDead) removeEntity()
+		if (target != null && target!!.isDead)
+			discoveredEntities.remove(target)
 	}
 
 	@EventTarget
@@ -43,7 +46,7 @@ class CombatManager: MinecraftInstance(), Listenable {
 		prevDiscoveredEntites.clear()
 	}
 	
-	fun removeEntity() {
+	fun nextEntity() {
 		val entity = target ?: return
 		discoveredEntities.remove(entity)
 		prevDiscoveredEntites.add(entity.entityId)
@@ -63,6 +66,9 @@ class CombatManager: MinecraftInstance(), Listenable {
 
 	val inCombat: Boolean
 		get() = target != null
+
+	val switchMode: Boolean
+		get() = MinusBounce.moduleManager[KillAura::class.java]!!.targetModeValue.get().equals("Switch", true)
 
 	override fun handleEvents() = true
 }

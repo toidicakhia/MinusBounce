@@ -176,7 +176,10 @@ class KillAura : Module() {
 
         blockingMode.onPreUpdate()
 
-        if (target == null){
+        if (target != null && mc.thePlayer.getDistanceToEntityBox(target!!) > rangeValue.get()) {
+            MinusBounce.combatManager.target = null
+        }
+        else if (target == null){
             stopBlocking()
         }
     }
@@ -238,8 +241,7 @@ class KillAura : Module() {
         }
 
         if (targetModeValue.get().equals("Switch", true) && switchDelayValue.get() != 0 && attackTimer.hasTimePassed(switchDelayValue.get())) {
-            MinusBounce.combatManager.removeEntity()
-            MinusBounce.combatManager.target = null
+            MinusBounce.combatManager.nextEntity()
             attackTimer.reset()
         }
     }
@@ -255,7 +257,7 @@ class KillAura : Module() {
         MinusBounce.combatManager.sortEntities(priorityValue.get())
 
         MinusBounce.combatManager.getEntitiesInRange(rangeValue.get()).forEach {
-            if (updateRotations(it!!)) {
+            if (updateRotations(it)) {
                 MinusBounce.combatManager.target = it
                 return
             }
