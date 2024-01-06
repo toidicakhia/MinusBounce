@@ -36,8 +36,10 @@ class CombatManager: MinecraftInstance(), Listenable {
 			return
 		}
 
-		if (target != null && target!!.isDead)
+		if (target != null && target!!.isDead) {
 			discoveredEntities.remove(target)
+			target = null
+		}
 	}
 
 	@EventTarget
