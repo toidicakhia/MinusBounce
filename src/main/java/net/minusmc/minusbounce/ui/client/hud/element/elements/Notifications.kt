@@ -29,8 +29,7 @@ import java.math.BigDecimal
 import kotlin.math.pow
 
 @ElementInfo(name = "Notifications", single = true)
-class Notifications(x: Double = 0.0, y: Double = 30.0, scale: Float = 1F,
-                    side: Side = Side(Side.Horizontal.RIGHT, Side.Vertical.DOWN)) : Element(x, y, scale, side) {
+class Notifications(x: Double = 0.0, y: Double = 30.0, scale: Float = 1F, side: Side = Side(Side.Horizontal.RIGHT, Side.Vertical.DOWN)) : Element(x, y, scale, side) {
 
     val styleValue = ListValue("Style", arrayOf("Full", "Full2", "Novoline", "Compact", "Material", "Test"), "Material")
     val barValue = BoolValue("Bar", true) { styleValue.get().equals("material", true) }
@@ -299,25 +298,27 @@ class Notification(val message: String, val type: Type, val displayTime: Long) {
 
                 Stencil.write(true)
 
-                if (type == Type.ERROR) {
-                    RenderUtils.drawRoundedRect(-x + 9 + textLength, -y + 1, kek - 1, -28F - y - 1, 0F, Color(115,69,75).rgb)
-                    RenderUtils.drawRoundedRect(-x + 8 + textLength, -y, kek, -28F - y, 0F, Color(89,61,65).rgb)
-                    Fonts.minecraftFont.drawStringWithShadow("Error:", -x - 4, -25F - y, Color(249,130,108).rgb)
-                }
-                if (type == Type.INFO) {
-                    RenderUtils.drawRoundedRect(-x + 9 + textLength, -y + 1, kek - 1, -28F - y - 1, 0F, Color(70,94,115).rgb)
-                    RenderUtils.drawRoundedRect(-x + 8 + textLength, -y, kek, -28F - y, 0F, Color(61,72,87).rgb)
-                    Fonts.minecraftFont.drawStringWithShadow("Information:", -x - 4, -25F - y, Color(119,145,147).rgb)
-                }
-                if (type == Type.SUCCESS) {
-                    RenderUtils.drawRoundedRect(-x + 9 + textLength, -y + 1, kek - 1, -28F - y - 1, 0F, Color(67,104,67).rgb)
-                    RenderUtils.drawRoundedRect(-x + 8 + textLength, -y, kek, -28F - y, 0F, Color(55,78,55).rgb)
-                    Fonts.minecraftFont.drawStringWithShadow("Success:", -x - 4, -25F - y, Color(10,142,2).rgb)
-                }
-                if (type == Type.WARNING) {
-                    RenderUtils.drawRoundedRect(-x + 9 + textLength, -y + 1, kek - 1, -28F - y - 1, 0F, Color(103,103,63).rgb)
-                    RenderUtils.drawRoundedRect(-x + 8 + textLength, -y, kek, -28F - y, 0F, Color(80,80,57).rgb)
-                    Fonts.minecraftFont.drawStringWithShadow("Warning:", -x - 4, -25F - y, Color(175,163,0).rgb)
+                when (type) {
+                    Type.ERROR -> {
+                        RenderUtils.drawRoundedRect(-x + 9 + textLength, -y + 1, kek - 1, -28F - y - 1, 0F, Color(115,69,75).rgb)
+                        RenderUtils.drawRoundedRect(-x + 8 + textLength, -y, kek, -28F - y, 0F, Color(89,61,65).rgb)
+                        Fonts.minecraftFont.drawStringWithShadow("Error:", -x - 4, -25F - y, Color(249,130,108).rgb)
+                    }
+                    Type.SUCCESS -> {
+                        RenderUtils.drawRoundedRect(-x + 9 + textLength, -y + 1, kek - 1, -28F - y - 1, 0F, Color(67,104,67).rgb)
+                        RenderUtils.drawRoundedRect(-x + 8 + textLength, -y, kek, -28F - y, 0F, Color(55,78,55).rgb)
+                        Fonts.minecraftFont.drawStringWithShadow("Success:", -x - 4, -25F - y, Color(10,142,2).rgb)
+                    }
+                    Type.INFO -> {
+                        RenderUtils.drawRoundedRect(-x + 9 + textLength, -y + 1, kek - 1, -28F - y - 1, 0F, Color(70,94,115).rgb)
+                        RenderUtils.drawRoundedRect(-x + 8 + textLength, -y, kek, -28F - y, 0F, Color(61,72,87).rgb)
+                        Fonts.minecraftFont.drawStringWithShadow("Information:", -x - 4, -25F - y, Color(119,145,147).rgb)
+                    }
+                    Type.WARNING -> {
+                        RenderUtils.drawRoundedRect(-x + 9 + textLength, -y + 1, kek - 1, -28F - y - 1, 0F, Color(103,103,63).rgb)
+                        RenderUtils.drawRoundedRect(-x + 8 + textLength, -y, kek, -28F - y, 0F, Color(80,80,57).rgb)
+                        Fonts.minecraftFont.drawStringWithShadow("Warning:", -x - 4, -25F - y, Color(175,163,0).rgb)
+                    }
                 }
 
                 Stencil.erase(true)

@@ -7,9 +7,10 @@ package net.minusmc.minusbounce.injection.forge.mixins.entity;
 
 import net.minusmc.minusbounce.MinusBounce;
 import net.minusmc.minusbounce.event.StrafeEvent;
+import net.minusmc.minusbounce.event.LookEvent;
 import net.minusmc.minusbounce.features.module.modules.combat.HitBox;
 import net.minusmc.minusbounce.features.module.modules.misc.Patcher;
-import net.minusmc.minusbounce.utils.RotationUtils;
+import net.minusmc.minusbounce.utils.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -129,6 +130,9 @@ public abstract class MixinEntity {
     public float width;
 
     @Shadow
+    public abstract Vec3 getPositionEyes(float partialTicks);
+
+    @Shadow
     public abstract boolean isRiding();
 
     @Shadow
@@ -176,7 +180,8 @@ public abstract class MixinEntity {
     @Shadow
     public abstract boolean isInsideOfMaterial(Material materialIn);
 
-    @Shadow(remap = false) private CapabilityDispatcher capabilities;
+    @Shadow(remap = false) 
+    private CapabilityDispatcher capabilities;
 
     public int getNextStepDistance() {
         return nextStepDistance;
@@ -196,6 +201,35 @@ public abstract class MixinEntity {
 
         if (hitBox.getState())
             callbackInfoReturnable.setReturnValue(0.1F + hitBox.getSizeValue().get());
+    }
+
+    /**
+     * interpolated look vector
+     * 
+     * @author fmcpe
+     */
+    @Overwrite
+    public MovingObjectPosition rayTrace(double blockReachDistance, float partialTicks)
+    {   
+        final LookEvent event = new LookEvent(this.rotationYaw, this.rotationPitch);
+        MinusBounce.eventManager.callEvent(event);
+        
+        float yaw = event.getYaw();
+        float pitch = event.getPitch();
+
+        final float prevYaw = RotationUtils.serverRotation.getYaw();
+        final float prevPitch = RotationUtils.serverRotation.getPitch();
+
+        if (partialTicks != 1.0F) {
+            yaw = prevYaw + (yaw - prevYaw) * partialTicks;
+            pitch = prevPitch + (pitch - prevPitch) * partialTicks;
+        }
+
+        final Vec3 vec3 = this.getPositionEyes(partialTicks);
+        final Vec3 vec31 = this.getVectorForRotation(pitch, yaw);
+        final Vec3 vec32 = vec3.addVector(vec31.xCoord * blockReachDistance, vec31.yCoord * blockReachDistance, vec31.zCoord * blockReachDistance);
+        
+        return this.worldObj.rayTraceBlocks(vec3, vec32, false, false, true);
     }
 
     /**
@@ -247,6 +281,34 @@ public abstract class MixinEntity {
     private void checkGroundState(CallbackInfo ci) {
         if (!this.onGround) ci.cancel();
     }
+
+    /**
+     * interpolated look vector
+     * 
+     * @author fmcpe
+     */
+    @Overwrite
+    public Vec3 getLook(float partialTicks) {
+
+        final LookEvent event = new LookEvent(this.rotationYaw, this.rotationPitch);
+        System.out.println("Look event!!");
+        MinusBounce.eventManager.callEvent(event);
+
+        final float yaw = event.getYaw();
+        final float pitch = event.getPitch();
+        final float prevYaw = RotationUtils.serverRotation.getYaw();
+        final float prevPitch = RotationUtils.serverRotation.getPitch();
+        
+        if (partialTicks == 1.0F) {
+            return this.getVectorForRotation(pitch, yaw);
+        }
+        else {
+            float f = prevPitch + (pitch - prevPitch) * partialTicks;
+            float f1 = prevYaw + (yaw - prevYaw) * partialTicks;
+            return this.getVectorForRotation(f, f1);
+        }
+    }
+
 
     /**
      * @author asbyth

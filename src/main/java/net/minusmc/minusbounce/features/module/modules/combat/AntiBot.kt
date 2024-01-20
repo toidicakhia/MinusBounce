@@ -8,6 +8,7 @@ package net.minusmc.minusbounce.features.module.modules.combat
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.item.ItemArmor
+import net.minecraft.network.play.client.*
 import net.minecraft.network.play.server.*
 import net.minecraft.world.WorldSettings
 import net.minusmc.minusbounce.MinusBounce
@@ -49,7 +50,7 @@ object AntiBot : Module() {
     private val armorValue = BoolValue("Armor", false)
     private val pingValue = BoolValue("Ping", false)
     private val needHitValue = BoolValue("NeedHit", false)
-    private val spawnInCombatValue = BoolValue("SpawnInCombat", false)
+    private val spawnInCombatValue = BoolValue("SpawnInCombat", true)
     private val duplicateInWorldValue = BoolValue("DuplicateInWorld", false)
     private val duplicateInTabValue = BoolValue("DuplicateInTab", false)
     private val duplicateCompareModeValue = ListValue("DuplicateCompareMode", arrayOf("OnTime", "WhenSpawn"), "OnTime") {
@@ -65,19 +66,23 @@ object AntiBot : Module() {
     private val air = mutableListOf<Int>()
     private val invalidGround = mutableMapOf<Int, Int>()
     private val swing = mutableListOf<Int>()
+    private val spawnInCombat = mutableListOf<Int>()
     private val invisible = mutableListOf<Int>()
     private val hasRemovedEntities = mutableListOf<Int>()
-    private val spawnInCombat = mutableListOf<Int>()
     private val hitted = mutableListOf<Int>()
     private val duplicate = mutableListOf<UUID>()
     private var wasAdded = (mc.thePlayer != null)
+
     override fun onDisable() {
         clearAll()
     }
+
+
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
         mc.thePlayer ?: return
         mc.theWorld ?: return
+
         if (removeFromWorld.get() && mc.thePlayer.ticksExisted > 0 && mc.thePlayer.ticksExisted % removeIntervalValue.get() == 0){
             val ent = mutableListOf<EntityPlayer>()
             for (entity in mc.theWorld.playerEntities) {
@@ -91,11 +96,13 @@ object AntiBot : Module() {
             }
         }
     }
+
     @EventTarget
     fun onPacket(event: PacketEvent) {
         mc.thePlayer ?: return
         mc.theWorld ?: return
         val packet = event.packet
+
         if (czechHekValue.get()) {
             if (packet is S41PacketServerDifficulty) wasAdded = false
             if (packet is S38PacketPlayerListItem) {
@@ -110,6 +117,7 @@ object AntiBot : Module() {
                 }
             }
         }
+
         if(packet is S14PacketEntity) {
             val entity = packet.getEntity(mc.theWorld)
             if(entity is EntityPlayer) {
@@ -131,11 +139,13 @@ object AntiBot : Module() {
                     invisible.add(entity.entityId)
             }
         }
+
         if(packet is S0BPacketAnimation) {
             val entity = mc.theWorld.getEntityByID(packet.entityID)
             if (entity is EntityLivingBase && packet.animationType == 0 && !swing.contains(entity.entityId))
                 swing.add(entity.entityId)
         }
+
         if (packet is S38PacketPlayerListItem) {
             if (duplicateCompareModeValue.equals("WhenSpawn") && packet.action == S38PacketPlayerListItem.Action.ADD_PLAYER) {
                 packet.entries.forEach { entry ->
@@ -146,20 +156,25 @@ object AntiBot : Module() {
                     }
                 }
             }
-        } else if (packet is S0CPacketSpawnPlayer) {
-            if (MinusBounce.combatManager.target != null && !hasRemovedEntities.contains(packet.entityID)) {
-                spawnInCombat.add(packet.entityID)
-            }
-        } else if (packet is S13PacketDestroyEntities) {
+        }
+
+        if (packet is S0CPacketSpawnPlayer) {
+            if (spawnInCombatValue.get() && MinusBounce.combatManager.target != null)
+                event.cancelEvent()
+        }
+
+        if (packet is S13PacketDestroyEntities) {
             hasRemovedEntities.addAll(packet.entityIDs.toTypedArray())
         }
     }
+
     @EventTarget
     fun onAttack(event: AttackEvent) {
         val entity = event.targetEntity
         if(entity is EntityLivingBase && !hitted.contains(entity.entityId))
             hitted.add(entity.entityId)
     }
+
     @EventTarget
     fun onWorld(event: WorldEvent) {
         clearAll()
@@ -171,7 +186,9 @@ object AntiBot : Module() {
         ground.clear()
         invalidGround.clear()
         invisible.clear()
+        spawnInCombat.clear()
     }
+    
     @JvmStatic
     fun isBot(entity: EntityLivingBase): Boolean {
         if (entity !is EntityPlayer || entity == mc.thePlayer)
@@ -182,7 +199,7 @@ object AntiBot : Module() {
         if (experimentalNPCDetection.get() && (entity.getDisplayName().unformattedText.lowercase().contains("npc") || entity.getDisplayName().unformattedText.lowercase().contains("cit-")))
             return true
 
-        if (illegalName.get() && (entity.getName().contains(" ") || entity.getDisplayName().unformattedText.contains(" ")))
+        if (illegalName.get() && (entity.name.contains(" ") || entity.getDisplayName().unformattedText.contains(" ")))
             return true
 
         if (colorValue.get() && !entity.getDisplayName().formattedText.replace("§r", "").contains("§"))
@@ -195,9 +212,6 @@ object AntiBot : Module() {
             return true
 
         if (airValue.get() && !air.contains(entity.entityId))
-            return true
-
-        if (spawnInCombatValue.get() && spawnInCombat.contains(entity.entityId))
             return true
 
         if(swingValue.get() && !swing.contains(entity.entityId))
@@ -242,6 +256,7 @@ object AntiBot : Module() {
                 return true
             }
         }
+
         if (duplicateCompareModeValue.equals("WhenSpawn") && duplicate.contains(entity.gameProfile.id)) {
             return true
         }
@@ -253,8 +268,8 @@ object AntiBot : Module() {
         }
 
         /* 
-         * Check armor material in bedwars
-         * Author: pie, toidicakhia
+        Check armor material in bedwars
+        Author: pie, toidicakhia
         */
 
         if (sameArmorOnBedwars.get()) {
@@ -274,6 +289,6 @@ object AntiBot : Module() {
                 return true
         }
 
-        return entity.getName().isEmpty() || entity.getName().equals(mc.thePlayer.name)
+        return entity.name.isEmpty() || entity.name.equals(mc.thePlayer.name)
     }
 }

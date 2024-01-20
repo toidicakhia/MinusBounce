@@ -4,73 +4,64 @@ import net.minecraft.entity.EntityLiving
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.entity.player.EntityPlayer
 import net.minusmc.minusbounce.MinusBounce
-import net.minusmc.minusbounce.features.module.modules.combat.KillAura
 import net.minusmc.minusbounce.event.*
-import net.minusmc.minusbounce.utils.extensions.getDistanceToEntityBox
+import net.minusmc.minusbounce.utils.extensions.*
 import net.minusmc.minusbounce.utils.EntityUtils
 import net.minusmc.minusbounce.utils.MinecraftInstance
 import net.minusmc.minusbounce.utils.timer.MSTimer
 
 class CombatManager: MinecraftInstance(), Listenable {
-	val discoveredEntities = mutableListOf<EntityLivingBase>()
-	private val prevDiscoveredEntites = mutableListOf<Int>()
-	
+	var inCombat = false
 	var target: EntityLivingBase? = null
+	private val attackedEntityList = mutableListOf<EntityLivingBase>()
+
+	private val attackTimer = MSTimer()
 
 	@EventTarget
 	fun onUpdate(event: UpdateEvent) {
-		mc.theWorld ?: return
-
-		discoveredEntities.clear()
-
-		for (entity in mc.theWorld.loadedEntityList) {
-			if (entity !is EntityLivingBase || !EntityUtils.isEnemy(entity) || (switchMode && prevDiscoveredEntites.contains(entity.entityId)))
-                continue
-
-			if (!discoveredEntities.contains(entity) && mc.thePlayer.getDistanceToEntityBox(entity) <= 15)
-				discoveredEntities.add(entity)
+		mc.thePlayer ?: return
+		attackedEntityList.map {it}.forEach {
+			if (it.isDead) {
+				MinusBounce.eventManager.callEvent(EntityKilledEvent(it))
+				attackedEntityList.remove(it)
+			}
 		}
 
-		if (discoveredEntities.isEmpty()) {
-			prevDiscoveredEntites.clear()
+		inCombat = false
+
+		if (!attackTimer.hasTimePassed(250)) {
+			inCombat = true
 			return
 		}
 
-		if (target != null && target!!.isDead) {
-			discoveredEntities.remove(target)
-			target = null
+		if (target != null) {
+			if (mc.thePlayer.getDistanceToEntityBox(target!!) > 7 || !inCombat || target!!.isDead) {
+				target = null
+			} else {
+				inCombat = true
+			}
 		}
+	}
+
+	@EventTarget
+	fun onAttack(event: AttackEvent) {
+		val target = event.targetEntity
+
+		if (target is EntityLivingBase && EntityUtils.isSelected(target, true)) {
+			this.target = target
+			if (!attackedEntityList.contains(target)) attackedEntityList.add(target)
+		}
+
+		attackTimer.reset()
 	}
 
 	@EventTarget
 	fun onWorld(event: WorldEvent) {
-		discoveredEntities.clear()
-		prevDiscoveredEntites.clear()
+		attackedEntityList.clear()
+		target = null
+		inCombat = false
 	}
-	
-	fun nextEntity() {
-		val entity = target ?: return
-		discoveredEntities.remove(entity)
-		prevDiscoveredEntites.add(entity.entityId)
-	}
-
-	fun sortEntities(priority: String) {
-		when (priority.lowercase()) {
-			"distance" -> discoveredEntities.sortBy { mc.thePlayer.getDistanceToEntityBox(it) }
-			"health" -> discoveredEntities.sortBy { it.health + it.absorptionAmount }
-			"hurtresistance" -> discoveredEntities.sortBy { it.hurtResistantTime }
-			"hurttime" -> discoveredEntities.sortBy { it.hurtTime }
-			"armor" -> discoveredEntities.sortBy { it.totalArmorValue }
-		}
-	}
-
-	fun getEntitiesInRange(range: Float, limit: Int = Int.MAX_VALUE) = discoveredEntities.filter {mc.thePlayer.getDistanceToEntityBox(it) <= range}.take(limit)
-
-	val inCombat: Boolean
-		get() = target != null
-
-	val switchMode: Boolean
-		get() = MinusBounce.moduleManager[KillAura::class.java]!!.targetModeValue.get().equals("Switch", true)
 
 	override fun handleEvents() = true
+
 }

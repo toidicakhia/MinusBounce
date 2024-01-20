@@ -10,8 +10,7 @@ import org.lwjgl.opengl.GL11.glColor4f
 import java.awt.Color
 import java.util.*
 import java.util.regex.Pattern
-import kotlin.math.abs
-import kotlin.math.max
+import kotlin.math.*
 
 object ColorUtils {
 
@@ -119,12 +118,6 @@ object ColorUtils {
     }
 
     @JvmStatic
-    fun LiquidSlowly(time: Long, count: Int, qd: Float, sq: Float): Color? {
-        val color = Color(Color.HSBtoRGB((time.toFloat() + count * -3000000f) / 2 / 1.0E9f, qd, sq))
-        return Color(color.red / 255.0f * 1, color.green / 255.0f * 1, color.blue / 255.0f * 1, color.alpha / 255.0f)
-    }
-
-    @JvmStatic
     fun TwoRainbow(offset: Long, alpha: Float): Color {
         var currentColor = Color(Color.HSBtoRGB((System.nanoTime() + offset) / 8.9999999E10F % 1, 0.75F, 0.8F))
         return Color(currentColor.getRed() / 255.0F * 1.0F, currentColor.getGreen() / 255.0F * 1.0F, currentColor.getBlue() / 255.0F * 1.0F, alpha)
@@ -134,8 +127,7 @@ object ColorUtils {
     fun fade(color: Color, index: Int, count: Int): Color {
         val hsb = FloatArray(3)
         Color.RGBtoHSB(color.red, color.green, color.blue, hsb)
-        var brightness =
-            abs(((System.currentTimeMillis() % 2000L).toFloat() / 1000.0f + index.toFloat() / count.toFloat() * 2.0f) % 2.0f - 1.0f)
+        var brightness = abs(((System.currentTimeMillis() % 2000L).toFloat() / 1000.0f + index.toFloat() / count.toFloat() * 2.0f) % 2.0f - 1.0f)
         brightness = 0.5f + 0.5f * brightness
         hsb[2] = brightness % 2.0f
         return Color(Color.HSBtoRGB(hsb[0], hsb[1], hsb[2]))
@@ -226,5 +218,27 @@ object ColorUtils {
         val bluePart = one.blue * inverse_percent + two.blue * offset
 
         return Color(redPart.toInt(), greenPart.toInt(), bluePart.toInt(), alpha)
+    }
+
+    fun skyRainbow(hue: Int, saturation: Float, brightness: Float): Int {
+        var v1 = ceil((System.currentTimeMillis() + (hue * 109).toLong()).toDouble()) / 5
+        return Color.getHSBColor(if ((360.0.also { v1 %= it } / 360.0).toFloat().toDouble() < 0.5) -(v1 / 360.0).toFloat() else (v1 / 360.0).toFloat(), saturation, brightness).rgb
+    }
+
+    fun getRainbowOpaque(seconds: Int, saturation: Float, brightness: Float, index: Int): Int {
+        val hue = (System.currentTimeMillis() + index) % (seconds * 1000) / (seconds * 1000).toFloat()
+        return Color.HSBtoRGB(hue, saturation, brightness)
+    }
+
+    fun getNormalRainbow(delay: Int, sat: Float, brg: Float): Int {
+        var rainbowState = ceil((System.currentTimeMillis() + delay) / 20.0)
+        rainbowState %= 360.0
+        return Color.getHSBColor((rainbowState / 360.0f).toFloat(), sat, brg).rgb
+    }
+
+    @JvmStatic
+    fun liquidSlowly(time: Long, count: Int, qd: Float, sq: Float): Color {
+        val color = Color(Color.HSBtoRGB((time.toFloat() + count * -3000000f) / 2 / 1.0E9f, qd, sq))
+        return Color(color.red / 255.0f * 1, color.green / 255.0f * 1, color.blue / 255.0f * 1, color.alpha / 255.0f)
     }
 }

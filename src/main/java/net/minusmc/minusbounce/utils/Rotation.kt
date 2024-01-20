@@ -69,6 +69,10 @@ data class Rotation(var yaw: Float, var pitch: Float) {
         val f3: Float = MathHelper.sin(-pitch * 0.017453292f)
         return Vec3((f1 * f2).toDouble(), f3.toDouble(), (f * f2).toDouble())
     }
+
+    override fun toString(): String {
+        return "Rotation(yaw=$yaw, pitch=$pitch)"
+    }
 }
 
 /**

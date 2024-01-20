@@ -48,6 +48,8 @@ class BlockBBEvent(blockPos: BlockPos, val block: Block, var boundingBox: AxisAl
  */
 class ClickBlockEvent(val clickedBlock: BlockPos?, val enumFacing: EnumFacing?) : Event()
 
+class ClickEvent : CancellableEvent()
+
 /**
  * Called when client is shutting down
  */
@@ -77,8 +79,17 @@ class Render3DEvent(val partialTicks: Float) : Event()
  * Called when player jumps
  *
  * @param motion jump motion (y motion)
+ * @param yaw
  */
 class JumpEvent(var motion: Float, var yaw: Float) : CancellableEvent()
+
+/**
+ * interpolated look vector
+ *
+ * @param yaw
+ * @param pitch
+ */
+class LookEvent(var yaw: Float, var pitch: Float) : Event()
 
 /**
  * Called when movement input

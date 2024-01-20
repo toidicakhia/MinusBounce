@@ -7,8 +7,7 @@ package net.minusmc.minusbounce.features.module.modules.player
 
 import net.minusmc.minusbounce.MinusBounce
 import net.minusmc.minusbounce.ui.client.hud.element.elements.Notification
-import net.minusmc.minusbounce.event.EventTarget
-import net.minusmc.minusbounce.event.UpdateEvent
+import net.minusmc.minusbounce.event.*
 import net.minusmc.minusbounce.features.module.Module
 import net.minusmc.minusbounce.features.module.ModuleCategory
 import net.minusmc.minusbounce.features.module.ModuleInfo
@@ -32,8 +31,14 @@ class Gapple : Module() {
     private val delayValue = IntegerValue("Delay", 150, 0, 1000, "ms")
     private val noAbsorption = BoolValue("NoAbsorption", true)
     private val grim = BoolValue("Grim", true)
-    private val packetsGrimAmount = IntegerValue("GrimAmount", 35, 1, 50)
+    private val matrixInvalidSlotFixer = BoolValue("MatrixInvalidSlotFixer", true)
     private val timer = MSTimer()
+
+    private var prevSlot = -1
+
+    override fun onEnable() {
+        prevSlot = -1
+    }
 
     @EventTarget
     fun onUpdate(event: UpdateEvent?) {
@@ -66,6 +71,17 @@ class Gapple : Module() {
         }
     }
 
+    @EventTarget(priority = 1)
+    fun onPacket(event: PacketEvent) {
+        val packet = event.packet
+        if (!mc.isSingleplayer && matrixInvalidSlotFixer.get() && packet is C09PacketHeldItemChange) {
+            if (packet.slotId == prevSlot)
+                event.cancelEvent()
+            else
+                prevSlot = packet.slotId
+        }
+    }
+
     private fun doEat(warn: Boolean) {
         if (noAbsorption.get() && !warn) {
             val abAmount = mc.thePlayer.absorptionAmount
@@ -77,14 +93,12 @@ class Gapple : Module() {
         if (gappleInHotbar != -1) {
             mc.netHandler.addToSendQueue(C09PacketHeldItemChange(gappleInHotbar - 36))
             mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.heldItem))
-            if (grim.get()) {
-                repeat (packetsGrimAmount.get()) {
+            repeat(35) {
+                if (grim.get()) 
                     PacketUtils.sendPacketNoEvent(C06PacketPlayerPosLook(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, mc.thePlayer.onGround))
-                }
-            } else {
-                repeat (35) {
+                else
                     mc.netHandler.addToSendQueue(C03PacketPlayer(mc.thePlayer.onGround))
-                }
+
             }
             mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
         }else if (warn)

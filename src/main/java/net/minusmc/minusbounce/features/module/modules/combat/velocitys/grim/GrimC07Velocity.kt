@@ -1,84 +1,58 @@
 package net.minusmc.minusbounce.features.module.modules.combat.velocitys.grim
 
-import net.minecraft.network.play.client.C03PacketPlayer
-import net.minecraft.network.play.client.C07PacketPlayerDigging
-import net.minecraft.network.play.server.S08PacketPlayerPosLook
-import net.minecraft.network.play.server.S12PacketEntityVelocity
-import net.minecraft.network.play.server.S27PacketExplosion
-import net.minecraft.util.BlockPos
-import net.minecraft.util.EnumFacing
-import net.minecraft.world.World
+import net.minusmc.minusbounce.MinusBounce
 import net.minusmc.minusbounce.event.PacketEvent
-import net.minusmc.minusbounce.event.TickEvent
 import net.minusmc.minusbounce.features.module.modules.combat.velocitys.VelocityMode
-import net.minusmc.minusbounce.utils.timer.MSTimer
-import net.minusmc.minusbounce.value.BoolValue
-import net.minusmc.minusbounce.value.IntegerValue
+import net.minusmc.minusbounce.ui.client.hud.element.elements.Notification
+import net.minusmc.minusbounce.utils.PacketUtils
+import net.minusmc.minusbounce.value.ListValue
+import net.minecraft.network.play.server.S19PacketEntityStatus
+import net.minecraft.network.play.server.S12PacketEntityVelocity
+import net.minecraft.network.play.client.C07PacketPlayerDigging
+import net.minecraft.network.play.client.C03PacketPlayer
+import net.minecraft.network.play.client.C03PacketPlayer.C06PacketPlayerPosLook
+import net.minecraft.util.EnumFacing
 
 class GrimC07Velocity : VelocityMode("GrimC07") {
-    private val alwaysValue = BoolValue("Always", true)
-    private val onlyAirValue = BoolValue("OnlyBreakAir", true)
-    private val worldValue = BoolValue("BreakOnWorld", false)
-    private val sendC03Value = BoolValue("SendC03", false)
-    private val c06Value = BoolValue("Send1.17C06", false)
-    private val flagPauseValue = IntegerValue("FlagPause-Time", 50, 0, 5000)
-
-    private var gotVelo = false
-    private var flagTimer = MSTimer()
+    private var onVelocity = ListValue("OnVelocity", arrayOf("Always", "CombatManager", "PacketDamage"))
+    private var packetPayloadValue = ListValue("PacketPayload", arrayOf("C03", "C06"), "C03")
+    private var canSpoof = false
+    private var canCancel = false
 
     override fun onEnable() {
-        gotVelo = false
-        flagTimer.reset()
+        canSpoof = false
+        canCancel = false
+    }
+
+    override fun onUpdate() {
+        if (onVelocity.equals("always") || (onVelocity.equals("combatmanager") && MinusBounce.combatManager.inCombat))
+            canCancel = true
+
+        if (canSpoof) {
+            val pos = mc.thePlayer.getPosition()
+
+            when (packetPayloadValue.get().lowercase()) {
+                "c03" -> PacketUtils.sendPacketNoEvent(C03PacketPlayer(mc.thePlayer.onGround))
+                "c06" -> PacketUtils.sendPacketNoEvent(C06PacketPlayerPosLook(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, mc.thePlayer.onGround))
+            }
+            PacketUtils.sendPacketNoEvent(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK, pos, EnumFacing.DOWN))
+            canSpoof = false
+        }
     }
 
     override fun onPacket(event: PacketEvent) {
         val packet = event.packet
-        if (packet is S08PacketPlayerPosLook)
-            flagTimer.reset()
-        if (!flagTimer.hasTimePassed(flagPauseValue.get().toLong())) {
-            gotVelo = false
-            return
+        if (packet is S19PacketEntityStatus && onVelocity.get().equals("PacketDamage", true)) {
+            val player = packet.getEntity(mc.theWorld)
+            if (player != mc.thePlayer || packet.opCode != 2.toByte()) 
+                return
+            canCancel = true
         }
 
-        if (packet is S12PacketEntityVelocity && packet.entityID == mc.thePlayer?.entityId) {
+        if (packet is S12PacketEntityVelocity && packet.entityID == mc.thePlayer.entityId && canCancel) {
             event.cancelEvent()
-            gotVelo = true
-        } else if (packet is S27PacketExplosion) {
-            event.cancelEvent()
-            gotVelo = true
+            canCancel = false
+            canSpoof = true
         }
-    }
-
-    override fun onTick(event: TickEvent) {
-        if (!flagTimer.hasTimePassed(flagPauseValue.get().toLong())) {
-            gotVelo = false
-            return
-        }
-
-        mc.thePlayer ?: return
-        mc.theWorld ?: return
-
-        if (gotVelo || alwaysValue.get()) { // packet processed event pls
-            val pos = BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ)
-            if (checkBlock(pos) || checkBlock(pos.up()))
-                gotVelo = false
-        }
-    }
-
-    private fun checkBlock(pos: BlockPos): Boolean {
-        if (!onlyAirValue.get() || mc.theWorld.isAirBlock(pos)) {
-            if (sendC03Value.get()) {
-                if (c06Value.get())
-                    mc.netHandler.addToSendQueue(C03PacketPlayer.C06PacketPlayerPosLook(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, mc.thePlayer.onGround))
-                else
-                    mc.netHandler.addToSendQueue(C03PacketPlayer(mc.thePlayer.onGround))
-            }
-
-            mc.netHandler.addToSendQueue(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK, pos, EnumFacing.DOWN))
-            if (worldValue.get())
-                mc.theWorld.setBlockToAir(pos)
-            return true
-        }
-        return false
     }
 }

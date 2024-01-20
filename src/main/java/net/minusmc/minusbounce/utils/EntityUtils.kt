@@ -30,47 +30,6 @@ import net.minusmc.minusbounce.utils.render.ColorUtils
 object EntityUtils : MinecraftInstance() {
     fun isSelected(entity: Entity, canAttackCheck: Boolean): Boolean {
         val targetsModule = MinusBounce.moduleManager[Target::class.java]!!
-        val teams = MinusBounce.moduleManager[Teams::class.java]!!
-        if (entity is EntityLivingBase) {
-            // From augustus
-            if (entity is EntityArmorStand)
-                return false
-
-            if (!targetsModule.dead.get() && entity.isDead)
-                return false
-
-            if (!targetsModule.invisible.get() && entity.isInvisible())
-                return false
-
-            if (!targetsModule.mobs.get() && isMob(entity))
-                return false
-
-            if (!targetsModule.animals.get() && isAnimal(entity))
-                return false
-
-            if (entity.deathTime > 1) return false
-            
-            if (!canAttackCheck)
-                return false
-
-            if (entity.ticksExisted < 1)
-                return false
-
-            if (isFriend(entity))
-                return false
-
-            if (!(!teams.state || !teams.isInYourTeam(entity)))
-                return false
-
-            if (isBot(entity))
-                return false
-        }
-
-        return entity is EntityLivingBase && entity != mc.thePlayer
-    }
-
-    fun isEnemy(entity: Entity?): Boolean {
-        val targetsModule = MinusBounce.moduleManager[Target::class.java]!!
         val teams = MinusBounce.moduleManager[Teams::class.java] as Teams
         if (entity is EntityLivingBase) {
             // From augustus
@@ -89,19 +48,25 @@ object EntityUtils : MinecraftInstance() {
             if (!targetsModule.animals.get() && isAnimal(entity))
                 return false
 
-            if (entity.deathTime > 1) return false
-
             if (!targetsModule.players.get() && entity is EntityPlayer)
+                return false
+
+            if (!canAttackCheck)
+                return false
+
+            if (entity.deathTime > 1)
                 return false
 
             if (entity.ticksExisted < 1)
                 return false
 
-            if (!(!teams.state || !teams.isInYourTeam(entity)))
-                return false
+            if (entity is EntityPlayer) {
+                if (!(!teams.state || !teams.isInYourTeam(entity)))
+                    return false
 
-            if (isBot(entity))
-                return false
+                if (isBot(entity))
+                    return false
+            }
         }
 
         return entity is EntityLivingBase && entity != mc.thePlayer
@@ -109,8 +74,7 @@ object EntityUtils : MinecraftInstance() {
 
     fun closestPerson(): EntityLivingBase? {
         val targets = mc.theWorld.loadedEntityList.filter {
-            it is EntityLivingBase && it != mc.thePlayer && isSelected(it, true) &&
-                    mc.thePlayer.canEntityBeSeen(it) && isEnemy(it)
+            it is EntityLivingBase && it != mc.thePlayer && isSelected(it, true) && mc.thePlayer.canEntityBeSeen(it)
         }
         val entity = targets.minByOrNull { mc.thePlayer.getDistanceToEntity(it) }
         return entity as EntityLivingBase?

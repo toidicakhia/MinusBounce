@@ -26,7 +26,7 @@ import net.minusmc.minusbounce.utils.*
 @ModuleInfo(name = "FastUse", spacedName = "Fast Use", description = "Allows you to use items faster.", category = ModuleCategory.PLAYER)
 class FastUse : Module() {
 
-    private val modeValue = ListValue("Mode", arrayOf("Instant", "OldGrim", "BetterGrim", "NewGrim", "NCP", "Matrix", "AAC", "CustomDelay", "DelayedInstant", "AACv4_2", "Minemora"), "NCP")
+    private val modeValue = ListValue("Mode", arrayOf("Instant", "Grim", "NCP", "Matrix", "AAC", "CustomDelay", "DelayedInstant", "AACv4_2", "Minemora"), "NCP")
 
     private val instantDurationDelay = IntegerValue("InstantDurationDelay", 14, 0, 35) {modeValue.get().equals("DelayedInstant")}
 
@@ -80,26 +80,9 @@ class FastUse : Module() {
                     mc.playerController.onStoppedUsingItem(mc.thePlayer)
                 }
 
-                "aac" -> {
-                    mc.timer.timerSpeed = 1.1F
-                    usedTimer = true
-                }
-
                 "grim" -> {
-                    mc.timer.timerSpeed = 0.3F
-                    usedTimer = true
-                    send(34)
-                }
-
-                "newgrim" -> {
                     repeat(5) {
                         PacketUtils.sendPacketNoEvent(C06PacketPlayerPosLook(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, mc.thePlayer.onGround))
-                    }
-                }
-
-                "oldgrim" -> {
-                    repeat(5) {
-                        PacketUtils.sendPacketNoEvent(C03PacketPlayer(mc.thePlayer.onGround))
                     }
                 }
 

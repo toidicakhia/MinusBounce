@@ -24,7 +24,7 @@ import net.minusmc.minusbounce.value.ListValue
 
 @ModuleInfo(name = "Regen", description = "Regenerate health.", category = ModuleCategory.PLAYER)
 class Regen : Module() {
-    private val modeValue = ListValue("Mode", arrayOf("Vanilla", "OldSpartan", "NewSpartan", "AAC4NoFire", "OldGrim", "NewGrim"), "Vanilla")
+    private val modeValue = ListValue("Mode", arrayOf("Vanilla", "OldSpartan", "NewSpartan", "AAC4NoFire", "Grim"), "Vanilla")
     private val healthValue = IntegerValue("Health", 18, 0, 20)
     private val delayValue = IntegerValue("Delay", 0, 0, 1000)
     private val foodValue = IntegerValue("Food", 18, 0, 20)
@@ -92,12 +92,8 @@ class Regen : Module() {
                     resetTimer = true
                 }
 
-                "newgrim" -> repeat(speedValue.get()) {
+                "grim" -> repeat(speedValue.get()) {
                     PacketUtils.sendPacketNoEvent(C06PacketPlayerPosLook(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ, mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch, mc.thePlayer.onGround))
-                }
-
-                "oldgrim" -> repeat(speedValue.get()) {
-                    PacketUtils.sendPacketNoEvent(C03PacketPlayer(mc.thePlayer.onGround))
                 }
             }
             timer.reset()

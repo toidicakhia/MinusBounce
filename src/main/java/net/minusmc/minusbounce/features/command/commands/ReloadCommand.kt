@@ -42,9 +42,6 @@ class ReloadCommand : Command("reload", arrayOf("configreload")) {
 
         chat("§c§lReloading HUD...")
         MinusBounce.fileManager.loadConfig(MinusBounce.fileManager.hudConfig)
-        chat("§c§lReloading ClickGUI...")
-        MinusBounce.moduleManager[ClickGUI::class.java]!!.style::class.java.newInstance()
-        MinusBounce.fileManager.loadConfig(MinusBounce.fileManager.clickGuiConfig)
 
         MinusBounce.moduleManager.initModeListValues()
 

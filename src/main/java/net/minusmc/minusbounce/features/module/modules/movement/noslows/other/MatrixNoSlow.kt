@@ -26,7 +26,7 @@ class MatrixNoSlow : NoSlowMode("Matrix") {
         if (nextTemp) {
             if ((packet is C07PacketPlayerDigging || packet is C08PacketPlayerBlockPlacement) && noslow.isBlocking)
                 event.cancelEvent()
-            else if (packet is C03PacketPlayer || packet is C0APacketAnimation || packet is C0BPacketEntityAction || packet is C02PacketUseEntity || packet is C07PacketPlayerDigging || packet is C08PacketPlayerBlockPlacement) {
+            else if (packet is C03PacketPlayer || packet is C0APacketAnimation || packet is C0BPacketEntityAction || packet is C02PacketUseEntity || packet is C07PacketPlayerDigging || packet is C08PacketPlayerBlockPlacement || packet is C0FPacketConfirmTransaction) {
                 packetBuf.add(packet as Packet<INetHandlerPlayServer>)
                 event.cancelEvent()
             }

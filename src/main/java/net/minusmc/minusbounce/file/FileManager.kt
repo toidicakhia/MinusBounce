@@ -28,7 +28,6 @@ class FileManager: MinecraftInstance() {
 
     val modulesConfig = ModulesConfig(File(dir, "modules.json"))
     val valuesConfig = ValuesConfig(File(dir, "values.json"))
-    val clickGuiConfig = ClickGuiConfig(File(dir, "clickgui.json"))
     val accountsConfig = AccountsConfig(File(dir, "accounts.json"))
     val friendsConfig = FriendsConfig(File(dir, "friends.json"))
     val hudConfig = HudConfig(File(dir, "hud.json"))

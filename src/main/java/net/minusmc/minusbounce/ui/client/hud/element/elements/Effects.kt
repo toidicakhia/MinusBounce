@@ -22,8 +22,7 @@ import net.minecraft.potion.Potion
  * Shows a list of active potion effects
  */
 @ElementInfo(name = "Effects")
-class Effects(x: Double = 2.0, y: Double = 10.0, scale: Float = 1F,
-              side: Side = Side(Side.Horizontal.RIGHT, Side.Vertical.DOWN)) : Element(x, y, scale, side) {
+class Effects(x: Double = 2.0, y: Double = 10.0, scale: Float = 1F, side: Side = Side(Side.Horizontal.RIGHT, Side.Vertical.DOWN)) : Element(x, y, scale, side) {
 
     private val anotherStyle = BoolValue("New", false)
     private val fontValue = FontValue("Font", Fonts.font35)
@@ -89,7 +88,7 @@ class Effects(x: Double = 2.0, y: Double = 10.0, scale: Float = 1F,
         if (width == 0F)
             width = if (side.horizontal == Side.Horizontal.RIGHT) -40F else 40F
 
-        if (y == 0F) // alr checked above
+        if (y == 0F)
             y = if (side.vertical == Side.Vertical.UP) fontRenderer.FONT_HEIGHT.toFloat() else -fontRenderer.FONT_HEIGHT.toFloat()
 
         return Border(0F, 0F, width, y)

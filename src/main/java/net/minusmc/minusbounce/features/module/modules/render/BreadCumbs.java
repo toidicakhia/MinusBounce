@@ -138,7 +138,7 @@ public class BreadCumbs extends Module {
             case "Custom":
                 return new Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get());
             case "LiquidSlowly":
-                return ColorUtils.LiquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get());
+                return ColorUtils.liquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get());
             default:
                 return ColorUtils.fade(new Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get()), 0, 100);
         }

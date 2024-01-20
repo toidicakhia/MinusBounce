@@ -286,21 +286,17 @@ object RenderUtils : MinecraftInstance() {
         GL11.glEnd()
     }
 
-    fun drawHead(skin: ResourceLocation?, x: Int, y: Int, width: Int, height: Int, color: Int) {
-        val f3 = (color shr 24 and 255).toFloat() / 255.0f
-        val f = (color shr 16 and 255).toFloat() / 255.0f
-        val f1 = (color shr 8 and 255).toFloat() / 255.0f
-        val f2 = (color and 255).toFloat() / 255.0f
-        GlStateManager.color(f, f1, f2, f3)
+    fun drawHead(skin: ResourceLocation, x: Int, y: Int, width: Int, height: Int) {
+        glDisable(GL_DEPTH_TEST)
+        glEnable(GL_BLEND)
+        glDepthMask(false)
+        OpenGlHelper.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
+        glColor4f(1f, 1f, 1f, 1f)
         mc.textureManager.bindTexture(skin)
-        RenderUtils.drawScaledCustomSizeModalRect(
-            x, y, 8f, 8f, 8, 8, width, height,
-            64f, 64f
-        )
-        RenderUtils.drawScaledCustomSizeModalRect(
-            x, y, 40f, 8f, 8, 8, width, height,
-            64f, 64f
-        )
+        Gui.drawScaledCustomSizeModalRect(x, y, 8F, 8F, 8, 8, width, height, 4F, 64F)
+        glDepthMask(true)
+        glDisable(GL_BLEND)
+        glEnable(GL_DEPTH_TEST)
     }
 
     fun isInViewFrustrum(entity: Entity): Boolean {
@@ -319,35 +315,6 @@ object RenderUtils : MinecraftInstance() {
 
     fun interpolate(current: Double, old: Double, scale: Double): Double {
         return old + (current - old) * scale
-    }
-
-    fun SkyRainbow(var2: Int, st: Float, bright: Float): Int {
-        var v1 = ceil((System.currentTimeMillis() + (var2 * 109).toLong()).toDouble()) / 5
-        return Color.getHSBColor(if ((360.0.also { v1 %= it } / 360.0).toFloat()
-                .toDouble() < 0.5) -(v1 / 360.0).toFloat() else (v1 / 360.0).toFloat(), st, bright).rgb
-    }
-
-    fun skyRainbow(var2: Int, st: Float, bright: Float): Color {
-        var v1 = ceil((System.currentTimeMillis() + (var2 * 109).toLong()).toDouble()) / 5
-        return Color.getHSBColor(if ((360.0.also { v1 %= it } / 360.0).toFloat()
-                .toDouble() < 0.5) -(v1 / 360.0).toFloat() else (v1 / 360.0).toFloat(), st, bright)
-    }
-
-    fun getRainbowOpaque(
-        seconds: Int,
-        saturation: Float,
-        brightness: Float,
-        index: Int
-    ): Int {
-        val hue =
-            (System.currentTimeMillis() + index) % (seconds * 1000) / (seconds * 1000).toFloat()
-        return Color.HSBtoRGB(hue, saturation, brightness)
-    }
-
-    fun getNormalRainbow(delay: Int, sat: Float, brg: Float): Int {
-        var rainbowState = ceil((System.currentTimeMillis() + delay) / 20.0)
-        rainbowState %= 360.0
-        return Color.getHSBColor((rainbowState / 360.0f).toFloat(), sat, brg).rgb
     }
 
     fun startSmooth() {
@@ -475,38 +442,7 @@ object RenderUtils : MinecraftInstance() {
     }
 
     fun newDrawRect(left: Float, top: Float, right: Float, bottom: Float, color: Int) {
-        var left = left
-        var top = top
-        var right = right
-        var bottom = bottom
-        if (left < right) {
-            val i = left
-            left = right
-            right = i
-        }
-        if (top < bottom) {
-            val j = top
-            top = bottom
-            bottom = j
-        }
-        val f3 = (color shr 24 and 255).toFloat() / 255.0f
-        val f = (color shr 16 and 255).toFloat() / 255.0f
-        val f1 = (color shr 8 and 255).toFloat() / 255.0f
-        val f2 = (color and 255).toFloat() / 255.0f
-        val tessellator = Tessellator.getInstance()
-        val worldrenderer = tessellator.worldRenderer
-        GlStateManager.enableBlend()
-        GlStateManager.disableTexture2D()
-        GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
-        GlStateManager.color(f, f1, f2, f3)
-        worldrenderer.begin(7, DefaultVertexFormats.POSITION)
-        worldrenderer.pos(left.toDouble(), bottom.toDouble(), 0.0).endVertex()
-        worldrenderer.pos(right.toDouble(), bottom.toDouble(), 0.0).endVertex()
-        worldrenderer.pos(right.toDouble(), top.toDouble(), 0.0).endVertex()
-        worldrenderer.pos(left.toDouble(), top.toDouble(), 0.0).endVertex()
-        tessellator.draw()
-        GlStateManager.enableTexture2D()
-        GlStateManager.disableBlend()
+        newDrawRect(left.toDouble(), top.toDouble(), right.toDouble(), bottom.toDouble(), color)
     }
 
     fun whatRoundedRect(
@@ -1246,7 +1182,7 @@ object RenderUtils : MinecraftInstance() {
         GL11.glEnd()
     }
 
-    fun drawRect(x: Int, y: Int, x2: Int, y2: Int, color: Int) {
+    fun drawRect(x: Number, y: Number, x2: Number, y2: Number, color: Int) {
         drawRect(x.toFloat(), y.toFloat(), x2.toFloat(), y2.toFloat(), color)
     }
 
@@ -1623,6 +1559,10 @@ object RenderUtils : MinecraftInstance() {
         GL11.glEnable(GL11.GL_DEPTH_TEST)
     }
 
+    fun drawExhiEnchants(stack: ItemStack, x: Int, y: Int) {
+        drawExhiEnchants(stack, x.toFloat(), y.toFloat())
+    }
+
     fun drawExhiEnchants(stack: ItemStack, x: Float, y: Float) {
         var y = y
         RenderHelper.disableStandardItemLighting()
@@ -1635,39 +1575,15 @@ object RenderUtils : MinecraftInstance() {
             val unb = EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack)
             val thorn = EnchantmentHelper.getEnchantmentLevel(Enchantment.thorns.effectId, stack)
             if (prot > 0) {
-                drawExhiOutlined(
-                    prot.toString() + "",
-                    drawExhiOutlined("P", x, y, 0.35f, darkBorder, -1, true),
-                    y,
-                    0.35f,
-                    getBorderColor(prot),
-                    getMainColor(prot),
-                    true
-                )
+                drawExhiOutlined(prot.toString(), drawExhiOutlined("P", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(prot), getMainColor(prot), true)
                 y += 4f
             }
             if (unb > 0) {
-                drawExhiOutlined(
-                    unb.toString() + "",
-                    drawExhiOutlined("U", x, y, 0.35f, darkBorder, -1, true),
-                    y,
-                    0.35f,
-                    getBorderColor(unb),
-                    getMainColor(unb),
-                    true
-                )
+                drawExhiOutlined(unb.toString(), drawExhiOutlined("U", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(unb), getMainColor(unb), true)
                 y += 4f
             }
             if (thorn > 0) {
-                drawExhiOutlined(
-                    thorn.toString() + "",
-                    drawExhiOutlined("T", x, y, 0.35f, darkBorder, -1, true),
-                    y,
-                    0.35f,
-                    getBorderColor(thorn),
-                    getMainColor(thorn),
-                    true
-                )
+                drawExhiOutlined(thorn.toString(), drawExhiOutlined("T", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(thorn), getMainColor(thorn), true)
                 y += 4f
             }
         }
@@ -1677,51 +1593,19 @@ object RenderUtils : MinecraftInstance() {
             val flame = EnchantmentHelper.getEnchantmentLevel(Enchantment.flame.effectId, stack)
             val unb = EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack)
             if (power > 0) {
-                drawExhiOutlined(
-                    power.toString() + "",
-                    drawExhiOutlined("Pow", x, y, 0.35f, darkBorder, -1, true),
-                    y,
-                    0.35f,
-                    getBorderColor(power),
-                    getMainColor(power),
-                    true
-                )
+                drawExhiOutlined(power.toString(), drawExhiOutlined("Pow", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(power), getMainColor(power), true)
                 y += 4f
             }
             if (punch > 0) {
-                drawExhiOutlined(
-                    punch.toString() + "",
-                    drawExhiOutlined("Pun", x, y, 0.35f, darkBorder, -1, true),
-                    y,
-                    0.35f,
-                    getBorderColor(punch),
-                    getMainColor(punch),
-                    true
-                )
+                drawExhiOutlined(punch.toString(), drawExhiOutlined("Pun", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(punch), getMainColor(punch), true)
                 y += 4f
             }
             if (flame > 0) {
-                drawExhiOutlined(
-                    flame.toString() + "",
-                    drawExhiOutlined("F", x, y, 0.35f, darkBorder, -1, true),
-                    y,
-                    0.35f,
-                    getBorderColor(flame),
-                    getMainColor(flame),
-                    true
-                )
+                drawExhiOutlined(flame.toString(), drawExhiOutlined("F", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(flame), getMainColor(flame), true)
                 y += 4f
             }
             if (unb > 0) {
-                drawExhiOutlined(
-                    unb.toString() + "",
-                    drawExhiOutlined("U", x, y, 0.35f, darkBorder, -1, true),
-                    y,
-                    0.35f,
-                    getBorderColor(unb),
-                    getMainColor(unb),
-                    true
-                )
+                drawExhiOutlined(unb.toString(), drawExhiOutlined("U", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(unb), getMainColor(unb), true)
                 y += 4f
             }
         }
@@ -1731,51 +1615,19 @@ object RenderUtils : MinecraftInstance() {
             val fire = EnchantmentHelper.getEnchantmentLevel(Enchantment.fireAspect.effectId, stack)
             val unb = EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack)
             if (sharp > 0) {
-                drawExhiOutlined(
-                    sharp.toString() + "",
-                    drawExhiOutlined("S", x, y, 0.35f, darkBorder, -1, true),
-                    y,
-                    0.35f,
-                    getBorderColor(sharp),
-                    getMainColor(sharp),
-                    true
-                )
+                drawExhiOutlined(sharp.toString(), drawExhiOutlined("S", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(sharp), getMainColor(sharp), true)
                 y += 4f
             }
             if (kb > 0) {
-                drawExhiOutlined(
-                    kb.toString() + "",
-                    drawExhiOutlined("K", x, y, 0.35f, darkBorder, -1, true),
-                    y,
-                    0.35f,
-                    getBorderColor(kb),
-                    getMainColor(kb),
-                    true
-                )
+                drawExhiOutlined(kb.toString(), drawExhiOutlined("K", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(kb), getMainColor(kb), true)
                 y += 4f
             }
             if (fire > 0) {
-                drawExhiOutlined(
-                    fire.toString() + "",
-                    drawExhiOutlined("F", x, y, 0.35f, darkBorder, -1, true),
-                    y,
-                    0.35f,
-                    getBorderColor(fire),
-                    getMainColor(fire),
-                    true
-                )
+                drawExhiOutlined(fire.toString(), drawExhiOutlined("F", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(fire), getMainColor(fire), true)
                 y += 4f
             }
             if (unb > 0) {
-                drawExhiOutlined(
-                    unb.toString() + "",
-                    drawExhiOutlined("U", x, y, 0.35f, darkBorder, -1, true),
-                    y,
-                    0.35f,
-                    getBorderColor(unb),
-                    getMainColor(unb),
-                    true
-                )
+                drawExhiOutlined(unb.toString(), drawExhiOutlined("U", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(unb), getMainColor(unb), true)
                 y += 4f
             }
         }
@@ -1783,15 +1635,7 @@ object RenderUtils : MinecraftInstance() {
         RenderHelper.enableGUIStandardItemLighting()
     }
 
-    private fun drawExhiOutlined(
-        text: String,
-        x: Float,
-        y: Float,
-        borderWidth: Float,
-        borderColor: Int,
-        mainColor: Int,
-        drawText: Boolean
-    ): Float {
+    private fun drawExhiOutlined(text: String, x: Float, y: Float, borderWidth: Float, borderColor: Int, mainColor: Int, drawText: Boolean): Float {
         Fonts.fontTahomaSmall!!.drawString(text, x, y - borderWidth, borderColor)
         Fonts.fontTahomaSmall!!.drawString(text, x, y + borderWidth, borderColor)
         Fonts.fontTahomaSmall!!.drawString(text, x - borderWidth, y, borderColor)

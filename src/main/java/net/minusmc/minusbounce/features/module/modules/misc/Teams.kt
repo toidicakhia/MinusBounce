@@ -17,9 +17,9 @@ import net.minecraft.item.ItemArmor
 class Teams : Module() {
 
     private val scoreboardValue = BoolValue("ScoreboardTeam", true)
-    private val colorValue = BoolValue("Color", true)
+    private val colorValue = BoolValue("Color", false)
     private val gommeSWValue = BoolValue("GommeSW", false)
-    private val armorValue = BoolValue("ArmorColor", false)
+    private val armorValue = BoolValue("ArmorColor", true)
 
     /**
      * Check if [entity] is in your own team using scoreboard, name color or team prefix

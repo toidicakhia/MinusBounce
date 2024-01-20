@@ -12,7 +12,7 @@ import net.minusmc.minusbounce.event.PacketEvent
 import net.minusmc.minusbounce.features.module.Module
 import net.minusmc.minusbounce.features.module.ModuleCategory
 import net.minusmc.minusbounce.features.module.ModuleInfo
-import net.minusmc.minusbounce.utils.PacketUtils.Companion.sendPacketNoEvent
+import net.minusmc.minusbounce.utils.PacketUtils
 import net.minusmc.minusbounce.value.FloatValue
 import net.minecraft.init.Blocks
 import net.minecraft.network.play.client.C07PacketPlayerDigging
@@ -45,13 +45,7 @@ class SpeedMine : Module() {
                     ex.printStackTrace()
                     return
                 }
-                sendPacketNoEvent(
-                    C07PacketPlayerDigging(
-                        C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK,
-                        pos,
-                        facing
-                    )
-                )
+                PacketUtils.sendPacketNoEvent(C07PacketPlayerDigging(C07PacketPlayerDigging.Action.STOP_DESTROY_BLOCK, pos, facing))
                 damage = 0f
                 boost = false
             }

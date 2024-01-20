@@ -64,50 +64,6 @@ public abstract class MixinGuiConnecting extends GuiScreen {
      * @author CCBlueX
      */
     @Overwrite
-    private void connect(final String ip, final int port) {
-        logger.info("Connecting to " + ip + ", " + port);
-
-        new Thread(() -> { 
-            InetAddress inetaddress = null;
-
-            try {
-                if(cancel) {
-                    return;
-                }
-
-                inetaddress = InetAddress.getByName(ip);
-                networkManager = NetworkManager.createNetworkManagerAndConnect(inetaddress, port, mc.gameSettings.isUsingNativeTransport());
-                networkManager.setNetHandler(new NetHandlerLoginClient(networkManager, mc, previousGuiScreen));
-                networkManager.sendPacket(new C00Handshake(47, ip, port, EnumConnectionState.LOGIN, true));
-                networkManager.sendPacket(new C00PacketLoginStart(mc.getSession().getProfile()));
-            }catch(UnknownHostException unknownhostexception) {
-                if(cancel)
-                    return;
-
-                logger.error("Couldn\'t connect to server", unknownhostexception);
-                mc.displayGuiScreen(new GuiDisconnected(previousGuiScreen, "connect.failed", new ChatComponentTranslation("disconnect.genericReason", "Unknown host")));
-            }catch(Exception exception) {
-                if(cancel) {
-                    return;
-                }
-
-                logger.error("Couldn\'t connect to server", exception);
-                String s = exception.toString();
-
-                if(inetaddress != null) {
-                    String s1 = inetaddress.toString() + ":" + port;
-                    s = s.replaceAll(s1, "");
-                }
-
-                mc.displayGuiScreen(new GuiDisconnected(previousGuiScreen, "connect.failed", new ChatComponentTranslation("disconnect.genericReason", s)));
-            }
-        }, "Server Connector #" + CONNECTION_ID.incrementAndGet()).start();
-    }
-
-    /**
-     * @author CCBlueX
-     */
-    @Overwrite
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
 

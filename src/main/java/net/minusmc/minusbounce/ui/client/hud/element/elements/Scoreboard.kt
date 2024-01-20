@@ -35,8 +35,7 @@ import java.awt.Color
  * Allows to move and customize minecraft scoreboard
  */
 @ElementInfo(name = "Scoreboard")
-class Scoreboard(x: Double = 5.0, y: Double = 0.0, scale: Float = 1F,
-                        side: Side = Side(Side.Horizontal.RIGHT, Side.Vertical.MIDDLE)) : Element(x, y, scale, side) {
+class Scoreboard(x: Double = 5.0, y: Double = 0.0, scale: Float = 1F, side: Side = Side(Side.Horizontal.RIGHT, Side.Vertical.MIDDLE)) : Element(x, y, scale, side) {
 
     private val useVanillaBackground = BoolValue("UseVanillaBackground", false)
     private val backgroundColorRedValue = IntegerValue("Background-R", 0, 0, 255) { !useVanillaBackground.get() }
@@ -68,7 +67,7 @@ class Scoreboard(x: Double = 5.0, y: Double = 0.0, scale: Float = 1F,
     private val roundStrength = FloatValue("Rounded-Strength", 5F, 0F, 30F) { bgRoundedValue.get() }
 
     private val rectColorModeValue = ListValue("Color", arrayOf("Custom", "Rainbow", "LiquidSlowly", "Fade", "Sky"), "Custom")
-    
+
     private val rectColorRedValue = IntegerValue("Red", 0, 0, 255)
     private val rectColorGreenValue = IntegerValue("Green", 111, 0, 255)
     private val rectColorBlueValue = IntegerValue("Blue", 255, 0, 255)
@@ -113,11 +112,7 @@ class Scoreboard(x: Double = 5.0, y: Double = 0.0, scale: Float = 1F,
             return null
 
         val fontRenderer = fontValue.get()
-        val backColor = backgroundColor().rgb
-
-        val rectColorMode = rectColorModeValue.get()
-        val rectCustomColor = Color(rectColorRedValue.get(), rectColorGreenValue.get(), rectColorBlueValue.get(),
-                rectColorBlueAlpha.get()).rgb
+        val backColor = Color(backgroundColorRedValue.get(), backgroundColorGreenValue.get(), backgroundColorBlueValue.get(), backgroundColorAlphaValue.get())
 
         val worldScoreboard: Scoreboard = mc.theWorld.scoreboard
         var currObjective: ScoreObjective? = null
@@ -174,10 +169,8 @@ class Scoreboard(x: Double = 5.0, y: Double = 0.0, scale: Float = 1F,
         val l1 = if (side.horizontal == Side.Horizontal.LEFT) {maxWidth + 3} else {-maxWidth - 3}
 
         val fadeColor : Int = ColorUtils.fade(Color(rectColorRedValue.get(), rectColorGreenValue.get(), rectColorBlueValue.get(), rectColorBlueAlpha.get()), 0, 100).rgb
-        val liquidSlowli = ColorUtils.LiquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get())?.rgb!!
 
-        if (scoreCollection.isNotEmpty()) { // only draw background and rect whenever there's something on scoreboard
-            // shadow
+        if (scoreCollection.isNotEmpty()) {
             if (shadowShaderValue.get()) {
                 GL11.glTranslated(-renderX, -renderY, 0.0)
                 GL11.glScalef(1F, 1F, 1F)
@@ -286,20 +279,13 @@ class Scoreboard(x: Double = 5.0, y: Double = 0.0, scale: Float = 1F,
                     Gui.drawRect(l1 - 2, -2 + fontRenderer.FONT_HEIGHT + 1, 5, maxHeight + fontRenderer.FONT_HEIGHT, 1342177280)
                 }
             } else if (side.horizontal == Side.Horizontal.LEFT) 
-                Gui.drawRect(l1 + 2, -2, -5, maxHeight + fontRenderer.FONT_HEIGHT, backColor)
+                Gui.drawRect(l1 + 2, -2, -5, maxHeight + fontRenderer.FONT_HEIGHT, backColor.rgb)
             else
-                Gui.drawRect(l1 - 2, -2, 5, maxHeight + fontRenderer.FONT_HEIGHT, backColor)
+                Gui.drawRect(l1 - 2, -2, 5, maxHeight + fontRenderer.FONT_HEIGHT, backColor.rgb)
 
             // rect
             if (rectValue.get()) {
-                val rectColor = when (rectColorMode.lowercase()) {
-                    "sky" -> RenderUtils.SkyRainbow(0, saturationValue.get(), brightnessValue.get())
-                    "rainbow" -> RenderUtils.getRainbowOpaque(cRainbowSecValue.get(), saturationValue.get(), brightnessValue.get(), 0)
-                    "liquidslowly" -> liquidSlowli
-                    "fade" -> fadeColor
-                    else -> rectCustomColor
-                }
-
+                val rectColor = getColor(0).rgb
                 if (side.horizontal == Side.Horizontal.LEFT)
                     Gui.drawRect(l1 + 2, -2, -5, -2 - rectHeight.get(), rectColor)
                 else
@@ -335,25 +321,8 @@ class Scoreboard(x: Double = 5.0, y: Double = 0.0, scale: Float = 1F,
             if (changed) {
                 var stringZ = ""
                 for (z in name.indices) {
-                    val typeColor = when {
-                            rectColorMode.equals("Sky", ignoreCase = true) -> RenderUtils.SkyRainbow(
-                                z * delayValue.get(),
-                                saturationValue.get(),
-                                brightnessValue.get()
-                            )
-                            rectColorMode.equals("Rainbow", ignoreCase = true) -> RenderUtils.getRainbowOpaque(
-                                cRainbowSecValue.get(),
-                                saturationValue.get(),
-                                brightnessValue.get(),
-                                z * delayValue.get()
-                            )
-                            rectColorMode.equals("LiquidSlowly", ignoreCase = true) -> ColorUtils.LiquidSlowly(System.nanoTime(), z * delayValue.get(), saturationValue.get(), brightnessValue.get())!!.rgb
-                            rectColorMode.equals("Fade", ignoreCase = true) -> ColorUtils.fade(
-                                Color(rectColorRedValue.get(), rectColorGreenValue.get(), rectColorBlueValue.get(), rectColorBlueAlpha.get()), 
-                                z * delayValue.get(), 
-                                100).rgb
-                            else -> rectCustomColor
-                        }
+                    val typeColor = getColor(z * delayValue.get()).rgb
+
                     if (side.horizontal == Side.Horizontal.LEFT) {
                         when (domainShadowValue.get().lowercase()) {
                             "none" -> domainFontValue.get().drawString(name[z].toString(), -3F + domainFontValue.get().getStringWidth(stringZ).toFloat(), height.toFloat() + domainFontYValue.get(), typeColor, false)
@@ -409,7 +378,12 @@ class Scoreboard(x: Double = 5.0, y: Double = 0.0, scale: Float = 1F,
         return if (side.horizontal == Side.Horizontal.LEFT) Border(maxWidth.toFloat() + 5, -2F, -5F, maxHeight.toFloat() + fontRenderer.FONT_HEIGHT) else Border(-maxWidth.toFloat() - 5, -2F, 5F, maxHeight.toFloat() + fontRenderer.FONT_HEIGHT)
     }
 
-    private fun backgroundColor() = Color(backgroundColorRedValue.get(), backgroundColorGreenValue.get(),
-            backgroundColorBlueValue.get(), backgroundColorAlphaValue.get())
+    private fun getColor(hue: Int): Color = when (rectColorModeValue.get().lowercase()) {
+        "sky" -> Color(ColorUtils.skyRainbow(hue, saturationValue.get(), brightnessValue.get()))
+        "rainbow" -> Color(ColorUtils.getRainbowOpaque(cRainbowSecValue.get(), saturationValue.get(), brightnessValue.get(), hue))
+        "fade" -> ColorUtils.fade(Color(rectColorRedValue.get(), rectColorGreenValue.get(), rectColorBlueValue.get(), rectColorBlueAlpha.get()), hue, 100)
+        "liquidslowly" -> ColorUtils.liquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get())
+        else -> Color(rectColorRedValue.get(), rectColorGreenValue.get(), rectColorBlueValue.get(), rectColorBlueAlpha.get())
+    }
 
 }

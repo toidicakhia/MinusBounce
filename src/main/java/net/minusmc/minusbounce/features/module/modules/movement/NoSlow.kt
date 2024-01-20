@@ -57,23 +57,6 @@ class NoSlow : Module() {
     private val antiSwitchItem = BoolValue("AntiSwitchItem", false)
 
     private val teleportValue = BoolValue("Teleport", false)
-    private val teleportModeValue = ListValue("TeleportMode", arrayOf("Vanilla", "VanillaNoSetback", "Custom", "Decrease"), "Vanilla") { teleportValue.get() }
-    private val teleportNoApplyValue = BoolValue("TeleportNoApply", false) { teleportValue.get() }
-    private val teleportCustomSpeedValue = FloatValue("Teleport-CustomSpeed", 0.13f, 0f, 1f) {
-        teleportValue.get() && teleportModeValue.equals(
-            "Custom"
-        )
-    }
-    private val teleportCustomYValue = BoolValue("Teleport-CustomY", false) {
-        teleportValue.get() && teleportModeValue.equals(
-            "Custom"
-        )
-    }
-    private val teleportDecreasePercentValue = FloatValue("Teleport-DecreasePercent", 0.13f, 0f, 1f) {
-        teleportValue.get() && teleportModeValue.equals(
-            "Decrease"
-        )
-    }
 
     private var pendingFlagApplyPacket = false
     private var lastMotionX = 0.0
@@ -110,47 +93,11 @@ class NoSlow : Module() {
             lastMotionX = mc.thePlayer.motionX
             lastMotionY = mc.thePlayer.motionY
             lastMotionZ = mc.thePlayer.motionZ
-            if (teleportModeValue.get().equals("VanillaNoSetback", true)) {
-                val x = packet.x - mc.thePlayer.posX
-                val y = packet.y - mc.thePlayer.posY
-                val z = packet.z - mc.thePlayer.posZ
-                val diff = sqrt(x * x + y * y + z * z)
-                if (diff <= 8) {
-                    event.cancelEvent()
-                    pendingFlagApplyPacket = false
-                    PacketUtils.sendPacketNoEvent(C06PacketPlayerPosLook(packet.x, packet.y, packet.z, packet.yaw, packet.pitch, mc.thePlayer.onGround))
-                }
-            }
         } else if (pendingFlagApplyPacket && packet is C06PacketPlayerPosLook) {
             pendingFlagApplyPacket = false
-            if (teleportNoApplyValue.get()) {
-                event.cancelEvent()
-            }
-            when (teleportModeValue.get().lowercase()) {
-                "vanilla", "vanillanosetback" -> {
-                    mc.thePlayer.motionX = lastMotionX
-                    mc.thePlayer.motionY = lastMotionY
-                    mc.thePlayer.motionZ = lastMotionZ
-                }
-                "custom" -> {
-                    if (MovementUtils.isMoving) {
-                        MovementUtils.strafe(teleportCustomSpeedValue.get())
-                    }
-
-                    if (teleportCustomYValue.get()) {
-                        if (lastMotionY> 0) {
-                            mc.thePlayer.motionY = teleportCustomSpeedValue.get().toDouble()
-                        } else {
-                            mc.thePlayer.motionY = -teleportCustomSpeedValue.get().toDouble()
-                        }
-                    }
-                }
-                "decrease" -> {
-                    mc.thePlayer.motionX = lastMotionX * teleportDecreasePercentValue.get()
-                    mc.thePlayer.motionY = lastMotionY * teleportDecreasePercentValue.get()
-                    mc.thePlayer.motionZ = lastMotionZ * teleportDecreasePercentValue.get()
-                }
-            }
+            mc.thePlayer.motionX = lastMotionX
+            mc.thePlayer.motionY = lastMotionY
+            mc.thePlayer.motionZ = lastMotionZ
         }
     }
 

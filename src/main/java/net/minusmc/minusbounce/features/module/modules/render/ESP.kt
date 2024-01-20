@@ -19,13 +19,9 @@ import net.minusmc.minusbounce.utils.ClientUtils
 import net.minusmc.minusbounce.utils.EntityUtils
 import net.minusmc.minusbounce.utils.render.BlendUtils
 import net.minusmc.minusbounce.utils.render.ColorUtils
-import net.minusmc.minusbounce.utils.render.ColorUtils.LiquidSlowly
-import net.minusmc.minusbounce.utils.render.ColorUtils.fade
 import net.minusmc.minusbounce.utils.render.RenderUtils.draw2D
 import net.minusmc.minusbounce.utils.render.RenderUtils.drawEntityBox
-import net.minusmc.minusbounce.utils.render.RenderUtils.getRainbowOpaque
 import net.minusmc.minusbounce.utils.render.RenderUtils.isInViewFrustrum
-import net.minusmc.minusbounce.utils.render.RenderUtils.skyRainbow
 import net.minusmc.minusbounce.utils.render.WorldToScreen.getMatrix
 import net.minusmc.minusbounce.utils.render.WorldToScreen.worldToScreen
 import net.minusmc.minusbounce.utils.render.shader.shaders.GlowShader
@@ -362,17 +358,16 @@ class ESP : Module() {
         return when (colorModeValue.get()) {
             "Custom" -> Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get())
             "Rainbow" -> Color(
-                getRainbowOpaque(
+                ColorUtils.getRainbowOpaque(
                     mixerSecondsValue.get(),
                     saturationValue.get(),
                     brightnessValue.get(),
                     0
                 )
             )
-
-            "Sky" -> skyRainbow(0, saturationValue.get(), brightnessValue.get())
-            "LiquidSlowly" -> LiquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get())
-            "Fade" -> fade(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get()), 0, 100)
+            "LiquidSlowly" -> ColorUtils.liquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get())
+            "Sky" -> Color(ColorUtils.skyRainbow(0, saturationValue.get(), brightnessValue.get()))
+            "Fade" -> ColorUtils.fade(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get()), 0, 100)
             else -> Color.white
         }
     }

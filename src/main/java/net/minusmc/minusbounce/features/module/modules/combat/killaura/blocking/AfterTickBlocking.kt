@@ -6,7 +6,7 @@ class AfterTickBlocking: KillAuraBlocking("AfterTick") {
     override fun onPreAttack() {
         killAura.stopBlocking()
     }
-
+    
     override fun onPostMotion() {
         killAura.startBlocking()
     }

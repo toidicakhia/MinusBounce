@@ -20,9 +20,6 @@ import net.minusmc.minusbounce.ui.font.GameFontRenderer.Companion.getColorIndex
 import net.minusmc.minusbounce.utils.render.AnimationUtils
 import net.minusmc.minusbounce.utils.render.BlendUtils
 import net.minusmc.minusbounce.utils.render.ColorUtils
-import net.minusmc.minusbounce.utils.render.ColorUtils.LiquidSlowly
-import net.minusmc.minusbounce.utils.render.ColorUtils.fade
-import net.minusmc.minusbounce.utils.render.ColorUtils.reAlpha
 import net.minusmc.minusbounce.utils.render.RenderUtils
 import net.minusmc.minusbounce.value.BoolValue
 import net.minusmc.minusbounce.value.FloatValue
@@ -38,7 +35,7 @@ import kotlin.math.sin
 class TargetMark : Module() {
     val modeValue = ListValue("Mode", arrayOf("Default", "Box", "Jello"), "Default")
     private val colorModeValue =
-        ListValue("Color", arrayOf("Custom", "Rainbow", "Sky", "LiquidSlowly", "Fade", "Health"), "Custom")
+        ListValue("Color", arrayOf("Custom", "Rainbow", "Sky", "Fade", "LiquidSlowly", "Health"), "Custom")
     private val colorRedValue = IntegerValue("Red", 255, 0, 255)
     private val colorGreenValue = IntegerValue("Green", 255, 0, 255)
     private val colorBlueValue = IntegerValue("Blue", 255, 0, 255)
@@ -147,7 +144,7 @@ class TargetMark : Module() {
             ) currentTarget?.let {
                 RenderUtils.drawPlatform(
                     it,
-                    if (aura!!.hitable) reAlpha(getColor(currentTarget)!!, colorAlphaValue.get()) else Color(
+                    if (aura!!.hitable) ColorUtils.reAlpha(getColor(currentTarget)!!, colorAlphaValue.get()) else Color(
                         255,
                         0,
                         0,
@@ -160,7 +157,7 @@ class TargetMark : Module() {
             ) currentTarget?.let {
                 RenderUtils.drawEntityBox(
                     it,
-                    if (aura!!.hitable) reAlpha(getColor(currentTarget)!!, colorAlphaValue.get()) else Color(
+                    if (aura!!.hitable) ColorUtils.reAlpha(getColor(currentTarget)!!, colorAlphaValue.get()) else Color(
                         255,
                         0,
                         0,
@@ -194,17 +191,16 @@ class TargetMark : Module() {
         return when (colorModeValue.get()) {
             "Custom" -> Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get())
             "Rainbow" -> Color(
-                RenderUtils.getRainbowOpaque(
+                ColorUtils.getRainbowOpaque(
                     mixerSecondsValue.get(),
                     saturationValue.get(),
                     brightnessValue.get(),
                     0
                 )
             )
-
-            "Sky" -> RenderUtils.skyRainbow(0, saturationValue.get(), brightnessValue.get())
-            "LiquidSlowly" -> LiquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get())
-            else -> fade(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get()), 0, 100)
+            "Sky" -> Color(ColorUtils.skyRainbow(0, saturationValue.get(), brightnessValue.get()))
+            "LiquidSlowly" -> ColorUtils.liquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get())
+            else -> ColorUtils.fade(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get()), 0, 100)
         }
     }
 

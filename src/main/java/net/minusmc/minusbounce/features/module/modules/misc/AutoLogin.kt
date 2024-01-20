@@ -104,8 +104,4 @@ class AutoLogin : Module() {
 		regTimer.reset()
 		logTimer.reset()
 	}
-
-    override val tag: String
-        get() = password.get()
-
 }

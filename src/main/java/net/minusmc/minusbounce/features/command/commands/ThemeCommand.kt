@@ -18,94 +18,96 @@ class ThemeCommand : Command("theme", arrayOf("thememanager", "tm", "themes")) {
      * Execute commands with provided [args]
      */
     override fun execute(args: Array<String>) {
-        if (args.size > 1) {
-            when {
-                args[1].equals("load", ignoreCase = true) -> {
-                    if (args.size > 2) {
-                        val themeFile = File(MinusBounce.fileManager.themesDir, args[2])
+        if (args.size <= 1) {
+            chatSyntax("theme <load/save/list/delete>")
+            return
+        }
 
-                        if (themeFile.exists()) {
-                            try {
-                                chat("§9Loading theme...")
-                                val theme = themeFile.readText()
-                                chat("§9Set theme settings...")
-                                MinusBounce.isStarting = true
-                                MinusBounce.hud.clearElements()
-                                MinusBounce.hud = Config(theme).toHUD()
-                                MinusBounce.isStarting = false
-                                chat("§6Theme applied successfully.")
-                                MinusBounce.hud.addNotification(Notification("Updated HUD Theme.", Notification.Type.SUCCESS))
-                                playEdit()
-                            } catch (e: IOException) {
-                                e.printStackTrace()
-                            }
+        when (args[1].lowercase()) {
+            "load" -> {
+                if (args.size > 2) {
+                    val themeFile = File(MinusBounce.fileManager.themesDir, args[2])
 
-                            return
-                        }
-
-                        chat("§cTheme file does not exist!")
-                        return
-                    }
-
-                    chatSyntax("theme load <name>")
-                    return
-                }
-
-                args[1].equals("save", ignoreCase = true) -> {
-                    if (args.size > 2) {
-                        val themeFile = File(MinusBounce.fileManager.themesDir, args[2])
-
+                    if (themeFile.exists()) {
                         try {
-                            if (themeFile.exists())
-                                themeFile.delete()
-                            themeFile.createNewFile()
-
-                            chat("§9Creating theme settings...")
-                            val settingsTheme = Config(MinusBounce.hud).toJson()
-                            chat("§9Saving theme...")
-                            themeFile.writeText(settingsTheme)
-                            chat("§6Theme saved successfully.")
-                        } catch (throwable: Throwable) {
-                            chat("§cFailed to create local theme config: §3${throwable.message}")
-                            ClientUtils.logger.error("Failed to create local theme config.", throwable)
+                            chat("§9Loading theme...")
+                            val theme = themeFile.readText()
+                            chat("§9Set theme settings...")
+                            MinusBounce.isStarting = true
+                            MinusBounce.hud.clearElements()
+                            MinusBounce.hud = Config(theme).toHUD()
+                            MinusBounce.isStarting = false
+                            chat("§6Theme applied successfully.")
+                            MinusBounce.hud.addNotification(Notification("Updated HUD Theme.", Notification.Type.SUCCESS))
+                            playEdit()
+                        } catch (e: IOException) {
+                            e.printStackTrace()
                         }
+
                         return
                     }
 
-                    chatSyntax("theme save <name>")
+                    chat("§cTheme file does not exist!")
                     return
                 }
 
-                args[1].equals("delete", ignoreCase = true) -> {
-                    if (args.size > 2) {
-                        val themeFile = File(MinusBounce.fileManager.themesDir, args[2])
+                chatSyntax("theme load <name>")
+                return
+            }
 
-                        if (themeFile.exists()) {
+            "save" -> {
+                if (args.size > 2) {
+                    val themeFile = File(MinusBounce.fileManager.themesDir, args[2])
+
+                    try {
+                        if (themeFile.exists())
                             themeFile.delete()
-                            chat("§6Theme file deleted successfully.")
-                            return
-                        }
+                        themeFile.createNewFile()
 
-                        chat("§cTheme file does not exist!")
+                        chat("§9Creating theme settings...")
+                        val settingsTheme = Config(MinusBounce.hud).toJson()
+                        chat("§9Saving theme...")
+                        themeFile.writeText(settingsTheme)
+                        chat("§6Theme saved successfully.")
+                    } catch (throwable: Throwable) {
+                        chat("§cFailed to create local theme config: §3${throwable.message}")
+                        ClientUtils.logger.error("Failed to create local theme config.", throwable)
+                    }
+                    return
+                }
+
+                chatSyntax("theme save <name>")
+                return
+            }
+
+            "delete" -> {
+                if (args.size > 2) {
+                    val themeFile = File(MinusBounce.fileManager.themesDir, args[2])
+
+                    if (themeFile.exists()) {
+                        themeFile.delete()
+                        chat("§6Theme file deleted successfully.")
                         return
                     }
 
-                    chatSyntax("theme delete <name>")
+                    chat("§cTheme file does not exist!")
                     return
                 }
 
-                args[1].equals("list", ignoreCase = true) -> {
-                    chat("§cThemes:")
+                chatSyntax("theme delete <name>")
+                return
+            }
 
-                    val themes = this.getLocalThemes() ?: return
+            "list" -> {
+                chat("§cThemes:")
 
-                    for (file in themes)
-                        chat("> " + file.name)
-                    return
-                }
+                val themes = this.getLocalThemes() ?: return
+
+                for (file in themes)
+                    chat("> " + file.name)
+                return
             }
         }
-        chatSyntax("theme <load/save/list/delete>")
     }
 
     override fun tabComplete(args: Array<String>): List<String> {

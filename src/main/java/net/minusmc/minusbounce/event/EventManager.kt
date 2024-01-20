@@ -29,8 +29,7 @@ class EventManager {
                     // switch to normal handler
                     invokableEventTargets.add(EventHook(listener, method, eventTarget))
                 }
-                invokableEventTargets.sortBy { it.priority }
-                registry.put(eventClass, invokableEventTargets)
+                registry[eventClass] = invokableEventTargets.sortedByDescending { it.priority }.toMutableList()
             }
         }
     }

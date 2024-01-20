@@ -36,7 +36,7 @@ class TargetStrafe : Module() {
     private val modeValue = ListValue("KeyMode", arrayOf("Jump", "None"), "None")
     private val safewalk = BoolValue("SafeWalk", true)
     private val thirdPerson = BoolValue("ThirdPerson", true)
-    private val colorType = ListValue("Color", arrayOf("Custom", "Dynamic", "Rainbow", "Rainbow2", "Sky", "Fade"), "Custom")
+    private val colorType = ListValue("Color", arrayOf("Custom", "Dynamic", "Rainbow", "LiquidSlowly", "Sky", "Fade"), "Custom")
     private val redValue = IntegerValue("Red", 255, 0, 255)
     private val greenValue = IntegerValue("Green", 255, 0, 255)
     private val blueValue = IntegerValue("Blue", 255, 0, 255)
@@ -204,29 +204,29 @@ class TargetStrafe : Module() {
                 GL11.glEnd()
             }
 
-            val rainbow2 = ColorUtils.LiquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get())
-            val sky = RenderUtils.skyRainbow(0, saturationValue.get(), brightnessValue.get())
-            val fade = ColorUtils.fade(Color(redValue.get(), greenValue.get(), blueValue.get()), 0, 100)
-
             GL11.glLineWidth(thicknessValue.get())
             GL11.glBegin(GL11.GL_LINE_LOOP)
 
             for (i in 0..360 step 60 - accuracyValue.get()) { // You can change circle accuracy  (60 - accuracy)
-                when (colorType.get()) {
-                    "Custom" -> GL11.glColor3f(redValue.get() / 255.0f, greenValue.get() / 255.0f, blueValue.get() / 255.0f)
-                    "Dynamic" -> if (canStrafe) GL11.glColor4f(0.25f, 1f, 0.25f, 1f) else GL11.glColor4f(1f, 1f, 1f, 1f)
-                    "Rainbow" -> {
-                        val rainbow = Color(RenderUtils.getNormalRainbow(i, saturationValue.get(), brightnessValue.get()))
-                        GL11.glColor3f(rainbow.red / 255.0f, rainbow.green / 255.0f, rainbow.blue / 255.0f)
+                when (colorType.get().lowercase()) {
+                    "dynamic" -> if (canStrafe) GL11.glColor4f(0.25f, 1f, 0.25f, 1f) else GL11.glColor4f(1f, 1f, 1f, 1f)
+                    "rainbow" -> {
+                        val color = Color(ColorUtils.getNormalRainbow(i, saturationValue.get(), brightnessValue.get()))
+                        GL11.glColor3f(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f)
                     }
-
-                    "Rainbow2" -> GL11.glColor3f(
-                        rainbow2!!.red / 255.0f,
-                        rainbow2.green / 255.0f,
-                        rainbow2.blue / 255.0f
-                    )
-                    "Sky" -> GL11.glColor3f(sky.red / 255.0f, sky.green / 255.0f, sky.blue / 255.0f)
-                    else -> GL11.glColor3f(fade.red / 255.0f, fade.green / 255.0f, fade.blue / 255.0f)
+                    "rainbow2" -> {
+                        val color = ColorUtils.liquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get())
+                        GL11.glColor3f(color!!.red / 255.0f, color.green / 255.0f, color.blue / 255.0f)
+                    }
+                    "sky" -> {
+                        val color = Color(ColorUtils.skyRainbow(0, saturationValue.get(), brightnessValue.get()))
+                        GL11.glColor3f(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f)
+                    }
+                    "fade" -> {
+                        val color = ColorUtils.fade(Color(redValue.get(), greenValue.get(), blueValue.get()), 0, 100)
+                        GL11.glColor3f(color.red / 255.0f, color.green / 255.0f, color.blue / 255.0f)
+                    }
+                    else -> GL11.glColor3f(redValue.get() / 255.0f, greenValue.get() / 255.0f, blueValue.get() / 255.0f)
                 }
                 GL11.glVertex2f(
                     cos(i * Math.PI / 180.0).toFloat() * radius.get(),

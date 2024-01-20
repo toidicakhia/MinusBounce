@@ -7,6 +7,7 @@ package net.minusmc.minusbounce.injection.forge.mixins.entity;
 
 import net.minusmc.minusbounce.MinusBounce;
 import net.minusmc.minusbounce.event.JumpEvent;
+import net.minusmc.minusbounce.event.LookEvent;
 import net.minusmc.minusbounce.features.module.modules.combat.KillAura;
 import net.minusmc.minusbounce.features.module.modules.misc.Patcher;
 import net.minusmc.minusbounce.features.module.modules.movement.NoJumpDelay;
@@ -129,12 +130,6 @@ public abstract class MixinEntityLivingBase extends MixinEntity {
     private void headLiving(CallbackInfo callbackInfo) {
         if (MinusBounce.moduleManager.getModule(NoJumpDelay.class).getState())
             jumpTicks = 0;
-    }
-
-    @Inject(method = "getLook", at = @At("HEAD"), cancellable = true)
-    private void getLook(CallbackInfoReturnable<Vec3> callbackInfoReturnable) {
-        if (((EntityLivingBase) (Object) this) instanceof EntityPlayerSP)
-            callbackInfoReturnable.setReturnValue(getVectorForRotation(this.rotationPitch, this.rotationYaw));
     }
 
     @Inject(method = "isPotionActive(Lnet/minecraft/potion/Potion;)Z", at = @At("HEAD"), cancellable = true)

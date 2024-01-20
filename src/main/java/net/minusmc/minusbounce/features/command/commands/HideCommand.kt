@@ -18,61 +18,43 @@ class HideCommand : Command("hide", emptyArray()) {
      */
     override fun execute(args: Array<String>) {
         if (args.size > 1) {
-            when {
-                args[1].equals("list", true) -> {
+            when (args[1].toLowerCase()) {
+                "list" -> {
                     chat("§c§lHidden")
                     MinusBounce.moduleManager.modules.filter { !it.array }.forEach {
                         ClientUtils.displayChatMessage("§6> §c${it.name}")
                     }
-                    return
                 }
-
-                args[1].equals("clear", true) -> {
-                    for (module in MinusBounce.moduleManager.modules)
-                        module.array = true
-
+                "clear" -> {
+                    MinusBounce.moduleManager.modules.forEach { it.array = true }
                     chat("Cleared hidden modules.")
-                    return
                 }
-
-                args[1].equals("reset", true) -> {
-                    for (module in MinusBounce.moduleManager.modules)
-                        module.array = module::class.java.getAnnotation(ModuleInfo::class.java).array
-
+                "reset" -> {
+                    MinusBounce.moduleManager.modules.forEach { it.array = it::class.java.getAnnotation(ModuleInfo::class.java).array }
                     chat("Reset hidden modules.")
-                    return
                 }
-
-                args[1].equals("category", true) -> {
+                "category" -> {
                     if (args.size < 3) {
                         chatSyntax("hide category <name>")
-                        return
-                    } else if (MinusBounce.moduleManager.modules.find { it.category.displayName.equals(args[2], true) } != null) {
-                        MinusBounce.moduleManager.modules.filter { it.category.displayName.equals(args[2], true) }.forEach { it.array = false }
-                        chat("All modules in category §7${args[2]}§3 is now §a§lhidden.")
-                        return
                     } else {
-                        chat("Couldn't find any category named §7${args[2]}§3!")
-                        return
+                        val categoryModules = MinusBounce.moduleManager.modules.filter { it.category.displayName.equals(args[2], true) }
+                        if (categoryModules.isNotEmpty()) {
+                            categoryModules.forEach { it.array = false }
+                            chat("All modules in category §7${args[2]}§3 are now §a§lhidden.")
+                        } else {
+                            chat("Couldn't find any category named §7${args[2]}§3!")
+                        }
                     }
                 }
-
                 else -> {
-                    // Get module by name
                     val module = MinusBounce.moduleManager.getModule(args[1])
-
                     if (module == null) {
                         chat("Module §a§l${args[1]}§3 not found.")
-                        return
+                    } else {
+                        module.array = !module.array
+                        chat("Module §a§l${module.name}§3 is now §a§l${if (module.array) "visible" else "invisible"}§3 on the array list.")
+                        playEdit()
                     }
-
-                    // Find key by name and change
-                    module.array = !module.array
-
-                    // Response to user
-                    chat("Module §a§l${module.name}§3 is now §a§l${if (module.array) "visible" else "invisible"}§3 on the array list.")
-                    playEdit()
-                    return
                 }
             }
         }

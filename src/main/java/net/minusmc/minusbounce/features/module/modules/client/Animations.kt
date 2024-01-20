@@ -15,49 +15,6 @@ import net.minusmc.minusbounce.value.ListValue
 
 @ModuleInfo(name = "Animations", description = "Render items Animations", category = ModuleCategory.CLIENT)
 object Animations : Module() {
-    // some ListValue
-    val Sword = ListValue(
-        "Style", arrayOf(
-            "Normal",
-            "Slidedown",
-            "Slidedown2",
-            "Slide",
-            "Minecraft",
-            "Remix",
-            "Exhibition",
-            "Exhibition2",
-            "Avatar",
-            "Swang",
-            "Tap",
-            "Tap2",
-            "Poke",
-            "Push",
-            "Push2",
-            "Up",
-            "Shield",
-            "Akrien",
-            "VisionFX",
-            "Swong",
-            "Swank",
-            "SigmaOld",
-            "ETB",
-            "Rotate360",
-            "SmoothFloat",
-            "Strange",
-            "Reverse",
-            "Zoom",
-            "Move",
-            "Stab",
-            "Jello",
-            "1.7",
-            "Flux",
-            "Stella",
-            "Tifality",
-            "OldExhibition",
-            "Old"
-        ), "Minecraft"
-    )
-
     // item general scale
     val Scale = FloatValue("Scale", 0.4f, 0f, 4f)
 
@@ -74,9 +31,7 @@ object Animations : Module() {
     // modify item swing and rotate
     val SpeedSwing = IntegerValue("Swing-Speed", 4, 0, 20)
     val RotateItems = BoolValue("Rotate-Items", false)
-    val SpeedRotate = FloatValue("Rotate-Speed", 1f, 0f, 10f) {
-        RotateItems.get() || Sword.contains("smoothfloat", "rotate360")
-    }
+    val SpeedRotate = FloatValue("Rotate-Speed", 1f, 0f, 10f) { RotateItems.get() }
 
     // transform rotation
     val transformFirstPersonRotate = ListValue("RotateMode", arrayOf("RotateY", "RotateXY", "Custom", "None"), "RotateY")
@@ -91,16 +46,6 @@ object Animations : Module() {
     val customRotate3 = FloatValue("RotateZAxis", 0f, -180f, 180f) {
         RotateItems.get() && transformFirstPersonRotate.get().equals("custom", true)
     }
-
-    // custom animation sword
-    val mcSwordPos = FloatValue("MCPosOffset", 0.45f, 0f, 0.5f) {
-        Sword.get().equals("minecraft", true)
-    }
-
-    val fakeBlock = BoolValue("Fake-Block", false)
-
-    // block not everything
-    val blockEverything = BoolValue("Block-Everything", false)
 
     // gui animations
     val guiAnimations = ListValue("Container-Animation", arrayOf("None", "Zoom", "Slide", "Smooth"), "None")

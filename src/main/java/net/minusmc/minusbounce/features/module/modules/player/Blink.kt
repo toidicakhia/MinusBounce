@@ -20,7 +20,6 @@ import net.minusmc.minusbounce.event.UpdateEvent
 import net.minusmc.minusbounce.features.module.ModuleCategory
 import net.minusmc.minusbounce.features.module.ModuleInfo
 import net.minusmc.minusbounce.features.module.modules.render.BreadCumbs
-import net.minusmc.minusbounce.ui.client.hud.element.elements.targets.impl.LiquidBounce
 import net.minusmc.minusbounce.utils.render.ColorUtils.rainbow
 import net.minusmc.minusbounce.utils.timer.MSTimer
 import net.minusmc.minusbounce.value.BoolValue
@@ -34,11 +33,12 @@ import java.util.concurrent.LinkedBlockingQueue
 class Blink : Module() {
     
     
-    val c0FValue = BoolValue("C0FCancel", false)
+    val C0F = BoolValue("C0F", false)
+    val C00 = BoolValue("C00", false)
     val pulseValue = BoolValue("Pulse", false)
-    private val pulseDelayValue = IntegerValue("PulseDelay", 1000, 500, 5000, "ms")
+    private val pulseDelayValue = IntegerValue("PulseDelay", 1000, 500, 5000, "ms") {pulseValue.get()}
+    private val Ground = BoolValue("BlinkOnGround", false) {pulseValue.get()}
     val fake = BoolValue("FakePlayer", false)
-
 
     private val packets = LinkedBlockingQueue<Packet<*>>()
     private var fakePlayer: EntityOtherPlayerMP? = null
@@ -78,13 +78,13 @@ class Blink : Module() {
     @EventTarget
     fun onPacket(event: PacketEvent) {
         val packet = event.packet
-        if (mc.thePlayer == null || disableLogger) return
+        if (mc.thePlayer == null || disableLogger || !(Ground.get() || !mc.thePlayer.onGround)) return
         if (packet is C03PacketPlayer) // Cancel all movement stuff
             event.cancelEvent()
         if (packet is C04PacketPlayerPosition || packet is C06PacketPlayerPosLook ||
                 packet is C08PacketPlayerBlockPlacement ||
                 packet is C0APacketAnimation ||
-                packet is C0BPacketEntityAction || packet is C02PacketUseEntity || c0FValue.get() && packet is C0FPacketConfirmTransaction) {
+                packet is C0BPacketEntityAction || packet is C02PacketUseEntity || C0F.get() && packet is C0FPacketConfirmTransaction || C00.get() && packet is C00PacketKeepAlive) {
             event.cancelEvent()
             packets.add(packet)
         }

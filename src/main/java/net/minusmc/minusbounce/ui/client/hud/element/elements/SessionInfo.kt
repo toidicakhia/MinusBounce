@@ -45,20 +45,12 @@ class SessionInfo(x: Double = 15.0, y: Double = 10.0, scale: Float = 1F, side: S
         val time = String.format("%02dh %02dm %02ds", hour, minute, second)
 
         RenderUtils.drawRoundedRect(-2f, -2f, x2.toFloat(), y2.toFloat(), radiusValue.get(), Color(bgredValue.get(), bggreenValue.get(), bgblueValue.get(), bgalphaValue.get()).rgb)
-        if(lineValue.get()) {
-            RenderUtils.drawGradientSideways(
-                    5.44,
-                    fontRenderer.FONT_HEIGHT + 2.5 + 0.0,
-                    138.0 + -2.44,
-                    fontRenderer.FONT_HEIGHT + 2.5 + 1.16,
-                    Color(redValue.get(), greenValue.get(), blueValue.get()).rgb,
-                    Color(colorRedValue2.get(), colorGreenValue2.get(), colorBlueValue2.get()).rgb
-            )
-        }
+        if(lineValue.get())
+            RenderUtils.drawGradientSideways(5.44, fontRenderer.FONT_HEIGHT + 2.5 + 0.0, 138.0 + -2.44, fontRenderer.FONT_HEIGHT + 2.5 + 1.16, Color(redValue.get(), greenValue.get(), blueValue.get()).rgb, Color(colorRedValue2.get(), colorGreenValue2.get(), colorBlueValue2.get()).rgb)
+            
         fontRenderer.drawStringWithShadow("Statistics", x2.toFloat() / 4f, 3f, Color.WHITE.rgb)
         fontRenderer.drawStringWithShadow("Play time: $time", 2f, fontRenderer.FONT_HEIGHT + 8f, Color.WHITE.rgb)
         fontRenderer.drawStringWithShadow("Games played: 0", 3f , fontRenderer.FONT_HEIGHT * 2 + 8f, Color.WHITE.rgb)
-        //fontRenderer.drawStringWithShadow("Kills: " + CombatListener.killCounts, 3f , fontRenderer.FONT_HEIGHT * 3 + 8f, Color.WHITE.rgb)
         return Border(-2f, -2f, x2.toFloat(), y2.toFloat())
     }
 }

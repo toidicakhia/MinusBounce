@@ -5,7 +5,7 @@
 A free forge hacked-client for Minecraft supporting version 1.8.9
 
 Website: https://minusbounce.lol \
-Discord: https://discord.gg/minusbounce
+Discord: https://discord.minusbounce.lol
 
 ### Issues
 If you notice any bugs or missing features, you can let us know by opening an issue [here](https://github.com/MinusMCNetwork/MinusBounce/issues).

@@ -22,7 +22,7 @@ open class ListValue(name: String, var values: Array<String>, value: String, dis
         return Arrays.stream(values).anyMatch {s: String -> s.equals(string, true)}
     }
 
-    fun contains(vararg strings: String?): Boolean {
+    fun equals(vararg strings: String?): Boolean {
         val arr = Arrays.stream(values)
         for (string in strings) {
             if (arr.anyMatch {s: String -> s.equals(string, true)}) return true
@@ -43,12 +43,6 @@ open class ListValue(name: String, var values: Array<String>, value: String, dis
         this.values = newValue
         this.value = values[0]
     }
-
-    // fun nextValue() {
-    //     var index = values.indexOf(value) + 1
-    //     if (index > values.size - 1) index = 0
-    //     value = values[index]
-    // }
 
     override fun toJson() = JsonPrimitive(value)
 

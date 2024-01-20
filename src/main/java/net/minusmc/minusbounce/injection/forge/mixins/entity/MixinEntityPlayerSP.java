@@ -25,7 +25,6 @@ import net.minecraft.potion.Potion;
 import net.minecraft.util.*;
 import net.minusmc.minusbounce.MinusBounce;
 import net.minusmc.minusbounce.event.*;
-import net.minusmc.minusbounce.features.module.modules.combat.Criticals;
 import net.minusmc.minusbounce.features.module.modules.combat.KillAura;
 import net.minusmc.minusbounce.features.module.modules.misc.AntiDesync;
 import net.minusmc.minusbounce.features.module.modules.movement.Fly;
@@ -196,13 +195,11 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer impl
                 double yawDiff = event.getYaw() - this.lastReportedYaw;
                 double pitchDiff = event.getPitch() - this.lastReportedPitch;
 
-                final Criticals criticals = MinusBounce.moduleManager.getModule(Criticals.class);
-
-                boolean moved = xDiff * xDiff + yDiff * yDiff + zDiff * zDiff > (MinusBounce.moduleManager.getModule(AntiDesync.class).getState() ? 0D : 9.0E-4D) || this.positionUpdateTicks >= 20;
+                boolean moved = xDiff * xDiff + yDiff * yDiff + zDiff * zDiff > 9.0E-4D || this.positionUpdateTicks >= 20;
                 boolean rotated = yawDiff != 0.0D || pitchDiff != 0.0D;
 
                 if (this.ridingEntity == null) {
-                    if (moved && rotated) {
+                    if ((moved && rotated) || MinusBounce.moduleManager.getModule(AntiDesync.class).getState()) {
                         this.sendQueue.addToSendQueue(new C03PacketPlayer.C06PacketPlayerPosLook(event.getX(), event.getY(), event.getZ(), event.getYaw(), event.getPitch(), event.getOnGround()));
                     } else if (moved) {
                         this.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(event.getX(), event.getY(), event.getZ(), event.getOnGround()));

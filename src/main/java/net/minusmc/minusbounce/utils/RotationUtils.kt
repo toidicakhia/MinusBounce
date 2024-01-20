@@ -41,8 +41,16 @@ object RotationUtils : MinecraftInstance(), Listenable {
         }
     }
 
+    @EventTarget 
+    fun onLook(event: LookEvent){
+        targetRotation?.let {
+            event.yaw = it.yaw
+            event.pitch = it.pitch
+        }
+    }
+
     @EventTarget
-    fun onUpdate(event: PreUpdateEvent){
+    fun onTick(event: PreUpdateEvent){
         if (targetRotation != null){
             keepLength--
 
@@ -229,26 +237,14 @@ object RotationUtils : MinecraftInstance(), Listenable {
      * @return rotation
      */
     fun toRotation(vec: Vec3, predict: Boolean): Rotation {
-        val eyesPos = Vec3(
-            mc.thePlayer.posX, mc.thePlayer.entityBoundingBox.minY +
-                    mc.thePlayer.getEyeHeight(), mc.thePlayer.posZ
-        )
+        val eyesPos = Vec3(mc.thePlayer.posX, mc.thePlayer.entityBoundingBox.minY + mc.thePlayer.eyeHeight, mc.thePlayer.posZ)
         if (predict) eyesPos.addVector(mc.thePlayer.motionX, mc.thePlayer.motionY, mc.thePlayer.motionZ)
         val diffX = vec.xCoord - eyesPos.xCoord
         val diffY = vec.yCoord - eyesPos.yCoord
         val diffZ = vec.zCoord - eyesPos.zCoord
         return Rotation(
-            MathHelper.wrapAngleTo180_float(
-                Math.toDegrees(atan2(diffZ, diffX)).toFloat() - 90f
-            ),
-            MathHelper.wrapAngleTo180_float(
-                (-Math.toDegrees(
-                    atan2(
-                        diffY,
-                        sqrt(diffX * diffX + diffZ * diffZ)
-                    )
-                )).toFloat()
-            )
+            MathHelper.wrapAngleTo180_float(Math.toDegrees(atan2(diffZ, diffX)).toFloat() - 90f),
+            MathHelper.wrapAngleTo180_float((-Math.toDegrees(atan2(diffY, sqrt(diffX * diffX + diffZ * diffZ)))).toFloat())
         )
     }
 
@@ -530,14 +526,14 @@ object RotationUtils : MinecraftInstance(), Listenable {
     }
 
     fun getDirectionToBlock(x: Double, y: Double, z: Double, enumfacing: EnumFacing): Rotation {
-        val var4 = EntityEgg(mc.theWorld)
-        var4.posX = x + 0.5
-        var4.posY = y + 0.5
-        var4.posZ = z + 0.5
-        var4.posX += enumfacing.directionVec.x.toDouble() * 0.5
-        var4.posY += enumfacing.directionVec.y.toDouble() * 0.5
-        var4.posZ += enumfacing.directionVec.z.toDouble() * 0.5
-        return getRotations(var4.posX, var4.posY, var4.posZ)
+        val entity = EntityEgg(mc.theWorld)
+        entity.posX = x + 0.5
+        entity.posY = y + 0.5
+        entity.posZ = z + 0.5
+        entity.posX += enumfacing.directionVec.x.toDouble() * 0.5
+        entity.posY += enumfacing.directionVec.y.toDouble() * 0.5
+        entity.posZ += enumfacing.directionVec.z.toDouble() * 0.5
+        return getRotations(entity.posX, entity.posY, entity.posZ)
     }
 
     // Vestige

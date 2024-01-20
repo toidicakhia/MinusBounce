@@ -24,7 +24,7 @@ import net.minusmc.minusbounce.features.module.modules.render.FreeCam
 import net.minusmc.minusbounce.features.module.modules.world.Scaffold
 import net.minusmc.minusbounce.utils.*
 import net.minusmc.minusbounce.utils.EntityUtils.isAlive
-import net.minusmc.minusbounce.utils.EntityUtils.isEnemy
+import net.minusmc.minusbounce.utils.EntityUtils.isSelected
 import net.minusmc.minusbounce.utils.extensions.*
 import net.minusmc.minusbounce.utils.misc.RandomUtils
 import net.minusmc.minusbounce.utils.timer.*
@@ -48,12 +48,12 @@ class KillAura : Module() {
     
     //Options
     private val cps = IntRangeValue("CPS", 5, 8, 1, 20)
-
     private val hurtTimeValue = IntegerValue("HurtTime", 10, 0, 10)
 
     // Range
     val rangeValue = FloatValue("Range", 3.7f, 1f, 8f, "m")
     private val throughWallsValue = BoolValue("ThroughWalls", true)
+    private val interactValue = BoolValue("Interact", true)
 
     // Modes
     private val rotations = ListValue("RotationMode", arrayOf("Vanilla", "BackTrack", "Grim", "Intave", "None"), "BackTrack")
@@ -104,11 +104,10 @@ class KillAura : Module() {
     private val blue = IntegerValue("Blue", 255, 0, 255) { circleValue.get() }
     private val alpha = IntegerValue("Alpha", 255, 0, 255) { circleValue.get() }
 
-    /**
-     * MODULE
-     */
-
     // Target
+    private val prevTargetEntities = mutableListOf<Int>()
+    private val discoveredEntities = mutableListOf<EntityLivingBase>()
+    var target: EntityLivingBase? = null
     var hitable = false
     
     // Attack delay
@@ -118,28 +117,33 @@ class KillAura : Module() {
 
     // Fake block status
     var blockingStatus = false
-
-    override fun onEnable() {
-        mc.thePlayer ?: return
-        mc.theWorld ?: return
-        updateTarget()
-    }
-
+    
     override fun onDisable() {
-        blockingMode.onDisable()
+        target = null
         hitable = false
         attackTimer.reset()
         clicks = 0
+		prevTargetEntities.clear()
         stopBlocking()
-        mc.gameSettings.keyBindUseItem.pressed = false
+        blockingMode.onDisable()
     }
 
     @EventTarget
     fun onPostMotion(event: PostMotionEvent) {
-        MinusBounce.combatManager.target ?: return
+        target ?: return
 
         updateHitable()
         blockingMode.onPostMotion()
+    }
+
+    @EventTarget
+    fun onEntityMove(event: EntityMovementEvent) {
+        val movedEntity = event.movedEntity
+
+        if (target == null || movedEntity != target)
+            return
+
+        updateHitable()
     }
 
     @EventTarget
@@ -149,11 +153,17 @@ class KillAura : Module() {
 
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
-        if (target != null)
+        if (target == null) {
+            stopBlocking()
+            return
+        }
+
+        if (target != null){
             while (clicks > 0) {
                 runAttack()
                 clicks--
             }
+        }
     }
 
     @EventTarget
@@ -173,15 +183,8 @@ class KillAura : Module() {
     @EventTarget
     fun onPreUpdate(event: PreUpdateEvent){
         updateTarget()
-
+        
         blockingMode.onPreUpdate()
-
-        if (target != null && mc.thePlayer.getDistanceToEntityBox(target!!) > rangeValue.get()) {
-            MinusBounce.combatManager.target = null
-        }
-        else if (target == null){
-            stopBlocking()
-        }
     }
 
     @EventTarget
@@ -218,7 +221,9 @@ class KillAura : Module() {
             GL11.glPopMatrix()
         }
 
-        if (target != null && attackTimer.hasTimePassed(attackDelay) && target!!.hurtTime <= hurtTimeValue.get()) {
+        target ?: return
+
+        if (attackTimer.hasTimePassed(attackDelay) && target!!.hurtTime <= hurtTimeValue.get()) {
             clicks++
             attackTimer.reset()
             attackDelay = TimeUtils.randomClickDelay(cps.getMinValue(), cps.getMaxValue())
@@ -234,15 +239,21 @@ class KillAura : Module() {
             // Attack
             if (!targetModeValue.get().equals("Multi", true))
                 attackEntity(target!!)
-            else
-                MinusBounce.combatManager.getEntitiesInRange(rangeValue.get(), limitedMultiTargetsValue.get()).forEach {
-                    attackEntity(it)
-                }
+            else {
+                discoveredEntities
+                    .filter {mc.thePlayer.getDistanceToEntityBox(it) < rangeValue.get()}
+                    .take(limitedMultiTargetsValue.get())
+                    .forEach {attackEntity(it)}
+            }
+
+            prevTargetEntities.add(target!!.entityId)
         }
 
-        if (targetModeValue.get().equals("Switch", true) && switchDelayValue.get() != 0 && attackTimer.hasTimePassed(switchDelayValue.get())) {
-            MinusBounce.combatManager.nextEntity()
-            attackTimer.reset()
+        if (targetModeValue.get().equals("Switch", true)) {
+            if (attackTimer.hasTimePassed(switchDelayValue.get().toLong())) {
+                prevTargetEntities.add(target!!.entityId)
+                attackTimer.reset()
+            }
         }
     }
 
@@ -254,39 +265,81 @@ class KillAura : Module() {
     }
 
     private fun updateTarget() {
-        MinusBounce.combatManager.sortEntities(priorityValue.get())
+        discoveredEntities.clear()
 
-        MinusBounce.combatManager.getEntitiesInRange(rangeValue.get()).forEach {
-            if (updateRotations(it)) {
-                MinusBounce.combatManager.target = it
+        for (entity in mc.theWorld.loadedEntityList) {
+			if (entity !is EntityLivingBase || !EntityUtils.isSelected(entity, true) || (targetModeValue.get().equals("switch", true) && prevTargetEntities.contains(entity.entityId)))
+                continue
+
+			if (mc.thePlayer.getDistanceToEntityBox(entity) <= rangeValue.get())
+				discoveredEntities.add(entity)
+		}
+
+        when (priorityValue.get().lowercase()) {
+            "distance" -> discoveredEntities.sortBy { mc.thePlayer.getDistanceToEntityBox(it) }
+            "health" -> discoveredEntities.sortBy { it.health + it.absorptionAmount }
+            "hurtresistance" -> discoveredEntities.sortBy { it.hurtResistantTime }
+            "hurttime" -> discoveredEntities.sortBy { it.hurtTime }
+            "armor" -> discoveredEntities.sortBy { it.totalArmorValue }
+        }
+
+        discoveredEntities.forEach {
+			if (updateRotations(it)) {
+				target = it
                 return
-            }
+			}
+		}
+
+        target = null
+
+        if (prevTargetEntities.isNotEmpty()) {
+            prevTargetEntities.clear()
+            updateTarget()
         }
     }
 
     private fun attackEntity(entity: EntityLivingBase) {
-        blockingMode.onPreAttack()
+        val event = AttackEvent(entity)
+        MinusBounce.eventManager.callEvent(event)
+        if (event.isCancelled) return
 
+        blockingMode.onPreAttack()
         runSwing()
-        MinusBounce.eventManager.callEvent(AttackEvent(entity))
+
+        mc.playerController.syncCurrentPlayItem()
         mc.netHandler.addToSendQueue(C02PacketUseEntity(entity, C02PacketUseEntity.Action.ATTACK))
 
-        val criticals = MinusBounce.moduleManager[Criticals::class.java]!!
+        if (mc.playerController.currentGameType != WorldSettings.GameType.SPECTATOR)
+            mc.thePlayer.attackTargetEntityWithCurrentItem(entity)
+
+        if (interactValue.get()) {
+            val (yaw, pitch) = RotationUtils.calculate(getNearestPointBB(mc.thePlayer.getPositionEyes(1F), entity.entityBoundingBox))
+            val blockReachDistance: Float = mc.playerController.getBlockReachDistance()
+            val vec3: Vec3 = mc.thePlayer.getPositionEyes(1f)
+            val vec31: Vec3 = mc.thePlayer.getVectorForRotation(pitch, yaw)
+            val vec32: Vec3 = vec3.addVector(vec31.xCoord * blockReachDistance, vec31.yCoord * blockReachDistance, vec31.zCoord * blockReachDistance)
+            val mouse: MovingObjectPosition = mc.thePlayer.worldObj.rayTraceBlocks(vec3, vec32, false, false, true)
+
+            if (mouse.typeOfHit == MovingObjectPosition.MovingObjectType.ENTITY){
+                if(!mc.playerController.isPlayerRightClickingOnEntity(mc.thePlayer, mouse.entityHit, mouse))
+                    mc.playerController.interactWithEntitySendPacket(mc.thePlayer, mouse.entityHit)
+            } 
+        }
 
         blockingMode.onPostAttack()
     }
 
     private fun updateRotations(entity: Entity): Boolean {
-        if (rotations.get().equals("none", true)) return true
+        if (rotations.get().equals("none", true))
+            return true
 
         val defRotation = getTargetRotation(entity) ?: return false
-
+        
         if (silentRotationValue.get()) {
-            RotationUtils.setTargetRot(defRotation)
+            RotationUtils.setTargetRot(defRotation, 0)
         } else {
             defRotation.toPlayer(mc.thePlayer!!)
         }
-
         return true
     }
 
@@ -304,17 +357,13 @@ class KillAura : Module() {
         val rotationSpeed = (Math.random() * (turnSpeed.getMaxValue() - turnSpeed.getMinValue()) + turnSpeed.getMinValue()).toFloat()
         return when (rotations.get().lowercase()) {
             "vanilla" -> {
-                if (turnSpeed.getMaxValue() <= 0F) RotationUtils.serverRotation
-
                 val (_, rotation) = RotationUtils.searchCenter(
                         boundingBox,
                         false,
                         false,
                         predictValue.get(),
                         throughWallsValue.get(),
-                        rangeValue.get(),
-                        0f,
-                        false
+                        rangeValue.get()
                 ) ?: return null
 
                 val limitedRotation = RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, rotation, rotationSpeed)
@@ -356,9 +405,12 @@ class KillAura : Module() {
         if (raycastValue.get()) {
             val raycastedEntity = RaycastUtils.raycastEntity(reach, object: RaycastUtils.IEntityFilter {
                 override fun canRaycast(entity: Entity?): Boolean {
-                    return entity is EntityLivingBase && entity !is EntityArmorStand && isEnemy(entity)
+                    return entity is EntityLivingBase && entity !is EntityArmorStand && isSelected(entity, true)
                 }
             })
+
+            if (raycastedEntity is EntityLivingBase)
+                target = raycastedEntity
 
             hitable = if (turnSpeed.getMaxValue() > 0F) target == raycastedEntity else true
         } else
@@ -380,13 +432,10 @@ class KillAura : Module() {
     }
 
     val canBlock: Boolean
-        get() = mc.thePlayer.heldItem != null && mc.thePlayer.heldItem.item is ItemSword && !blockingStatus
+        get() = mc.thePlayer.heldItem != null && mc.thePlayer.heldItem.item is ItemSword
 
     override val tag: String
         get() = targetModeValue.get()
-
-    val target: EntityLivingBase?
-        get() = MinusBounce.combatManager.target
 
     @EventTarget
     fun onPreMotion(event: PreMotionEvent) {

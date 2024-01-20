@@ -32,7 +32,6 @@ public class MixinNetworkManager {
 
     @Inject(method = "sendPacket(Lnet/minecraft/network/Packet;)V", at = @At("HEAD"), cancellable = true)
     private void send(Packet<?> packet, CallbackInfo callback) {
-        if (PacketUtils.Companion.handleSendPacket(packet)) return;
         final PacketEvent event = new PacketEvent(packet);
         MinusBounce.eventManager.callEvent(event);
 
