@@ -5,8 +5,9 @@ import net.minusmc.minusbounce.event.PacketEvent
 import net.minusmc.minusbounce.features.module.modules.combat.velocitys.VelocityMode
 import net.minusmc.minusbounce.ui.client.hud.element.elements.Notification
 import net.minusmc.minusbounce.utils.PacketUtils
+import net.minusmc.minusbounce.utils.timer.MSTimer
 import net.minusmc.minusbounce.value.ListValue
-import net.minecraft.network.play.server.S19PacketEntityStatus
+import net.minecraft.network.play.server.S08PacketPlayerPosLook
 import net.minecraft.network.play.server.S12PacketEntityVelocity
 import net.minecraft.network.play.server.S27PacketExplosion
 import net.minecraft.network.play.client.C07PacketPlayerDigging
@@ -31,7 +32,7 @@ class GrimC07Velocity : VelocityMode("GrimC07") {
         }
 
         if (canCancel) {
-            val pos = BlockPos(mc.thePlayer.posX, mc.thePlayer.posY, mc.thePlayer.posZ)
+            val pos = mc.thePlayer.getPosition()
 
             when (packetPayloadValue.get().lowercase()) {
                 "c03" -> PacketUtils.sendPacketNoEvent(C03PacketPlayer(mc.thePlayer.onGround))
