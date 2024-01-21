@@ -34,6 +34,6 @@ object MacroManager : MinecraftInstance(), Listenable {
         macroMapping.remove(keyCode)
     }
 
-    override fun handleEvents(): Boolean = true
+    override fun handleEvents() = true
 
 }

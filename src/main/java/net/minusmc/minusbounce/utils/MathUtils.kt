@@ -16,5 +16,4 @@ object MathUtils {
     fun toRadians(deg: Float): Float = deg / 180f * PI.toFloat()
     fun toDegrees(rad: Double): Double = rad * 180.0 / PI
     fun toDegrees(rad: Float): Float = rad * 180f / PI.toFloat()
-
 }

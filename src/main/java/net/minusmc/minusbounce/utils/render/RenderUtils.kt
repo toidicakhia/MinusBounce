@@ -293,7 +293,7 @@ object RenderUtils : MinecraftInstance() {
         OpenGlHelper.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
         glColor4f(1f, 1f, 1f, 1f)
         mc.textureManager.bindTexture(skin)
-        Gui.drawScaledCustomSizeModalRect(x, y, 8F, 8F, 8, 8, width, height, 4F, 64F)
+        Gui.drawScaledCustomSizeModalRect(x, y, 8F, 8F, 8, 8, width, height, 64F, 64F)
         glDepthMask(true)
         glDisable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)

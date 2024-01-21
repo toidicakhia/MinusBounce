@@ -12,6 +12,7 @@ import net.minusmc.minusbounce.ui.client.GuiMainMenu
 
 object ServerUtils : MinecraftInstance() {
     var serverData: ServerData? = null
+    
     fun connectToLastServer() {
         if (serverData == null) return
         mc.displayGuiScreen(GuiConnecting(GuiMultiplayer(GuiMainMenu()), mc, serverData))
@@ -27,6 +28,7 @@ object ServerUtils : MinecraftInstance() {
             }
             return serverIp
         }
+
     val isHypixelLobby: Boolean
         get() {
             if (mc.theWorld == null) return false

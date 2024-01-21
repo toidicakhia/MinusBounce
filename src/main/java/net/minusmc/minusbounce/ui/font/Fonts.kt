@@ -16,14 +16,8 @@ import java.io.*
 import java.util.zip.ZipInputStream
 
 object Fonts {
-    @field:FontDetails(fontName = "Roboto Medium", fontSize = 32)
-    lateinit var font32: GameFontRenderer
-
     @field:FontDetails(fontName = "Roboto Medium", fontSize = 35)
     lateinit var font35: GameFontRenderer
-
-    @field:FontDetails(fontName = "Roboto Medium", fontSize = 37)
-    lateinit var font37: GameFontRenderer
 
     @field:FontDetails(fontName = "Roboto Medium", fontSize = 40)
     lateinit var font40: GameFontRenderer
@@ -40,9 +34,6 @@ object Fonts {
     @field:FontDetails(fontName = "Roboto Medium", fontSize = 24)
     lateinit var fontTiny: GameFontRenderer
 
-    @field:FontDetails(fontName = "Roboto Medium", fontSize = 52)
-    lateinit var fontLarge: GameFontRenderer
-
     @field:FontDetails(fontName = "SFUI Regular", fontSize = 35)
     lateinit var fontSFUI35: GameFontRenderer
 
@@ -55,29 +46,23 @@ object Fonts {
     @field:FontDetails(fontName = "Bangers", fontSize = 45)
     lateinit var fontBangers: GameFontRenderer
 
-    @field:FontDetails(fontName = "Blanka", fontSize = 70)
-    lateinit var fontBlanka: GameFontRenderer
+    @field:FontDetails(fontName = "Lexend", fontSize = 35)
+    lateinit var fontLexend35: GameFontRenderer
 
-    @FontDetails(fontName = "Tenacity35", fontSize = 35)
-    lateinit var fontTenacity35: GameFontRenderer
+    @field:FontDetails(fontName = "Lexend", fontSize = 40)
+    lateinit var fontLexend40: GameFontRenderer
 
-    @FontDetails(fontName = "tenacity40", fontSize = 40)
-    lateinit var fontTenacity40: GameFontRenderer
+    @field:FontDetails(fontName = "Lexend", fontSize = 50)
+    lateinit var fontLexend50: GameFontRenderer
 
-    @FontDetails(fontName = "TenacityBold35", fontSize = 35)
-    lateinit var fontTenacityBold35: GameFontRenderer
+    @field:FontDetails(fontName = "Lexend Bold", fontSize = 30)
+    lateinit var fontLexendBold30: GameFontRenderer
 
-    @FontDetails(fontName = "tenacityBold40", fontSize = 40)
-    lateinit var fontTenacityBold40: GameFontRenderer
+    @field:FontDetails(fontName = "Lexend Bold", fontSize = 40)
+    lateinit var fontLexendBold40: GameFontRenderer
 
-    @FontDetails(fontName = "TenacityIcon30", fontSize = 30)
-    lateinit var fontTenacityIcon30: GameFontRenderer
-
-    @FontDetails(fontName = "NovolineIcon", fontSize = 80)
-    lateinit var novolineIcon: GameFontRenderer
-
-    @FontDetails(fontName = "NovolineIcon2", fontSize = 80)
-    lateinit var novolineIcon2: GameFontRenderer
+    @field:FontDetails(fontName = "Lexend Bold", fontSize = 50)
+    lateinit var fontLexendBold50: GameFontRenderer
 
     @field:FontDetails(fontName = "Minecraft Font")
     val minecraftFont: FontRenderer = Minecraft.getMinecraft().fontRendererObj
@@ -92,28 +77,25 @@ object Fonts {
         val l = System.currentTimeMillis()
         ClientUtils.logger.info("Loading Fonts.")
         downloadFonts()
-        font32 = GameFontRenderer(getFont("Roboto-Medium.ttf", 32))
         font35 = GameFontRenderer(getFont("Roboto-Medium.ttf", 35))
-        font37 = GameFontRenderer(getFont("Roboto-Medium.ttf", 37))
         font40 = GameFontRenderer(getFont("Roboto-Medium.ttf", 40))
         font50 = GameFontRenderer(getFont("Roboto-Medium.ttf", 50))
         font72 = GameFontRenderer(getFont("Roboto-Medium.ttf", 72))
         fontSmall = GameFontRenderer(getFont("Roboto-Medium.ttf", 30))
         fontTiny = GameFontRenderer(getFont("Roboto-Medium.ttf", 24))
-        fontLarge = GameFontRenderer(getFont("Roboto-Medium.ttf", 60))
         fontSFUI35 = GameFontRenderer(getFont("sfui.ttf", 35))
         fontSFUI40 = GameFontRenderer(getFont("sfui.ttf", 40))
         fontTahoma = GameFontRenderer(getFont("TahomaBold.ttf", 35))
         fontTahomaSmall = TTFFontRenderer(getFont("Tahoma.ttf", 11))
         fontBangers = GameFontRenderer(getFont("Bangers-Regular.ttf", 45))
-        fontBlanka = GameFontRenderer(getFont("Blanka-Regular.otf", 70))
-        fontTenacity35 = GameFontRenderer(getFont("Tenacity.ttf", 35))
-        fontTenacity40 = GameFontRenderer(getFont("Tenacity.ttf", 40))
-        fontTenacityBold35 = GameFontRenderer(getFont("Tenacity-Bold.ttf", 35))
-        fontTenacityBold40 = GameFontRenderer(getFont("Tenacity-Bold.ttf", 40))
-        fontTenacityIcon30 = GameFontRenderer(getFont("TenacityIcon.ttf", 30))
-        novolineIcon = GameFontRenderer(getFont("novolineNoti.ttf", 80))
-        novolineIcon2 = GameFontRenderer(getFont("novolineNoti2.ttf", 80))
+        fontLexend35 = GameFontRenderer(getFont("Lexend-Regular.ttf", 35))
+        fontLexend40 = GameFontRenderer(getFont("Lexend-Regular.ttf", 40))
+        fontLexend50 = GameFontRenderer(getFont("Lexend-Regular.ttf", 50))
+        fontLexendBold30 = GameFontRenderer(getFont("Lexend-Bold.ttf", 30))
+        fontLexendBold40 = GameFontRenderer(getFont("Lexend-Bold.ttf", 40))
+        fontLexendBold50 = GameFontRenderer(getFont("Lexend-Bold.ttf", 50))
+
+
         try {
             CUSTOM_FONT_RENDERERS.clear()
             val fontsFile = File(MinusBounce.fileManager.fontsDir, "fonts.json")

@@ -38,18 +38,6 @@ object Stencil {
         if (!renderClipLayer) GlStateManager.colorMask(false, false, false, false)
     }
 
-//    fun write(renderClipLayer: Boolean, fb: Framebuffer?, clearStencil: Boolean, invert: Boolean) {
-//        checkSetupFBO(fb)
-//        if (clearStencil) {
-//            GL11.glClearStencil(0)
-//            GL11.glClear(GL11.GL_STENCIL_BUFFER_BIT)
-//            GL11.glEnable(GL11.GL_STENCIL_TEST)
-//        }
-//        GL11.glStencilFunc(GL11.GL_ALWAYS, if (invert) 0 else 1, 65535)
-//        Framebuffer(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE)
-//        if (!renderClipLayer) GlStateManager.colorMask(false, false, false, false)
-//    }
-
     fun checkSetupFBO() {
         val fbo = mc.framebuffer
         if (fbo != null && fbo.depthBuffer > -1) {

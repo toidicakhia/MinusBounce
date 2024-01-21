@@ -16,6 +16,7 @@ import net.minusmc.minusbounce.features.special.AntiForge
 import net.minusmc.minusbounce.features.special.BungeeCordSpoof
 import net.minusmc.minusbounce.features.special.CombatManager
 import net.minusmc.minusbounce.features.special.MacroManager
+import net.minusmc.minusbounce.features.special.SessionManager
 import net.minusmc.minusbounce.features.special.MovementCorrection
 import net.minusmc.minusbounce.file.FileManager
 import net.minusmc.minusbounce.plugin.PluginAPIVersion
@@ -49,6 +50,7 @@ object MinusBounce {
     lateinit var tipSoundManager: TipSoundManager
     lateinit var pluginManager: PluginManager
     lateinit var clickGui: ClickGui
+    lateinit var sessionManager: SessionManager
 
     // HUD & ClickGUI
     lateinit var hud: HUD
@@ -57,8 +59,6 @@ object MinusBounce {
     var background: ResourceLocation? = null
 
     private var lastTick : Long = 0L
-
-    var playTimeStart: Long = 0L
 
     val mainMenuButton = hashMapOf<String, Class<out GuiScreen>>()
 
@@ -75,11 +75,11 @@ object MinusBounce {
         ClientUtils.logger.info("Starting $CLIENT_NAME")
         ClassUtils.initCacheClass()
         lastTick = System.currentTimeMillis()
-        playTimeStart = System.currentTimeMillis()
 
         fileManager = FileManager()
         eventManager = EventManager()
         combatManager = CombatManager()
+        sessionManager = SessionManager()
         eventManager.registerListener(RotationUtils)
         eventManager.registerListener(MovementCorrection())
         eventManager.registerListener(AntiForge())
@@ -90,6 +90,7 @@ object MinusBounce {
         eventManager.registerListener(SessionUtils())
         eventManager.registerListener(MacroManager)
         eventManager.registerListener(combatManager)
+        eventManager.registerListener(sessionManager)
 
         commandManager = CommandManager()
         Fonts.loadFonts()
@@ -124,8 +125,6 @@ object MinusBounce {
         GuiAltManager.loadActiveGenerators()
 
         ClientUtils.logger.info("Finished loading $CLIENT_NAME in ${System.currentTimeMillis() - lastTick}ms.")
-
-        playTimeStart = System.currentTimeMillis()
 
         // Set is starting status
         isStarting = false
