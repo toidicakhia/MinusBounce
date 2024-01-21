@@ -87,7 +87,7 @@ class Velocity : Module() {
 
     @EventTarget
     fun onTick(event: TickEvent) {
-        mode.onTick(event)
+        mode.onTick()
     }
     
     override val tag: String
