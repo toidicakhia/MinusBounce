@@ -94,27 +94,13 @@ class Notification(val message: String, val type: Type, val displayTime: Long) {
     private val imgInfo = ResourceLocation("${notifyDir}info.png")
 
     var x = 0F
-    val height = 30
-    var nowY = -height
-    var textLength = 0
+    var textLength = Fonts.font40.getStringWidth(message)
     var fadeState = FadeState.IN
     var stayTimer = MSTimer()
-    var notifHeight = 0F
-    var animeXTime = System.currentTimeMillis()
-    var animeYTime = System.currentTimeMillis()
     var width = 0f
-    private var messageList: List<String>
     private var stay = 0F
     private var fadeStep = 0F
-    private var firstY = 0f
-
-    init {
-        this.messageList = Fonts.font40.listFormattedStringToWidth(message, 105)
-        this.notifHeight = messageList.size.toFloat() * (Fonts.font40.FONT_HEIGHT.toFloat() + 2F) + 8F
-        this.firstY = 19190F
-        this.stayTimer.reset()
-        this.textLength = Fonts.font40.getStringWidth(message)
-    }
+    private var firstY = 19190f
 
     enum class Type {
         SUCCESS, INFO, WARNING, ERROR
@@ -138,7 +124,6 @@ class Notification(val message: String, val type: Type, val displayTime: Long) {
         val originalY = parent.renderY.toFloat()
         width = textLength.toFloat() + 8.0f
 
-        val backgroundColor = Color(0, 0, 0, parent.bgAlphaValue.get())
         val enumColor = when (type) {
             Type.SUCCESS -> Color(80, 255, 80).rgb
             Type.ERROR -> Color(255, 80, 80).rgb
@@ -170,7 +155,7 @@ class Notification(val message: String, val type: Type, val displayTime: Long) {
             GL11.glTranslatef(originalX, originalY, 0F)
         }
 
-        RenderUtils.drawRect(-x + 8 + textLength, -y, kek, -28F - y, backgroundColor.rgb)
+        RenderUtils.drawRect(-x + 8 + textLength, -y, kek, -28F - y, Color(22, 22, 29, 150).rgb)
 
         GL11.glPushMatrix()
         GlStateManager.disableAlpha()
@@ -232,5 +217,9 @@ class Notification(val message: String, val type: Type, val displayTime: Long) {
 
             FadeState.END -> hud.removeNotification(this)
         }
+    }
+
+    fun updateAnimation() {
+
     }
 }

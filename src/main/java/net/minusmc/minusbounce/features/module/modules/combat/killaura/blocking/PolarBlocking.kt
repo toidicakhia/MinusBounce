@@ -3,8 +3,7 @@ package net.minusmc.minusbounce.features.module.modules.combat.killaura.blocking
 import net.minusmc.minusbounce.features.module.modules.combat.killaura.KillAuraBlocking
 
 class PolarBlocking: KillAuraBlocking("Polar") {
-
-    override fun onPreAttack() {
+    override fun onDisable() {
         mc.gameSettings.keyBindUseItem.pressed = false
     }
 

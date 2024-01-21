@@ -32,6 +32,6 @@ class SessionInfo(x: Double = 15.0, y: Double = 10.0, scale: Float = 1F, side: S
         Fonts.fontLexend35.drawStringWithShadow(kills, 144f - Fonts.fontLexend35.getStringWidth(kills), 45f, Color.WHITE.rgb)
 
 
-        return Border(0f, 0f, 180f, 110f)
+        return Border(0f, 0f, 150f, 60f)
     }
 }
