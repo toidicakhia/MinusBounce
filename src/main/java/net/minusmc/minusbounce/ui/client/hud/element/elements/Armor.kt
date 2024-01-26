@@ -44,8 +44,8 @@ class Armor(x: Double = -8.0, y: Double = 57.0, scale: Float = 1F, side: Side = 
                     renderItem.renderItemOverlays(mc.fontRendererObj, stack!!, x, y)
                 }
                 when (alignment.get().lowercase()) {
-                    "horizontal" -> x += 25
-                    "vertical" -> y += 25
+                    "horizontal" -> x += 22
+                    "vertical" -> y += 22
                 }
             }
             

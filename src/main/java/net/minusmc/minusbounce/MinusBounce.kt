@@ -25,7 +25,6 @@ import net.minusmc.minusbounce.ui.client.altmanager.GuiAltManager
 import net.minusmc.minusbounce.ui.client.clickgui.ClickGui
 import net.minusmc.minusbounce.ui.client.hud.HUD
 import net.minusmc.minusbounce.ui.client.hud.HUD.Companion.createDefault
-import net.minusmc.minusbounce.ui.font.Fonts
 import net.minusmc.minusbounce.utils.*
 import net.minusmc.minusbounce.utils.misc.sound.TipSoundManager
 
@@ -93,8 +92,6 @@ object MinusBounce {
         eventManager.registerListener(sessionManager)
 
         commandManager = CommandManager()
-        Fonts.loadFonts()
-
         tipSoundManager = TipSoundManager()
 
         moduleManager = ModuleManager()
