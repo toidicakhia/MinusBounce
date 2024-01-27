@@ -7,7 +7,6 @@ package net.minusmc.minusbounce.injection.forge.mixins.gui;
 
 import net.minusmc.minusbounce.MinusBounce;
 import net.minusmc.minusbounce.event.Render2DEvent;
-import net.minusmc.minusbounce.features.module.modules.render.AntiBlind;
 import net.minusmc.minusbounce.features.module.modules.client.HUD;
 import net.minusmc.minusbounce.injection.access.StaticStorage;
 import net.minusmc.minusbounce.ui.font.AWTFontRenderer;
@@ -48,8 +47,7 @@ public abstract class MixinGuiInGame extends MixinGui {
 
     @Inject(method = "renderScoreboard", at = @At("HEAD"), cancellable = true)
     private void renderScoreboard(ScoreObjective scoreObjective, ScaledResolution scaledResolution, CallbackInfo callbackInfo) {
-        final AntiBlind antiBlind = MinusBounce.moduleManager.getModule(AntiBlind.class);
-        if ((antiBlind.getState() && antiBlind.getScoreBoard().get()) || MinusBounce.moduleManager.getModule(HUD.class).getState())
+        if (MinusBounce.moduleManager.getModule(HUD.class).getState())
             callbackInfo.cancel();
     }
 

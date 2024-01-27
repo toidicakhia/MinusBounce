@@ -12,6 +12,7 @@ object StringUtils {
     private val stringReplaceCache = HashMap<String, String>()
     private val stringRegexCache = HashMap<String, String?>()
     private val airCache = HashMap<String, String>()
+    
     fun fixString(str: String): String? {
         var str = str
         if (stringCache.containsKey(str)) return stringCache[str]

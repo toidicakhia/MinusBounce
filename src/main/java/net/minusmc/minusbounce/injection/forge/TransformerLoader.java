@@ -5,7 +5,6 @@
  */
 package net.minusmc.minusbounce.injection.forge;
 
-import net.minusmc.minusbounce.ui.font.Fonts;
 import net.minusmc.minusbounce.injection.transformers.ForgeNetworkTransformer;
 import net.minusmc.minusbounce.injection.transformers.OptimizeTransformer;
 import net.minecraftforge.fml.relauncher.IFMLLoadingPlugin;
@@ -18,7 +17,6 @@ import java.util.Map;
 public class TransformerLoader implements IFMLLoadingPlugin {
 
     public TransformerLoader() {
-        Fonts.INSTANCE.loadFonts();
         MixinBootstrap.init();
         Mixins.addConfiguration("minusbounce.forge.mixins.json");
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);

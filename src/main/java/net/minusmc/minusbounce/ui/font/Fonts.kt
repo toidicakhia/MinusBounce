@@ -14,6 +14,7 @@ import net.minusmc.minusbounce.utils.misc.HttpUtils.download
 import java.awt.Font
 import java.io.*
 import java.util.zip.ZipInputStream
+import kotlin.concurrent.thread
 
 object Fonts {
     @field:FontDetails(fontName = "Roboto Medium", fontSize = 35)
@@ -46,6 +47,9 @@ object Fonts {
     @field:FontDetails(fontName = "Bangers", fontSize = 45)
     lateinit var fontBangers: GameFontRenderer
 
+    @field:FontDetails(fontName = "Lexend", fontSize = 30)
+    lateinit var fontLexend30: GameFontRenderer
+
     @field:FontDetails(fontName = "Lexend", fontSize = 35)
     lateinit var fontLexend35: GameFontRenderer
 
@@ -53,8 +57,7 @@ object Fonts {
     lateinit var fontLexend50: GameFontRenderer
 
     @field:FontDetails(fontName = "Minecraft Font")
-    val minecraftFont: FontRenderer = Minecraft.getMinecraft().fontRendererObj
-
+    lateinit var minecraftFont: FontRenderer
 
     lateinit var fontTahomaSmall: TTFFontRenderer
 
@@ -76,9 +79,10 @@ object Fonts {
         fontTahoma = GameFontRenderer(getFont("TahomaBold.ttf", 35))
         fontTahomaSmall = TTFFontRenderer(getFont("Tahoma.ttf", 11))
         fontBangers = GameFontRenderer(getFont("Bangers-Regular.ttf", 45))
+        fontLexend30 = GameFontRenderer(getFont("Lexend-Regular.ttf", 30))
         fontLexend35 = GameFontRenderer(getFont("Lexend-Regular.ttf", 35))
         fontLexend50 = GameFontRenderer(getFont("Lexend-Regular.ttf", 50))
-
+        minecraftFont = Minecraft.getMinecraft().fontRendererObj
 
         try {
             CUSTOM_FONT_RENDERERS.clear()

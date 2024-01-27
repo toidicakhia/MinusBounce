@@ -18,6 +18,7 @@ import net.minusmc.minusbounce.features.special.CombatManager
 import net.minusmc.minusbounce.features.special.MacroManager
 import net.minusmc.minusbounce.features.special.SessionManager
 import net.minusmc.minusbounce.features.special.MovementCorrection
+import net.minusmc.minusbounce.ui.font.Fonts
 import net.minusmc.minusbounce.file.FileManager
 import net.minusmc.minusbounce.plugin.PluginAPIVersion
 import net.minusmc.minusbounce.plugin.PluginManager
@@ -68,6 +69,11 @@ object MinusBounce {
     /**
      * Execute if client will be started
      */
+
+    fun loadFileManager() {
+        fileManager = FileManager()
+    }
+
     fun startClient() {
         isStarting = true
 
@@ -90,6 +96,8 @@ object MinusBounce {
         eventManager.registerListener(MacroManager)
         eventManager.registerListener(combatManager)
         eventManager.registerListener(sessionManager)
+
+        Fonts.loadFonts()
 
         commandManager = CommandManager()
         tipSoundManager = TipSoundManager()

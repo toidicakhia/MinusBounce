@@ -137,19 +137,13 @@ public abstract class MixinMinecraft {
     public final Timer timer = new Timer(20.0F);
 
     @Shadow
-    private void rightClickMouse() {
-
-    }
+    private void rightClickMouse() {}
 
     @Shadow
-    private void clickMouse() {
-
-    }
+    private void clickMouse() {}
 
     @Shadow
-    private void middleClickMouse() {
-
-    }
+    private void middleClickMouse() {}
 
     @Shadow
     @Final
@@ -317,8 +311,7 @@ public abstract class MixinMinecraft {
         at = @At(value = "FIELD", target = "Lnet/minecraft/client/Minecraft;theWorld:Lnet/minecraft/client/multiplayer/WorldClient;", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER)
     )
     private void clearRenderCache(CallbackInfo ci) {
-        //noinspection ResultOfMethodCallIgnored
-        MinecraftForgeClient.getRenderPass(); // Ensure class is loaded, strange accessor issue
+        MinecraftForgeClient.getRenderPass();
         MinecraftForgeClientAccessor.getRegionCache().invalidateAll();
         MinecraftForgeClientAccessor.getRegionCache().cleanUp();
     }
