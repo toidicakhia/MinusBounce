@@ -81,7 +81,7 @@ class Scaffold: Module() {
     }
     private val expandLengthValue = IntegerValue("ExpandLength", 1, 1, 6, " blocks")
 
-    val rotationsValue = ListValue("Rotation", arrayOf("Normal", "AAC", "Novoline", "Spin", "Intave", "Rise", "Backwards", "Custom", "None"), "Normal")
+    val rotationsValue = ListValue("Rotation", arrayOf("Normal", "AAC", "Novoline", "Intave", "Rise", "Backwards", "Custom", "None"), "Normal")
 
     private val aacOffsetValue = FloatValue("AAC-Offset", 4f, 0f, 50f, "°") { rotationsValue.get().equals("aac", true) }
 
@@ -90,13 +90,6 @@ class Scaffold: Module() {
     }
     private val customPitchValue = FloatValue("Custom-Pitch", 86F, -90F, 90F, "°") {
         rotationsValue.get().equals("custom", true)
-    }
-
-    private val speenSpeedValue = FloatValue("Spin-Speed", 5F, -90F, 90F, "°") {
-        rotationsValue.get().equals("spin", true)
-    }
-    private val speenPitchValue = FloatValue("Spin-Pitch", 90F, -90F, 90F, "°") {
-        rotationsValue.get().equals("spin", true)
     }
 
     private val towerRotationsValue = ListValue("TowerRotation", arrayOf("Normal", "AAC", "Backwards", "None"), "Normal")
@@ -368,7 +361,8 @@ class Scaffold: Module() {
 
     @EventTarget
     fun onPreMotion(event: PreMotionEvent) {
-        towerMode.onPreMotion(event)
+        if (towerStatus)
+            towerMode.onPreMotion(event)
 
         if (!rotationsValue.get().equals("None", true) && keepLengthValue.get() > 0 && lockRotation != null)
             RotationUtils.setTargetRot(RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, lockRotation!!, rotationSpeed), keepLengthValue.get())
@@ -407,7 +401,8 @@ class Scaffold: Module() {
                 else -> false
             }
 
-        towerMode.onPostMotion()
+        if (towerStatus)
+            towerMode.onPostMotion()
 
         if (placeModeValue.equals("post")) place()
 
