@@ -97,10 +97,10 @@ object MinusBounce {
         eventManager.registerListener(combatManager)
         eventManager.registerListener(sessionManager)
 
-        Fonts.loadFonts()
-
         commandManager = CommandManager()
         tipSoundManager = TipSoundManager()
+
+        Fonts.loadFonts()
 
         moduleManager = ModuleManager()
         moduleManager.registerModules()

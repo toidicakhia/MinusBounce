@@ -80,6 +80,11 @@ class Notification(val title: String, val message: String, val type: Type, var d
     constructor(title: String, message: String, type: Type) : this(title, message, type, 2000L)
     constructor(title: String, message: String, displayTime: Long) : this(title, message, Type.INFO, displayTime)
 
+    private val success_icon = ResourceLocation("minusbounce/notification/success.png")
+    private val error_icon = ResourceLocation("minusbounce/notification/error.png")
+    private val warning_icon = ResourceLocation("minusbounce/notification/warning.png")
+    private val info_icon = ResourceLocation("minusbounce/notification/info.png")
+
     var fadeState = FadeState.IN
     var stayTimer = MSTimer()
     var alpha = 0
@@ -117,9 +122,23 @@ class Notification(val title: String, val message: String, val type: Type, var d
 
         GlStateManager.resetColor()
         RenderUtils.drawRoundedRect(-5f, -animationY, -140f, -animationY - 35f, 2f, Color(30, 30, 30, alpha / 2).rgb)
+        
+        GL11.glPushMatrix()
+        GlStateManager.disableAlpha()
+        RenderUtils.drawImage2(
+            when (type) {
+                Type.SUCCESS -> success_icon
+                Type.ERROR -> error_icon
+                Type.WARNING -> warning_icon
+                Type.INFO -> info_icon
+            }, -138f, -animationY - 35f, 32, 32
+        )
+        GlStateManager.enableAlpha()
+        GL11.glPopMatrix()
+
         GlStateManager.resetColor()
-        Fonts.fontProductSansBold40.drawString(title, -100f, -animationY - 25f, Color(255, 255, 255, alpha).rgb)
-        Fonts.fontLexend35.drawString(message, -100f, -animationY - 10f, Color(255, 255, 255, alpha).rgb)
+        Fonts.fontLexendBold40.drawString(title, -100f, -animationY - 30f, Color(255, 255, 255, alpha).rgb)
+        Fonts.fontLexend35.drawString(message, -100f, -animationY - 15f, Color(255, 255, 255, alpha).rgb)
         
         return false
     }

@@ -53,14 +53,11 @@ object Fonts {
     @field:FontDetails(fontName = "Lexend", fontSize = 35)
     lateinit var fontLexend35: GameFontRenderer
 
-    @field:FontDetails(fontName = "Lexend", fontSize = 50)
-    lateinit var fontLexend50: GameFontRenderer
-
-    @field:FontDetails(fontName = "Product Sans Bold", fontSize = 40)
-    lateinit var fontProductSansBold40: GameFontRenderer
+    @field:FontDetails(fontName = "Lexend Bold", fontSize = 40)
+    lateinit var fontLexendBold40: GameFontRenderer
 
     @field:FontDetails(fontName = "Minecraft Font")
-    lateinit var minecraftFont: FontRenderer
+    val minecraftFont = Minecraft.getMinecraft().fontRendererObj
 
     lateinit var fontTahomaSmall: TTFFontRenderer
 
@@ -84,9 +81,7 @@ object Fonts {
         fontBangers = GameFontRenderer(getFont("Bangers-Regular.ttf", 45))
         fontLexend30 = GameFontRenderer(getFont("Lexend-Regular.ttf", 30))
         fontLexend35 = GameFontRenderer(getFont("Lexend-Regular.ttf", 35))
-        fontLexend50 = GameFontRenderer(getFont("Lexend-Regular.ttf", 50))
-        fontProductSansBold40 = GameFontRenderer(getFont("Product Sans Bold.otf", 40))
-        minecraftFont = Minecraft.getMinecraft().fontRendererObj
+        fontLexendBold40 = GameFontRenderer(getFont("Lexend-Bold.ttf", 40))
 
         try {
             CUSTOM_FONT_RENDERERS.clear()
