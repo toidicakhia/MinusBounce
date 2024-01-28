@@ -34,7 +34,7 @@ class WatchdogFly: FlyMode("Watchdog", FlyType.OTHER) {
 	override fun onEnable() {
 		expectItemStack = PlayerUtils.getSlimeSlot()
         if (expectItemStack == -1) {
-            MinusBounce.hud.addNotification(Notification("The fly requires slime blocks to be activated properly."))
+            MinusBounce.hud.addNotification(Notification("Fly", "The fly requires slime blocks to be activated properly."))
             return
         }
 

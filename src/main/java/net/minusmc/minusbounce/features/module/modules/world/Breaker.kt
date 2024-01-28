@@ -330,7 +330,7 @@ object Breaker : Module() {
             if (firstPos == null) {
                 firstPos = nearestBlock
                 MinusBounce.hud.addNotification(
-                    Notification(
+                    Notification("Breaker", 
                         "Found first ${getBlockName(targetID)} block at ${nearestBlock.x} ${nearestBlock.y} ${nearestBlock.z}",
                         Notification.Type.SUCCESS
                     )
@@ -346,7 +346,7 @@ object Breaker : Module() {
                 }
                 if (firstPosBed != null)
                     MinusBounce.hud.addNotification(
-                        Notification(
+                        Notification("Breaker", 
                             "Found second Bed block at ${firstPosBed!!.x} ${firstPosBed!!.y} ${firstPosBed!!.z}",
                             Notification.Type.SUCCESS
                         )

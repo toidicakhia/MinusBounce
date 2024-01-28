@@ -43,7 +43,7 @@ class PearlFly: FlyMode("Pearl", FlyType.NORMAL) {
         val enderPearlSlot = PlayerUtils.getPearlSlot()
         if (pearlState == 0) {
             if (enderPearlSlot == -1) {
-                MinusBounce.hud.addNotification(Notification("You don't have any ender pearl!", Notification.Type.ERROR))
+                MinusBounce.hud.addNotification(Notification("Fly", "You don't have any ender pearl!", Notification.Type.ERROR))
                 pearlState = -1
                 fly.state = false
                 return

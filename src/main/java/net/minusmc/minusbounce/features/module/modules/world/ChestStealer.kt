@@ -170,7 +170,7 @@ class ChestStealer : Module() {
         } else if (autoCloseValue.get() && screen.inventorySlots.windowId == contentReceived && autoCloseTimer.hasTimePassed(nextCloseDelay)) {
             mc.thePlayer.closeScreen()
 
-            if (silenceValue.get() && !stillDisplayValue.get()) MinusBounce.hud.addNotification(Notification("Closed chest.", Notification.Type.INFO))
+            if (silenceValue.get() && !stillDisplayValue.get()) MinusBounce.hud.addNotification(Notification("ChestStealer", "Closed chest.", Notification.Type.INFO))
             nextCloseDelay = TimeUtils.randomDelay(autoCloseMinDelayValue.get(), autoCloseMaxDelayValue.get())
 
             if (once) {

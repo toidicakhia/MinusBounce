@@ -21,7 +21,6 @@ class VClipCommand : Command("vclip", emptyArray()) {
 
                 entity.setPosition(entity.posX, entity.posY + y, entity.posZ)
                 chat("Teleported ${args[1].toDouble()} blocks.")
-                MinusBounce.hud.addNotification(Notification("Teleported ${args[1].toDouble()} blocks.", Notification.Type.SUCCESS))
             } catch (ex: NumberFormatException) {
                 chatSyntaxError()
             }

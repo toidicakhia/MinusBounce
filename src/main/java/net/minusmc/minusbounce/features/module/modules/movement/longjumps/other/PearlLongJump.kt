@@ -26,7 +26,7 @@ class PearlLongJump : LongJumpMode("Pearl") {
 		val enderPearlSlot = PlayerUtils.getPearlSlot()
         if (pearlState == 0) {
             if (enderPearlSlot == -1) {
-                MinusBounce.hud.addNotification(Notification("You don't have any ender pearl!", Notification.Type.ERROR))
+                MinusBounce.hud.addNotification(Notification("LongJump", "You don't have any ender pearl!", Notification.Type.ERROR))
                 pearlState = -1
                 longjump.state = false
                 return                    
