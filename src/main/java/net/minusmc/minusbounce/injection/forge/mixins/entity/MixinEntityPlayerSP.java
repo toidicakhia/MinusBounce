@@ -26,6 +26,7 @@ import net.minecraft.util.*;
 import net.minusmc.minusbounce.MinusBounce;
 import net.minusmc.minusbounce.event.*;
 import net.minusmc.minusbounce.features.module.modules.combat.KillAura;
+import net.minusmc.minusbounce.features.module.modules.combat.Criticals;
 import net.minusmc.minusbounce.features.module.modules.misc.AntiDesync;
 import net.minusmc.minusbounce.features.module.modules.movement.Fly;
 import net.minusmc.minusbounce.features.module.modules.movement.InvMove;
@@ -188,21 +189,30 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer impl
                 this.serverSneakState = sneaking;
             }
 
-            if (this.isCurrentViewEntity()) {  
+            if (this.isCurrentViewEntity()) {
                 float yaw = event.getYaw();
                 float pitch = event.getPitch();
+                float lastReportedYaw = RotationUtils.serverRotation.getYaw();
+                float lastReportedPitch = RotationUtils.serverRotation.getPitch();
+
+                if (RotationUtils.targetRotation != null) {
+                    yaw = RotationUtils.targetRotation.getYaw();
+                    pitch = RotationUtils.targetRotation.getPitch();
+                }
 
                 double xDiff = event.getX() - this.lastReportedPosX;
                 double yDiff = event.getY() - this.lastReportedPosY;
                 double zDiff = event.getZ() - this.lastReportedPosZ;
-                double yawDiff = yaw - this.lastReportedYaw;
-                double pitchDiff = pitch - this.lastReportedPitch;
+                double yawDiff = yaw - lastReportedYaw;
+                double pitchDiff = pitch - lastReportedPitch;
 
-                boolean moved = xDiff * xDiff + yDiff * yDiff + zDiff * zDiff > 9.0E-4D || this.positionUpdateTicks >= 20;
+                final Criticals criticals = MinusBounce.moduleManager.getModule(Criticals.class);
+
+                boolean moved = xDiff * xDiff + yDiff * yDiff + zDiff * zDiff > (MinusBounce.moduleManager.getModule(AntiDesync.class).getState() ? 0D : 9.0E-4D) || this.positionUpdateTicks >= 20;
                 boolean rotated = yawDiff != 0.0D || pitchDiff != 0.0D;
 
                 if (this.ridingEntity == null) {
-                    if ((moved && rotated) || MinusBounce.moduleManager.getModule(AntiDesync.class).getState()) {
+                    if (moved && rotated) {
                         this.sendQueue.addToSendQueue(new C03PacketPlayer.C06PacketPlayerPosLook(event.getX(), event.getY(), event.getZ(), yaw, pitch, event.getOnGround()));
                     } else if (moved) {
                         this.sendQueue.addToSendQueue(new C03PacketPlayer.C04PacketPlayerPosition(event.getX(), event.getY(), event.getZ(), event.getOnGround()));
