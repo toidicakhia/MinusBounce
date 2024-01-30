@@ -189,8 +189,8 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer impl
             }
 
             if (this.isCurrentViewEntity()) {  
-                float yaw = yaw;
-                float pitch = pitch;
+                float yaw = event.getYaw();
+                float pitch = event.getPitch();
 
                 double xDiff = event.getX() - this.lastReportedPosX;
                 double yDiff = event.getY() - this.lastReportedPosY;
