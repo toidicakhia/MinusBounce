@@ -361,11 +361,10 @@ class Scaffold: Module() {
 
     @EventTarget
     fun onPreMotion(event: PreMotionEvent) {
-        if (towerStatus)
-            towerMode.onPreMotion(event)
-
         if (!rotationsValue.get().equals("None", true) && keepLengthValue.get() > 0 && lockRotation != null)
             RotationUtils.setTargetRot(RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, lockRotation!!, rotationSpeed), keepLengthValue.get())
+
+        if (placeModeValue.equals("pre")) place()
 
         if (!placeCondition || if (!autoBlockMode.get().equals("off", true)) InventoryUtils.findAutoBlockBlock() == -1 else mc.thePlayer.heldItem == null || !(mc.thePlayer.heldItem.item is ItemBlock && isBlockToScaffold(mc.thePlayer.heldItem.item as ItemBlock))) {
             return
@@ -373,12 +372,13 @@ class Scaffold: Module() {
 
         findBlock(expandLengthValue.get() > 1 && !towerStatus)
 
-        if (placeModeValue.equals("pre")) place()
-
         // Placeable delay
         if (targetPlace == null && !placeableDelay.get().equals("Off", true) && !towerStatus) {
             delayTimer.reset()
         }
+
+        if (towerStatus)
+            towerMode.onPreMotion(event)
     }
 
     @EventTarget
@@ -401,8 +401,8 @@ class Scaffold: Module() {
                 else -> false
             }
 
-        if (towerStatus)
-            towerMode.onPostMotion()
+        if (!rotationsValue.get().equals("None", true) && keepLengthValue.get() > 0 && lockRotation != null)
+            RotationUtils.setTargetRot(RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, lockRotation!!, rotationSpeed), keepLengthValue.get())
 
         if (placeModeValue.equals("post")) place()
 
@@ -410,6 +410,9 @@ class Scaffold: Module() {
         if (targetPlace == null && !placeableDelay.get().equals("Off", true) && !towerStatus) {
             delayTimer.reset()
         }
+
+        if (towerStatus)
+            towerMode.onPostMotion()
         
     }
 
@@ -775,9 +778,7 @@ class Scaffold: Module() {
                 }
                 else -> return false
             }
-            if (rotationsValue.get().equals("Intave", true)) {
-                RotationUtils.setTargetRot(lockRotation!!)
-            } else if (rotationsValue.get().equals("Normal", true) || (rotationsValue.get().equals("Grim", true) && !mc.thePlayer.onGround)){
+            if (rotationsValue.get().equals("Normal", true) || (rotationsValue.get().equals("Grim", true) && !mc.thePlayer.onGround)){
                 val limitedRotation = RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, lockRotation!!, rotationSpeed)
                 RotationUtils.setTargetRot(limitedRotation, keepLengthValue.get())
             } else RotationUtils.setTargetRot(lockRotation!!)

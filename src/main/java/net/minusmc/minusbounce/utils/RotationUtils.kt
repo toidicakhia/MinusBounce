@@ -32,23 +32,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
     private var x = random.nextDouble()
     private var y = random.nextDouble()
     private var z = random.nextDouble()
-
-    @EventTarget 
-    fun onPre(event: PreMotionEvent){
-        targetRotation?.let {
-            event.yaw = it.yaw
-            event.pitch = it.pitch
-        }
-    }
-
-    @EventTarget 
-    fun onLook(event: LookEvent){
-        targetRotation?.let {
-            event.yaw = it.yaw
-            event.pitch = it.pitch
-        }
-    }
-
+    
     @EventTarget
     fun onTick(event: PreUpdateEvent){
         if (targetRotation != null){
