@@ -134,7 +134,8 @@ public abstract class MixinMinecraft {
     private boolean isGamePaused;
 
     @Shadow
-    public final Timer timer = new Timer(20.0F);
+    @Final
+    public Timer timer;
 
     @Shadow
     private void rightClickMouse() {}
@@ -146,11 +147,7 @@ public abstract class MixinMinecraft {
     private void middleClickMouse() {}
 
     @Shadow
-    @Final
-    public FrameTimer field_181542_y;
-
-    @Shadow
-    public long field_181543_z;
+    public long startNanoTime;
 
     @Shadow
     public boolean inGameHasFocus;
@@ -159,7 +156,7 @@ public abstract class MixinMinecraft {
     public abstract IResourceManager getResourceManager();
 
     @Shadow
-    private PlayerUsageSnooper usageSnooper = new PlayerUsageSnooper("client", (IPlayerUsage) this, MinecraftServer.getCurrentTimeMillis());
+    private PlayerUsageSnooper usageSnooper;
 
     @Shadow
     private Queue<FutureTask<?>> scheduledTasks;
@@ -171,29 +168,29 @@ public abstract class MixinMinecraft {
     public GuiAchievement guiAchievement;
 
     @Shadow
-    int fpsCounter;
+    public int fpsCounter;
+
     @Shadow
-    long prevFrameTime = -1L;
+    public long prevFrameTime;
 
     @Shadow
     private Framebuffer framebufferMc;
 
     @Shadow
-    long startNanoTime = System.nanoTime();
-
-    @Shadow
     public abstract void checkGLError(String message);
 
     @Shadow
-    long debugUpdateTime = getSystemTime();
+    public long debugUpdateTime;
 
     @Shadow
     private IStream stream;
-    @Shadow
-    public final FrameTimer frameTimer = new FrameTimer();
 
     @Shadow
-    public String debug = "";
+    @Final
+    public FrameTimer frameTimer;
+
+    @Shadow
+    public String debug;
 
     @Shadow
     private IntegratedServer theIntegratedServer;
@@ -211,13 +208,14 @@ public abstract class MixinMinecraft {
     public abstract boolean isSingleplayer();
 
     @Shadow
-    private static final Logger logger = LogManager.getLogger();
+    @Final
+    private static Logger logger;
 
     @Shadow
     private void displayDebugInfo(long elapsedTicksTime) {}
 
     @Shadow
-    private long debugCrashKeyPressTime = -1L;
+    private long debugCrashKeyPressTime;
 
     @Shadow
     public GuiIngame ingameGUI;
@@ -244,17 +242,20 @@ public abstract class MixinMinecraft {
     private NetworkManager myNetworkManager;
 
     @Shadow
-    long systemTime = getSystemTime();
+    public long systemTime;
 
     @Shadow
     public abstract Entity getRenderViewEntity();
 
     @Shadow
     private SoundHandler mcSoundHandler;
+
     @Shadow
     private MusicTicker mcMusicTicker;
+
     @Shadow
     public abstract NetHandlerPlayClient getNetHandler();
+
     @Shadow
     public abstract void setIngameFocus();
 
@@ -472,8 +473,8 @@ public abstract class MixinMinecraft {
         ++this.fpsCounter;
         this.isGamePaused = this.isSingleplayer() && this.currentScreen != null && this.currentScreen.doesGuiPauseGame() && !this.theIntegratedServer.getPublic();
         long k = System.nanoTime();
-        this.field_181542_y.addFrame(k - this.field_181543_z);
-        this.field_181543_z = k;
+        this.frameTimer.addFrame(k - this.startNanoTime);
+        this.startNanoTime = k;
 
         while (Minecraft.getSystemTime() >= this.debugUpdateTime + 1000L)
         {

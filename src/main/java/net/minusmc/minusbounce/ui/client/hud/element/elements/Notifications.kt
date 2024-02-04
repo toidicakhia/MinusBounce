@@ -112,10 +112,8 @@ class Notification(val title: String, val message: String, val type: Type, var d
                 stayTimer.reset()
             }
             FadeState.OUT -> {
-                if (alpha <= 32) {
-                    fadeState = FadeState.END
-                    alpha = 0
-                } else alpha -= 32
+                alpha = 0
+                fadeState = FadeState.END
             }
             FadeState.END -> return true
         }

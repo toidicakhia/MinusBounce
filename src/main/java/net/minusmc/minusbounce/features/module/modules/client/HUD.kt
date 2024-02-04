@@ -88,11 +88,8 @@ class HUD : Module() {
     }
 
     fun getAnimPos(pos: Float): Float {
-        hotBarX = if (state && animHotbarValue.get()) AnimationUtils.animate(
-            pos,
-            hotBarX,
-            0.02F * RenderUtils.deltaTime.toFloat()
-        )
+        hotBarX = if (state && animHotbarValue.get())
+            AnimationUtils.animate(pos, hotBarX, 0.02F * RenderUtils.deltaTime.toFloat())
         else pos
 
         return hotBarX

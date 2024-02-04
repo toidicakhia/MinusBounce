@@ -40,12 +40,12 @@ class Armor(x: Double = -8.0, y: Double = 57.0, scale: Float = 1F, side: Side = 
             for (index in 3 downTo 0) {
                 val stack = mc.thePlayer.inventory.armorInventory[index]
                 if (stack != null) {
-                    renderItem.renderItemIntoGUI(stack!!, x, y)
-                    renderItem.renderItemOverlays(mc.fontRendererObj, stack!!, x, y)
+                    renderItem.renderItemIntoGUI(stack, x, y)
+                    renderItem.renderItemOverlays(mc.fontRendererObj, stack, x, y)
                 }
                 when (alignment.get().lowercase()) {
-                    "horizontal" -> x += 22
-                    "vertical" -> y += 22
+                    "horizontal" -> x += 21
+                    "vertical" -> y += 21
                 }
             }
             
