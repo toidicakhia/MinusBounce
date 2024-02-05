@@ -23,7 +23,7 @@ import net.minusmc.minusbounce.file.FileManager
 import net.minusmc.minusbounce.plugin.PluginAPIVersion
 import net.minusmc.minusbounce.plugin.PluginManager
 import net.minusmc.minusbounce.ui.client.altmanager.GuiAltManager
-import net.minusmc.minusbounce.ui.client.clickgui.ClickGui
+import net.minusmc.minusbounce.ui.client.clickgui.dropdown.DropDownClickGui
 import net.minusmc.minusbounce.ui.client.hud.HUD
 import net.minusmc.minusbounce.ui.client.hud.HUD.Companion.createDefault
 import net.minusmc.minusbounce.utils.*
@@ -49,7 +49,7 @@ object MinusBounce {
     lateinit var fileManager: FileManager
     lateinit var tipSoundManager: TipSoundManager
     lateinit var pluginManager: PluginManager
-    lateinit var clickGui: ClickGui
+    lateinit var clickGui: DropDownClickGui
     lateinit var sessionManager: SessionManager
 
     // HUD & ClickGUI
@@ -118,7 +118,7 @@ object MinusBounce {
 
         fileManager.loadConfigs(fileManager.modulesConfig, fileManager.valuesConfig, fileManager.accountsConfig, fileManager.friendsConfig)
 
-        clickGui = ClickGui()
+        clickGui = DropDownClickGui()
 
         // Set HUD
         hud = createDefault()

@@ -31,7 +31,7 @@ import net.minusmc.minusbounce.utils.InventoryUtils
 import net.minusmc.minusbounce.utils.MovementUtils
 import net.minusmc.minusbounce.utils.item.ArmorPart
 import net.minusmc.minusbounce.utils.item.ItemHelper
-import net.minusmc.minusbounce.utils.timer.TimeUtils
+import net.minusmc.minusbounce.utils.misc.RandomUtils
 import net.minusmc.minusbounce.value.BoolValue
 import net.minusmc.minusbounce.value.FloatValue
 import net.minusmc.minusbounce.value.IntegerValue
@@ -232,7 +232,7 @@ class Manager : Module() {
             if (openInventory)
                 InventoryHelper.closePacket()
 
-            delay = TimeUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
+            delay = RandomUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
             if (delay == 0L || InventoryUtils.CLICK_TIMER.hasTimePassed(delay))
                 break // prevent infinite loop, resulting in frozen state
         }
@@ -261,7 +261,7 @@ class Manager : Module() {
                 if (openInventory)
                     InventoryHelper.closePacket()
 
-                delay = TimeUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
+                delay = RandomUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
                 break
             }
         }
@@ -313,7 +313,7 @@ class Manager : Module() {
             mc.netHandler.addToSendQueue(C08PacketPlayerBlockPlacement(mc.thePlayer.inventoryContainer.getSlot(item).stack))
             if (item != mc.thePlayer.inventory.currentItem) mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
 
-            delay = TimeUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
+            delay = RandomUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
 
             return true
         } else if (!(noMoveValue.get() && MovementUtils.isMoving) && (!invOpenValue.get() || mc.currentScreen is GuiInventory) && item != -1) {
@@ -324,7 +324,7 @@ class Manager : Module() {
 
             mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, (if (isArmorSlot) item else if (item < 9) item + 36 else item), 0, 1, mc.thePlayer)
 
-            delay = TimeUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
+            delay = RandomUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
 
             if (openInventory)
                 InventoryHelper.closePacket()

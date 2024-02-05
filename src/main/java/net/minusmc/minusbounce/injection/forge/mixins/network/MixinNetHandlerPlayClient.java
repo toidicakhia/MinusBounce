@@ -16,7 +16,7 @@ import net.minusmc.minusbounce.event.EntityDamageEvent;
 import net.minusmc.minusbounce.event.EntityMovementEvent;
 import net.minusmc.minusbounce.features.module.modules.misc.Patcher;
 import net.minusmc.minusbounce.features.special.AntiForge;
-import net.minusmc.minusbounce.ui.client.clickgui.ClickGui;
+import net.minusmc.minusbounce.ui.client.clickgui.dropdown.DropDownClickGui;
 import net.minusmc.minusbounce.ui.client.hud.designer.GuiHudDesigner;
 import net.minusmc.minusbounce.utils.ClientUtils;
 import net.minecraft.client.ClientBrandRetriever;
@@ -114,7 +114,7 @@ public abstract class MixinNetHandlerPlayClient {
 
     @Inject(method = "handleCloseWindow", at = @At("HEAD"), cancellable = true)
     private void handleCloseWindow(final S2EPacketCloseWindow packetIn, final CallbackInfo callbackInfo) {
-        if (this.gameController.currentScreen instanceof ClickGui
+        if (this.gameController.currentScreen instanceof DropDownClickGui
             || this.gameController.currentScreen instanceof GuiHudDesigner 
             || this.gameController.currentScreen instanceof GuiChat)
             callbackInfo.cancel();
@@ -157,10 +157,25 @@ public abstract class MixinNetHandlerPlayClient {
         }
     }
 
-    @Inject(method = "handleJoinGame", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/PacketThreadUtil;checkThreadAndEnqueue(Lnet/minecraft/network/Packet;Lnet/minecraft/network/INetHandler;Lnet/minecraft/util/IThreadListener;)V"), cancellable = true)
+    @Inject(method = "handleJoinGame", at = @At("HEAD"), cancellable = true)
     private void handleJoinGameWithAntiForge(S01PacketJoinGame packetIn, final CallbackInfo callbackInfo) {
-        if (!AntiForge.enabled || !AntiForge.blockFML || Minecraft.getMinecraft().isIntegratedServerRunning())
-            callbackInfo.cancel();
+        if(!AntiForge.enabled || !AntiForge.blockFML || Minecraft.getMinecraft().isIntegratedServerRunning())
+            return;
+
+        PacketThreadUtil.checkThreadAndEnqueue(packetIn, (NetHandlerPlayClient) (Object) this, gameController);
+        this.gameController.playerController = new PlayerControllerMP(gameController, (NetHandlerPlayClient) (Object) this);
+        this.clientWorldController = new WorldClient((NetHandlerPlayClient) (Object) this, new WorldSettings(0L, packetIn.getGameType(), false, packetIn.isHardcoreMode(), packetIn.getWorldType()), packetIn.getDimension(), packetIn.getDifficulty(), this.gameController.mcProfiler);
+        this.gameController.gameSettings.difficulty = packetIn.getDifficulty();
+        this.gameController.loadWorld(this.clientWorldController);
+        this.gameController.thePlayer.dimension = packetIn.getDimension();
+        this.gameController.displayGuiScreen(new GuiDownloadTerrain((NetHandlerPlayClient) (Object) this));
+        this.gameController.thePlayer.setEntityId(packetIn.getEntityId());
+        this.currentServerMaxPlayers = packetIn.getMaxPlayers();
+        this.gameController.thePlayer.setReducedDebug(packetIn.isReducedDebugInfo());
+        this.gameController.playerController.setGameType(packetIn.getGameType());
+        this.gameController.gameSettings.sendSettingsToServer();
+        this.netManager.sendPacket(new C17PacketCustomPayload("MC|Brand", (new PacketBuffer(Unpooled.buffer())).writeString(ClientBrandRetriever.getClientModName())));
+        callbackInfo.cancel();
     }
 
     @Inject(method = "handleEntityMovement", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/Entity;onGround:Z"))

@@ -31,7 +31,7 @@ import net.minusmc.minusbounce.utils.extensions.rayTraceWithServerSideRotation
 import net.minusmc.minusbounce.utils.render.BlurUtils
 import net.minusmc.minusbounce.utils.render.RenderUtils
 import net.minusmc.minusbounce.utils.timer.MSTimer
-import net.minusmc.minusbounce.utils.timer.TimeUtils
+import net.minusmc.minusbounce.utils.misc.RandomUtils
 import net.minusmc.minusbounce.value.BoolValue
 import net.minusmc.minusbounce.value.FloatValue
 import net.minusmc.minusbounce.value.IntegerValue
@@ -480,7 +480,7 @@ class Scaffold: Module() {
         }
 
         if (mc.playerController.onPlayerRightClick(mc.thePlayer, mc.theWorld, itemStack, targetPlace!!.blockPos, targetPlace!!.enumFacing, targetPlace!!.vec3)) {
-            delay = TimeUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
+            delay = RandomUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
 
             if (mc.thePlayer.onGround) {
                 val modifier = speedModifierValue.get()

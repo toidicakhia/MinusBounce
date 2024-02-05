@@ -14,7 +14,7 @@ import net.minusmc.minusbounce.ui.client.hud.element.Border
 import net.minusmc.minusbounce.ui.client.hud.element.Element
 import net.minusmc.minusbounce.ui.client.hud.element.ElementInfo
 import net.minusmc.minusbounce.ui.font.Fonts
-import net.minusmc.minusbounce.utils.MathUtils
+import net.minusmc.minusbounce.utils.misc.MathUtils
 import net.minusmc.minusbounce.utils.extensions.getDistanceToEntityBox
 import net.minusmc.minusbounce.utils.render.*
 import net.minusmc.minusbounce.value.BoolValue

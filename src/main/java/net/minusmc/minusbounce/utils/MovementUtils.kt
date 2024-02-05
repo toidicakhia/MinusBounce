@@ -11,6 +11,7 @@ import net.minusmc.minusbounce.MinusBounce
 import net.minusmc.minusbounce.event.MoveEvent
 import net.minusmc.minusbounce.event.MoveInputEvent
 import net.minusmc.minusbounce.features.module.modules.movement.TargetStrafe
+import net.minusmc.minusbounce.utils.misc.MathUtils
 import net.minecraft.util.*
 import kotlin.math.round
 import kotlin.math.atan2

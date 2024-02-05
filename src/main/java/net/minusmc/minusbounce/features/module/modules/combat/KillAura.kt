@@ -226,7 +226,7 @@ class KillAura : Module() {
         if (attackTimer.hasTimePassed(attackDelay) && target!!.hurtTime <= hurtTimeValue.get()) {
             clicks++
             attackTimer.reset()
-            attackDelay = TimeUtils.randomClickDelay(cps.getMinValue(), cps.getMaxValue())
+            attackDelay = RandomUtils.randomClickDelay(cps.getMinValue(), cps.getMaxValue())
         }
     }
 

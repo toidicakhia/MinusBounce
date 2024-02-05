@@ -683,4 +683,18 @@ object RotationUtils : MinecraftInstance(), Listenable {
     fun nextFloat(origin: Float, bound: Float): Float {
         return if (origin == bound) origin else ThreadLocalRandom.current().nextDouble(origin.toDouble(), bound.toDouble()).toFloat()
     }
+
+    @EventTarget
+    fun onPacket(event: PacketEvent) {
+        val packet = event.packet
+        if (packet is C03PacketPlayer) {
+            val packetPlayer = packet
+            if (targetRotation != null && (targetRotation!!.yaw != serverRotation!!.yaw || targetRotation!!.pitch != serverRotation!!.pitch)) {
+                packetPlayer.yaw = targetRotation!!.yaw
+                packetPlayer.pitch = targetRotation!!.pitch
+                packetPlayer.rotating = true
+            }
+            if (packetPlayer.rotating) serverRotation = Rotation(packetPlayer.yaw, packetPlayer.pitch)
+        }
+    }
 }

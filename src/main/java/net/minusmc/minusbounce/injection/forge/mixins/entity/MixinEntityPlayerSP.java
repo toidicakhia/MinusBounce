@@ -208,7 +208,7 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer impl
 
                 final Criticals criticals = MinusBounce.moduleManager.getModule(Criticals.class);
 
-                boolean moved = xDiff * xDiff + yDiff * yDiff + zDiff * zDiff > (MinusBounce.moduleManager.getModule(AntiDesync.class).getState() ? 0D : 9.0E-4D) || this.positionUpdateTicks >= 20;
+                boolean moved = xDiff * xDiff + yDiff * yDiff + zDiff * zDiff > (MinusBounce.moduleManager.getModule(AntiDesync.class).getState() ? 0D : 9.0E-4D) || this.positionUpdateTicks >= 20 || (criticals.getState() && criticals.getAntiDesync());
                 boolean rotated = yawDiff != 0.0D || pitchDiff != 0.0D;
 
                 if (this.ridingEntity == null) {

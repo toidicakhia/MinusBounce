@@ -51,6 +51,9 @@ object EntityUtils : MinecraftInstance() {
             if (!targetsModule.players.get() && entity is EntityPlayer)
                 return false
 
+            if (isFriend(entity))
+                return false
+
             if (!canAttackCheck)
                 return false
 
