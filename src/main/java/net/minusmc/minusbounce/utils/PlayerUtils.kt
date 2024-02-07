@@ -8,9 +8,8 @@ import net.minecraft.item.ItemEnderPearl
 import net.minecraft.item.ItemPotion
 import net.minecraft.item.ItemStack
 import net.minecraft.util.BlockPos
-import net.minusmc.minusbounce.utils.MinecraftInstance.Companion.mc
 
-object PlayerUtils {
+object PlayerUtils: MinecraftInstance() {
 	fun getSlimeSlot(): Int {
         for(i in 36..44) {
             val stack = mc.thePlayer.inventoryContainer.getSlot(i).stack

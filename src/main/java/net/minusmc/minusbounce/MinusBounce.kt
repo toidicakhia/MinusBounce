@@ -22,6 +22,7 @@ import net.minusmc.minusbounce.ui.font.Fonts
 import net.minusmc.minusbounce.file.FileManager
 import net.minusmc.minusbounce.plugin.PluginAPIVersion
 import net.minusmc.minusbounce.plugin.PluginManager
+import net.minusmc.minusbounce.plugin.PluginGuiManager
 import net.minusmc.minusbounce.ui.client.altmanager.GuiAltManager
 import net.minusmc.minusbounce.ui.client.clickgui.dropdown.DropDownClickGui
 import net.minusmc.minusbounce.ui.client.hud.HUD
@@ -60,18 +61,12 @@ object MinusBounce {
 
     private var lastTick : Long = 0L
 
-    val mainMenuButton = hashMapOf<String, Class<out GuiScreen>>()
-
-    fun addMenuButton(name: String, gui: Class<out GuiScreen>) {
-        mainMenuButton[name] = gui
-    }
-
     /**
      * Execute if client will be started
      */
-
-    fun loadFileManager() {
-        fileManager = FileManager()
+    
+    fun addMenuButton(name: String, gui: Class<out GuiScreen>) {
+        PluginGuiManager.mainMenuButton[name] = gui
     }
 
     fun startClient() {
@@ -89,8 +84,7 @@ object MinusBounce {
         eventManager.registerListener(MovementCorrection())
         eventManager.registerListener(AntiForge())
         eventManager.registerListener(BungeeCordSpoof())
-        eventManager.registerListener(InventoryUtils())
-        eventManager.registerListener(InventoryHelper)
+        eventManager.registerListener(InventoryUtils)
         eventManager.registerListener(PacketUtils)
         eventManager.registerListener(SessionUtils)
         eventManager.registerListener(MacroManager)

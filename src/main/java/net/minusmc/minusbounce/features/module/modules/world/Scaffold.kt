@@ -615,7 +615,7 @@ class Scaffold: Module() {
                 if (slot != -1) {
                     if (mc.thePlayer.inventory.getCurrentItem() != null) {
                         val handItem = mc.thePlayer.inventory.getCurrentItem().item
-                        if (handItem is ItemBlock && InventoryUtils.canPlaceBlock(handItem.block)) {
+                        if (handItem is ItemBlock && InventoryUtils.isBlockListBlock(handItem.block)) {
                             stack = mc.thePlayer.inventory.getCurrentItem()
                         }
                     }

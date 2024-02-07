@@ -26,7 +26,6 @@ import net.minusmc.minusbounce.features.module.ModuleInfo
 import net.minusmc.minusbounce.features.module.modules.world.Scaffold
 import net.minusmc.minusbounce.injection.implementations.IItemStack
 import net.minusmc.minusbounce.utils.ClientUtils
-import net.minusmc.minusbounce.utils.InventoryHelper
 import net.minusmc.minusbounce.utils.InventoryUtils
 import net.minusmc.minusbounce.utils.MovementUtils
 import net.minusmc.minusbounce.utils.item.ArmorPart
@@ -39,8 +38,8 @@ import net.minusmc.minusbounce.value.ListValue
 import java.util.stream.Collectors
 import java.util.stream.IntStream
 
-@ModuleInfo(name = "Manager", spacedName = "Manager", description = "Automatically throws away useless items, and also equips armors for you.", category = ModuleCategory.PLAYER)
-class Manager : Module() {
+@ModuleInfo(name = "InvManager", spacedName = "InvManager", description = "Automatically throws away useless items, and also equips armors for you.", category = ModuleCategory.PLAYER)
+class InvManager : Module() {
 
     /**
      * OPTIONS
@@ -107,9 +106,9 @@ class Manager : Module() {
         set(value) {
             if (value != field && !invOpenValue.get()) {
                 if (value)
-                    InventoryHelper.openPacket()
+                    InventoryUtils.openPacket()
                 else
-                    InventoryHelper.closePacket()
+                    InventoryUtils.closePacket()
             }
             field = value
         }
@@ -200,8 +199,7 @@ class Manager : Module() {
                         ArmorPart(oldArmor, -1),
                         armorPart,
                         nbtArmorPriority.get(),
-                        goal
-                    ) < 0
+                        goal) < 0
                 ) {
                     if (oldArmor != null && move(8 - armorSlot, true))
                         return
@@ -225,12 +223,12 @@ class Manager : Module() {
             val openInventory = mc.currentScreen !is GuiInventory && invSpoof.get() && invSpoofOld.get()
 
             if (openInventory)
-                InventoryHelper.openPacket()
+                InventoryUtils.openPacket()
 
             mc.playerController.windowClick(mc.thePlayer.openContainer.windowId, garbageItem, 1, 4, mc.thePlayer)
 
             if (openInventory)
-                InventoryHelper.closePacket()
+                InventoryUtils.closePacket()
 
             delay = RandomUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
             if (delay == 0L || InventoryUtils.CLICK_TIMER.hasTimePassed(delay))
@@ -253,13 +251,13 @@ class Manager : Module() {
                 val openInventory = mc.currentScreen !is GuiInventory && invSpoof.get() && invSpoofOld.get()
 
                 if (openInventory)
-                    InventoryHelper.openPacket()
+                    InventoryUtils.openPacket()
 
                 mc.playerController.windowClick(0, if (bestItem < 9) bestItem + 36 else bestItem, index,
                         2, mc.thePlayer)
 
                 if (openInventory)
-                    InventoryHelper.closePacket()
+                    InventoryUtils.closePacket()
 
                 delay = RandomUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
                 break
@@ -320,14 +318,14 @@ class Manager : Module() {
             val openInventory = invSpoof.get() && mc.currentScreen !is GuiInventory && !invSpoofOld.get()
 
             if (openInventory)
-                InventoryHelper.openPacket()
+                InventoryUtils.openPacket()
 
             mc.playerController.windowClick(mc.thePlayer.inventoryContainer.windowId, (if (isArmorSlot) item else if (item < 9) item + 36 else item), 0, 1, mc.thePlayer)
 
             delay = RandomUtils.randomDelay(minDelayValue.get(), maxDelayValue.get())
 
             if (openInventory)
-                InventoryHelper.closePacket()
+                InventoryUtils.closePacket()
 
             return true
         }
@@ -393,8 +391,8 @@ class Manager : Module() {
             } else {
                 (nbtItemNotGarbage.get() && ItemHelper.hasNBTGoal(itemStack, goal)) ||
                         item is ItemFood || itemStack.unlocalizedName == "item.arrow" ||
-                        (item is ItemBlock && !InventoryHelper.isBlockListBlock(item)) ||
-                        item is ItemBed || (item is ItemPotion && (!onlyPositivePotionValue.get() || InventoryHelper.isPositivePotion(item, itemStack))) ||
+                        (item is ItemBlock && !InventoryUtils.isBlockListBlock(item)) ||
+                        item is ItemBed || (item is ItemPotion && (!onlyPositivePotionValue.get() || InventoryUtils.isPositivePotion(item, itemStack))) ||
                         item is ItemEnderPearl || item is ItemBucket || ignoreVehiclesValue.get() && (item is ItemBoat || item is ItemMinecart)
             }
         } catch (ex: Exception) {
@@ -483,7 +481,7 @@ class Manager : Module() {
                 mc.thePlayer.inventory.mainInventory.forEachIndexed { index, stack ->
                     val item = stack?.item
 
-                    if (item is ItemBlock && !InventoryHelper.isBlockListBlock(item) &&
+                    if (item is ItemBlock && !InventoryUtils.isBlockListBlock(item) &&
                         !type(index).equals("Block", true)) {
                         val replaceCurr = slotStack == null || slotStack.item !is ItemBlock
 

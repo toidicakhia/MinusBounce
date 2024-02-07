@@ -67,7 +67,6 @@ object Fonts {
     fun loadFonts() {
         val l = System.currentTimeMillis()
         ClientUtils.logger.info("Loading Fonts.")
-        downloadFonts()
         font35 = GameFontRenderer(getFont("Roboto-Medium.ttf", 35))
         font40 = GameFontRenderer(getFont("Roboto-Medium.ttf", 40))
         font50 = GameFontRenderer(getFont("Roboto-Medium.ttf", 50))
@@ -91,14 +90,11 @@ object Fonts {
                 if (jsonElement is JsonNull) return
                 val jsonArray = jsonElement as JsonArray
                 for (element in jsonArray) {
-                    if (element is JsonNull) return
+                    if (element is JsonNull)
+                        return
                     val fontObject = element as JsonObject
                     CUSTOM_FONT_RENDERERS.add(
-                        GameFontRenderer(
-                            getFont(
-                                fontObject["fontFile"].asString, fontObject["fontSize"].asInt
-                            )
-                        )
+                        GameFontRenderer(getFont(fontObject["fontFile"].asString, fontObject["fontSize"].asInt))
                     )
                 }
             } else {
@@ -124,7 +120,7 @@ object Fonts {
         return true
     }
 
-    private fun downloadFonts() {
+    fun downloadFonts() {
         try {
             val outputFile = File(MinusBounce.fileManager.fontsDir, "fonts.zip")
             if (!isExistFonts()) {

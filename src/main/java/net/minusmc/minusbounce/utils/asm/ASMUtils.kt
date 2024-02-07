@@ -3,7 +3,7 @@
  * A free open source mixin-based injection hacked client for Minecraft using Minecraft Forge.
  * https://github.com/MinusMC/MinusBounce
  */
-package net.minusmc.minusbounce.utils
+package net.minusmc.minusbounce.utils.asm
 
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
@@ -41,15 +41,5 @@ object ASMUtils {
         classNode.accept(classWriter)
 
         return classWriter.toByteArray()
-    }
-
-    /**
-     * Lazy.
-     */
-    fun toNodes(vararg nodes: AbstractInsnNode): InsnList {
-        val insnList = InsnList()
-        for (node in nodes)
-            insnList.add(node)
-        return insnList
     }
 }

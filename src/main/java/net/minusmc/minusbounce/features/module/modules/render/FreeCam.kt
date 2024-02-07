@@ -22,7 +22,7 @@ import net.minusmc.minusbounce.utils.PosLookInstance
 import net.minusmc.minusbounce.value.BoolValue
 import net.minusmc.minusbounce.value.FloatValue
 
-@ModuleInfo(name = "FreeCam", spacedName = "Free Cam", description = "Allows you to move out of your body.", category = ModuleCategory.RENDER)
+@ModuleInfo(name = "FreeCam", spacedName = "Free Cam", description = "Allows you to move out of your body.", category = ModuleCategory.RENDER, VISUAL, autoDisable = EnumAutoDisableType.RESPAWN)
 class FreeCam : Module() {
 
     private val speedValue = FloatValue("Speed", 0.8F, 0.1F, 2F, "m")
@@ -76,6 +76,7 @@ class FreeCam : Module() {
     fun onUpdate(event: UpdateEvent) {
         if (noClipValue.get())
             mc.thePlayer.noClip = true
+            
         mc.thePlayer.fallDistance = 0F
 
         if (flyValue.get()) {
@@ -120,10 +121,13 @@ class FreeCam : Module() {
                     mc.netHandler.addToSendQueue(C03PacketPlayer(lastOnGround))
                 }
             }
-        } else if (packet is C03PacketPlayer)
+        }
+        if (packet is C03PacketPlayer)
             event.cancelEvent()
+
         if (packet is C0BPacketEntityAction)
             event.cancelEvent()
+
         if (packet is S08PacketPlayerPosLook) {
             event.cancelEvent()
             posLook.set(packet)
