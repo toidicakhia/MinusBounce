@@ -18,9 +18,6 @@ import java.util.Map;
 public class TransformerLoader implements IFMLLoadingPlugin {
 
     public TransformerLoader() {
-        System.out.println("Check and downloading fonts....");
-        Fonts.INSTANCE.downloadFonts();
-
         MixinBootstrap.init();
         Mixins.addConfiguration("minusbounce.forge.mixins.json");
         MixinEnvironment.getDefaultEnvironment().setSide(MixinEnvironment.Side.CLIENT);

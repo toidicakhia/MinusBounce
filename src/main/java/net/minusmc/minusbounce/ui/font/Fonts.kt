@@ -67,6 +67,7 @@ object Fonts {
     fun loadFonts() {
         val l = System.currentTimeMillis()
         ClientUtils.logger.info("Loading Fonts.")
+        downloadFonts()
         font35 = GameFontRenderer(getFont("Roboto-Medium.ttf", 35))
         font40 = GameFontRenderer(getFont("Roboto-Medium.ttf", 40))
         font50 = GameFontRenderer(getFont("Roboto-Medium.ttf", 50))

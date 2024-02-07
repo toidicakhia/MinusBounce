@@ -1,4 +1,4 @@
-package net.minusmc.minusbounce.features.module.modules.combat.velocitys.minemenclub
+package net.minusmc.minusbounce.features.module.modules.combat.velocitys.other
 
 import net.minecraft.network.play.server.S12PacketEntityVelocity
 import net.minecraft.network.play.server.S27PacketExplosion
@@ -6,26 +6,26 @@ import net.minusmc.minusbounce.event.PreMotionEvent
 import net.minusmc.minusbounce.event.PacketEvent
 import net.minusmc.minusbounce.features.module.modules.combat.velocitys.VelocityMode
 
-class MineMenClubVelocity : VelocityMode("MinemenClub") {
+class MMCVelocity : VelocityMode("MMC") {
 
-    private var velocityy = 0
+    private var counter = 0
 
     override fun onPreMotion(event: PreMotionEvent) {
-        velocityy++
+        counter++
     }
 
     override fun onPacket(event: PacketEvent) {
         var packet = event.packet
 
-        if (velocityy > 20) {
+        if (counter > 20) {
             if (packet is S12PacketEntityVelocity) {
                 if (packet.entityID == mc.thePlayer.entityId) {
                     event.cancelEvent()
-                    velocityy = 0
+                    counter = 0
                 }
             } else if (packet is S27PacketExplosion) {
                 event.cancelEvent()
-                velocityy = 0
+                counter = 0
             }
         }
     }

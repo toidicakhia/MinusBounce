@@ -22,7 +22,7 @@ import net.minusmc.minusbounce.utils.PosLookInstance
 import net.minusmc.minusbounce.value.BoolValue
 import net.minusmc.minusbounce.value.FloatValue
 
-@ModuleInfo(name = "FreeCam", spacedName = "Free Cam", description = "Allows you to move out of your body.", category = ModuleCategory.RENDER, VISUAL, autoDisable = EnumAutoDisableType.RESPAWN)
+@ModuleInfo(name = "FreeCam", spacedName = "Free Cam", description = "Allows you to move out of your body.", category = ModuleCategory.RENDER)
 class FreeCam : Module() {
 
     private val speedValue = FloatValue("Speed", 0.8F, 0.1F, 2F, "m")

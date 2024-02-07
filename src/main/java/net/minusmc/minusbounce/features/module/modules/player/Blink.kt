@@ -19,7 +19,6 @@ import net.minusmc.minusbounce.event.Render3DEvent
 import net.minusmc.minusbounce.event.UpdateEvent
 import net.minusmc.minusbounce.features.module.ModuleCategory
 import net.minusmc.minusbounce.features.module.ModuleInfo
-import net.minusmc.minusbounce.features.module.modules.render.BreadCumbs
 import net.minusmc.minusbounce.utils.render.ColorUtils.rainbow
 import net.minusmc.minusbounce.utils.timer.MSTimer
 import net.minusmc.minusbounce.value.BoolValue
@@ -32,13 +31,12 @@ import java.util.concurrent.LinkedBlockingQueue
 @ModuleInfo(name = "Blink", description = "Suspends all movement packets.", category = ModuleCategory.PLAYER)
 class Blink : Module() {
     
-    
-    val C0F = BoolValue("C0F", false)
-    val C00 = BoolValue("C00", false)
+    private val C0F = BoolValue("C0F", false)
+    private val C00 = BoolValue("C00", false)
     val pulseValue = BoolValue("Pulse", false)
     private val pulseDelayValue = IntegerValue("PulseDelay", 1000, 500, 5000, "ms") {pulseValue.get()}
     private val Ground = BoolValue("BlinkOnGround", false) {pulseValue.get()}
-    val fake = BoolValue("FakePlayer", false)
+    private val fake = BoolValue("FakePlayer", false)
 
     private val packets = LinkedBlockingQueue<Packet<*>>()
     private var fakePlayer: EntityOtherPlayerMP? = null
@@ -96,33 +94,6 @@ class Blink : Module() {
         if (pulseValue.get() && pulseTimer.hasTimePassed(pulseDelayValue.get().toLong())) {
             blink()
             pulseTimer.reset()
-        }
-    }
-
-    @EventTarget
-    fun onRender3D(event: Render3DEvent?) {
-        val breadcrumbs = MinusBounce.moduleManager.getModule(BreadCumbs::class.java)
-        val color = if (breadcrumbs?.colorRainbow?.get() == true) rainbow() else breadcrumbs?.colorRedValue?.let { Color(it.get(), breadcrumbs.colorGreenValue.get(), breadcrumbs.colorBlueValue.get()) }
-        synchronized(positions) {
-            GL11.glPushMatrix()
-            GL11.glDisable(GL11.GL_TEXTURE_2D)
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-            GL11.glEnable(GL11.GL_LINE_SMOOTH)
-            GL11.glEnable(GL11.GL_BLEND)
-            GL11.glDisable(GL11.GL_DEPTH_TEST)
-            mc.entityRenderer.disableLightmap()
-            GL11.glBegin(GL11.GL_LINE_STRIP)
-            val renderPosX: Double = mc.getRenderManager().viewerPosX
-            val renderPosY: Double = mc.getRenderManager().viewerPosY
-            val renderPosZ: Double = mc.getRenderManager().viewerPosZ
-            for (pos in positions) GL11.glVertex3d(pos[0] - renderPosX, pos[1] - renderPosY, pos[2] - renderPosZ)
-            GL11.glColor4d(1.0, 1.0, 1.0, 1.0)
-            GL11.glEnd()
-            GL11.glEnable(GL11.GL_DEPTH_TEST)
-            GL11.glDisable(GL11.GL_LINE_SMOOTH)
-            GL11.glDisable(GL11.GL_BLEND)
-            GL11.glEnable(GL11.GL_TEXTURE_2D)
-            GL11.glPopMatrix()
         }
     }
 
