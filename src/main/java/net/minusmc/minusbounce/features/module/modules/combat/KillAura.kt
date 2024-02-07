@@ -129,12 +129,20 @@ class KillAura : Module() {
     }
 
     @EventTarget
+    fun onPreMotion(event: PreMotionEvent) {
+        blockingMode.onPreMotion()
+
+        updateTarget()
+    }
+
+    @EventTarget
     fun onPostMotion(event: PostMotionEvent) {
         target ?: return
 
         updateHitable()
         blockingMode.onPostMotion()
     }
+
 
     @EventTarget
     fun onEntityMove(event: EntityMovementEvent) {
@@ -171,6 +179,8 @@ class KillAura : Module() {
         val targetStrafe = MinusBounce.moduleManager[TargetStrafe::class.java]!!
         if (!targetStrafe.state) return
 
+        updateTarget()
+
         if (target != null && RotationUtils.targetRotation != null) {
             if (targetStrafe.canStrafe) {
                 val strafingData = targetStrafe.getData()
@@ -182,8 +192,6 @@ class KillAura : Module() {
 
     @EventTarget
     fun onPreUpdate(event: PreUpdateEvent){
-        updateTarget()
-        
         blockingMode.onPreUpdate()
     }
 
@@ -436,9 +444,4 @@ class KillAura : Module() {
 
     override val tag: String
         get() = targetModeValue.get()
-
-    @EventTarget
-    fun onPreMotion(event: PreMotionEvent) {
-        blockingMode.onPreMotion()
-    }
 }

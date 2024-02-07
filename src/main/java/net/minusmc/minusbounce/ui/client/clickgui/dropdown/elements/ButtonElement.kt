@@ -9,19 +9,9 @@ import net.minusmc.minusbounce.MinusBounce
 import net.minusmc.minusbounce.features.module.modules.client.ClickGUI
 import net.minusmc.minusbounce.ui.client.clickgui.dropdown.DropDownClickGui
 
-open class ButtonElement(displayName: String?) : Element() {
-    var displayName: String? = null
-        protected set
+open class ButtonElement(var displayName: String?) : Element() {
     var color = 0xffffff
     var hoverTime = 0
-
-    init {
-        createButton(displayName)
-    }
-
-    private fun createButton(displayName: String?) {
-        this.displayName = displayName
-    }
 
     override fun drawScreen(mouseX: Int, mouseY: Int, button: Float) {
         MinusBounce.clickGui.drawButtonElement(mouseX, mouseY, this)

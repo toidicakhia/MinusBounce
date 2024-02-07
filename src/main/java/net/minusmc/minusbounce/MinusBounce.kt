@@ -34,7 +34,7 @@ object MinusBounce {
     // Client information
     const val CLIENT_NAME = "MinusBounce"
     const val CLIENT_FOLDER = "MinusBounce"
-    const val CLIENT_VERSION = 20231120
+    const val CLIENT_VERSION = "dev"
     const val CLIENT_CREATOR = "CCBlueX, MinusMC Team"
     val API_VERSION = PluginAPIVersion.VER_01
     const val CLIENT_CLOUD = "https://minusmc.github.io/MinusCloud/LiquidBounce"
@@ -92,7 +92,7 @@ object MinusBounce {
         eventManager.registerListener(InventoryUtils())
         eventManager.registerListener(InventoryHelper)
         eventManager.registerListener(PacketUtils)
-        eventManager.registerListener(SessionUtils())
+        eventManager.registerListener(SessionUtils)
         eventManager.registerListener(MacroManager)
         eventManager.registerListener(combatManager)
         eventManager.registerListener(sessionManager)
@@ -119,12 +119,13 @@ object MinusBounce {
         fileManager.loadConfigs(fileManager.modulesConfig, fileManager.valuesConfig, fileManager.accountsConfig, fileManager.friendsConfig)
 
         clickGui = DropDownClickGui()
+        fileManager.loadConfig(fileManager.clickGuiConfig)
+
+        moduleManager.initModeListValues()
 
         // Set HUD
         hud = createDefault()
         fileManager.loadConfig(fileManager.hudConfig)
-
-        moduleManager.initModeListValues()
 
         // Load generators
         GuiAltManager.loadActiveGenerators()

@@ -85,8 +85,8 @@ object RenderUtils : MinecraftInstance() {
         glColor4f(f1, f2, f3, f)
         glBegin(GL_TRIANGLE_FAN)
         for (i in 0..360 / quality) {
-            val x2 = Math.sin(i * quality * Math.PI / 180) * r
-            val y2 = Math.cos(i * quality * Math.PI / 180) * r
+            val x2 = sin(i * quality * Math.PI / 180) * r
+            val y2 = cos(i * quality * Math.PI / 180) * r
             glVertex2d(x + x2, y + y2)
         }
         glEnd()
@@ -95,7 +95,7 @@ object RenderUtils : MinecraftInstance() {
     private fun quickPolygonCircle(x: Float, y: Float, xRadius: Float, yRadius: Float, start: Int, end: Int) {
         var i = end
         while (i >= start) {
-            glVertex2d(x + Math.sin(i * Math.PI / 180.0) * xRadius, y + Math.cos(i * Math.PI / 180.0) * yRadius)
+            glVertex2d(x + sin(i * Math.PI / 180.0) * xRadius, y + cos(i * Math.PI / 180.0) * yRadius)
             i -= 4
         }
     }
@@ -276,7 +276,6 @@ object RenderUtils : MinecraftInstance() {
     fun drawExhiRect(x: Float, y: Float, x2: Float, y2: Float) {
         drawRect(x - 3.5f, y - 3.5f, x2 + 3.5f, y2 + 3.5f, Color.black.rgb)
         drawRect(x - 3f, y - 3f, x2 + 3f, y2 + 3f, Color(50, 50, 50).rgb)
-        //drawBorder(x - 1.5F, y - 1.5F, x2 + 1.5F, y2 + 1.5F, 2.5F, new Color(26, 26, 26).getRGB());
         drawRect(x - 2.5f, y - 2.5f, x2 + 2.5f, y2 + 2.5f, Color(26, 26, 26).rgb)
         drawRect(x - 0.5f, y - 0.5f, x2 + 0.5f, y2 + 0.5f, Color(50, 50, 50).rgb)
         drawRect(x, y, x2, y2, Color(18, 18, 18).rgb)
@@ -290,10 +289,7 @@ object RenderUtils : MinecraftInstance() {
         drawRect(x, y, x2, y2, Color(18f / 255f, 18 / 255f, 18f / 255f, alpha).rgb)
     }
 
-    fun drawMosswareRect(
-        x: Float, y: Float, x2: Float, y2: Float, width: Float,
-        color1: Int, color2: Int
-    ) {
+    fun drawMosswareRect(x: Float, y: Float, x2: Float, y2: Float, width: Float, color1: Int, color2: Int) {
         drawRect(x, y, x2, y2, color2)
         drawBorder(x, y, x2, y2, width, color1)
     }
@@ -1204,10 +1200,11 @@ object RenderUtils : MinecraftInstance() {
         drawRect(x, y, x2, y2, color.rgb)
     }
 
-    fun drawBorderedRect(
-        x: Float, y: Float, x2: Float, y2: Float, width: Float,
-        color1: Int, color2: Int
-    ) {
+    fun drawBorderedRect(x: Number, y: Number, x2: Number, y2: Number, width: Number, color1: Int, color2: Int) {
+        drawBorderedRect(x.toFloat(), y.toFloat(), x2.toFloat(), y2.toFloat(), width.toFloat(), color1, color2)
+    }
+
+    fun drawBorderedRect(x: Float, y: Float, x2: Float, y2: Float, width: Float, color1: Int, color2: Int) {
         drawRect(x, y, x2, y2, color2)
         drawBorder(x, y, x2, y2, width, color1)
     }
@@ -1349,8 +1346,8 @@ object RenderUtils : MinecraftInstance() {
             val f4 = (c and 255).toFloat() / 255.0f
             GlStateManager.color(f22, f3, f4, f2)
             GL11.glVertex2f(
-                (x + Math.cos(i * Math.PI / 180) * (radius * 1.001f)).toFloat(),
-                (y + Math.sin(i * Math.PI / 180) * (radius * 1.001f)).toFloat()
+                (x + cos(i * Math.PI / 180) * (radius * 1.001f)).toFloat(),
+                (y + sin(i * Math.PI / 180) * (radius * 1.001f)).toFloat()
             )
             i -= 360f / 90.0f
         }

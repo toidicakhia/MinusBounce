@@ -40,4 +40,16 @@ object MathUtils {
     fun toDegrees(rad: Double): Double = rad * 180.0 / PI
     fun toDegrees(rad: Float): Float = rad * 180f / PI.toFloat()
 
+    /**
+     * Wrapper to check mouseX and mouseY in rect
+     */
+
+    fun isHovering(mouseX: Number, mouseY: Number, x: Number, x2: Number, y: Number, y2: Number): Boolean {
+        return isHovering(mouseX.toInt(), mouseY.toInt(), x.toInt(), x2.toInt(), y.toInt(), y2.toInt())
+    }
+
+    fun isHovering(mouseX: Int, mouseY: Int, x: Int, x2: Int, y: Int, y2: Int): Boolean {
+        return mouseX >= x && mouseX <= x2 && mouseY >= y && mouseY <= y2
+    }
+
 }

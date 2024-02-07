@@ -7,7 +7,8 @@ import net.minusmc.minusbounce.ui.client.hud.element.ElementInfo
 import net.minusmc.minusbounce.ui.client.hud.element.Side
 import net.minusmc.minusbounce.ui.font.Fonts
 import net.minusmc.minusbounce.utils.render.RenderUtils
-import net.minusmc.minusbounce.utils.*
+import net.minusmc.minusbounce.utils.misc.StringUtils
+import net.minusmc.minusbounce.utils.ServerUtils
 import net.minusmc.minusbounce.value.BoolValue
 import net.minusmc.minusbounce.value.FloatValue
 import net.minusmc.minusbounce.value.FontValue

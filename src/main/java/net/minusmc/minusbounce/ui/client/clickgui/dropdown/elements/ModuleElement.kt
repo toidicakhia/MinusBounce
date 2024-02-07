@@ -13,15 +13,13 @@ import net.minusmc.minusbounce.features.module.modules.client.ClickGUI
 import net.minusmc.minusbounce.ui.client.clickgui.dropdown.DropDownClickGui
 import org.lwjgl.input.Mouse
 
-class ModuleElement(module: Module) : ButtonElement(null) {
-    val module: Module
+class ModuleElement(val module: Module) : ButtonElement(null) {
     var isShowSettings = false
     var settingsWidth = 0f
     private var wasPressed = false
 
     init {
         displayName = module.name
-        this.module = module
     }
 
     override fun drawScreen(mouseX: Int, mouseY: Int, button: Float) {
@@ -41,9 +39,7 @@ class ModuleElement(module: Module) : ButtonElement(null) {
         return false
     }
 
-    fun isntPressed(): Boolean {
-        return !wasPressed
-    }
+    fun isntPressed(): Boolean = !wasPressed
 
     fun updatePressed() {
         wasPressed = Mouse.isButtonDown(0)

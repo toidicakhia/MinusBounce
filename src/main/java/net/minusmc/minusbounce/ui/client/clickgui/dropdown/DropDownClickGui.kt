@@ -14,6 +14,7 @@ import net.minusmc.minusbounce.utils.render.ColorUtils
 import net.minusmc.minusbounce.utils.render.EaseUtils
 import net.minusmc.minusbounce.utils.render.RenderUtils
 import net.minusmc.minusbounce.utils.block.BlockUtils
+import net.minusmc.minusbounce.utils.misc.MathUtils.isHovering
 import net.minusmc.minusbounce.utils.misc.MathUtils.round
 import net.minecraft.util.*
 import net.minecraft.client.gui.GuiScreen
@@ -116,7 +117,7 @@ class DropDownClickGui: GuiScreen() {
         for (panel in panels) {
             for (element in panel.elements) {
                 if (element is ModuleElement) {
-                    if (mouseX != 0 && mouseY != 0 && element.isHovering(mouseX, mouseY) && element.isVisible && element.y <= panel.y + panel.getFade()) 
+                    if (mouseX != 0 && mouseY != 0 && element.isHovering(mouseX, mouseY) && element.isVisible && element.y <= panel.y + panel.fade) 
                         drawDescription(mouseX, mouseY, element.module.description)
                 }
             }
@@ -154,20 +155,16 @@ class DropDownClickGui: GuiScreen() {
         mouseX = (mouseX / scale).toInt()
         mouseY = (mouseY / scale).toInt()
 
-        for (i in panels.indices.reversed()) {
-            if (panels[i].mouseClicked(mouseX, mouseY, mouseButton)) {
-                break
-            }
+        for (panel in panels.reversed()) {
+            if (panel.mouseClicked(mouseX, mouseY, mouseButton)) break
         }
 
         for (panel in panels) {
             panel.drag = false
             if (mouseButton == 0 && panel.isHovering(mouseX, mouseY)) {
-                panel!!.x2 = panel.x - mouseX
+                panel.x2 = panel.x - mouseX
                 panel.y2 = panel.y - mouseY
                 panel.drag = true
-                panels.remove(panel)
-                panels.add(panel)
                 break
             }
         }
@@ -203,33 +200,28 @@ class DropDownClickGui: GuiScreen() {
         MinusBounce.fileManager.saveConfig(MinusBounce.fileManager.valuesConfig)
     }
 
-    fun drawPanel(mouseX: Int, mouseY: Int, panel: Panel?) {
-        RenderUtils.drawBorderedRect(panel!!.x.toFloat() - if (panel.scrollbar) 4 else 0, panel.y.toFloat(), panel.x.toFloat() + panel.width, panel.y.toFloat() + 19 + panel.getFade(), 1f, Color(255, 255, 255, 90).rgb, Int.MIN_VALUE)
-        val textWidth = Fonts.font35.getStringWidth("§f" + StringUtils.stripControlCodes(panel.name)).toFloat()
-        Fonts.font35.drawString("§f" + panel.name, (panel.x - (textWidth - 100.0f) / 2f).toInt(), panel.y + 7, -16777216)
-        if (panel.scrollbar && panel.getFade() > 0) {
-            RenderUtils.drawRect(panel.x - 1.5f, (panel.y + 21).toFloat(), panel.x - 0.5f, (panel.y + 16 + panel.getFade()).toFloat(), Int.MAX_VALUE)
-            val maxElementsValue = MinusBounce.moduleManager[ClickGUI::class.java]!!.maxElementsValue.get()
-            RenderUtils.drawRect((panel.x - 2).toFloat(),panel.y + 30 + (panel.getFade() - 24f) / (panel.elements.size - maxElementsValue) * panel.dragged - 10.0f, panel.x.toFloat(), panel.y + 40 + (panel.getFade() - 24.0f) / (panel.elements.size - maxElementsValue) * panel.dragged, Int.MIN_VALUE)
-        }
+    fun drawPanel(mouseX: Int, mouseY: Int, panel: Panel) {
+        RenderUtils.drawBorderedRect(panel.x.toFloat() - if (panel.scrollbar) 4 else 0, panel.y.toFloat(), panel.x.toFloat() + panel.width, panel.y.toFloat() + 19 + panel.fade, 1f, Color(255, 255, 255, 90).rgb, Int.MIN_VALUE)
+        val textWidth = Fonts.minecraftFont.getStringWidth("§f" + StringUtils.stripControlCodes(panel.name)).toFloat()
+        Fonts.minecraftFont.drawString("§f${panel.name}", (panel.x - (textWidth - 100.0f) / 2f).toInt(), panel.y + 7, -16777216)
     }
 
     private fun drawDescription(mouseX: Int, mouseY: Int, text: String?) {
-        val textWidth = Fonts.font35.getStringWidth(text!!)
-        RenderUtils.drawBorderedRect((mouseX + 9).toFloat(), mouseY.toFloat(), (mouseX + textWidth + 14).toFloat(), (mouseY + Fonts.font35.FONT_HEIGHT + 3).toFloat(), 1f, Color(255, 255, 255, 90).rgb, Int.MIN_VALUE)
+        val textWidth = Fonts.minecraftFont.getStringWidth(text ?: return)
+        RenderUtils.drawBorderedRect((mouseX + 9).toFloat(), mouseY.toFloat(), (mouseX + textWidth + 14).toFloat(), (mouseY + Fonts.minecraftFont.FONT_HEIGHT + 3).toFloat(), 1f, Color(255, 255, 255, 90).rgb, Int.MIN_VALUE)
         GlStateManager.resetColor()
-        Fonts.font35.drawString(text, mouseX + 12, mouseY + Fonts.font35.FONT_HEIGHT / 2, Int.MAX_VALUE)
+        Fonts.minecraftFont.drawString(text, mouseX + 12, mouseY + Fonts.minecraftFont.FONT_HEIGHT / 2, Int.MAX_VALUE)
     }
 
     fun drawButtonElement(mouseX: Int, mouseY: Int, buttonElement: ButtonElement?) {
         GlStateManager.resetColor()
-        Fonts.font35.drawString(buttonElement!!.displayName, (buttonElement.x + 5), buttonElement.y + 7, buttonElement.color)
+        Fonts.minecraftFont.drawString(buttonElement!!.displayName, (buttonElement.x + 3), buttonElement.y + 7, buttonElement.color)
     }
 
     private fun drawValues(moduleElement: ModuleElement, mouseX: Int, mouseY: Int) {
         val moduleValues = moduleElement.module.values
         if (moduleValues.isNotEmpty()) {
-            Fonts.font35.drawString("+", moduleElement.x + moduleElement.width - 8, moduleElement.y + moduleElement.height / 2, Color.WHITE.rgb)
+            Fonts.minecraftFont.drawString("+", moduleElement.x + moduleElement.width - 8, moduleElement.y + moduleElement.height / 2, Color.WHITE.rgb)
             if (moduleElement.isShowSettings) {
                 yPos = moduleElement.y + 4
                 for (value in moduleValues) {
@@ -253,7 +245,7 @@ class DropDownClickGui: GuiScreen() {
                 mouseDown = Mouse.isButtonDown(0)
                 rightMouseDown = Mouse.isButtonDown(1)
                 if (moduleElement.settingsWidth > 0f && yPos > moduleElement.y + 4)
-                    RenderUtils.drawBorderedRect((moduleElement.x + moduleElement.width + 4).toFloat(), (moduleElement.y + 6).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth, (yPos + 2).toFloat(), 1f, Int.MIN_VALUE, 0)
+                    RenderUtils.drawBorderedRect(moduleElement.x + moduleElement.width + 4, moduleElement.y + 6, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 2, 1f, Int.MIN_VALUE, 0)
             }
         }
     }
@@ -261,107 +253,123 @@ class DropDownClickGui: GuiScreen() {
     fun drawModuleElement(mouseX: Int, mouseY: Int, moduleElement: ModuleElement?) {
         val guiColor = accentColor!!.rgb
         GlStateManager.resetColor()
-        Fonts.font35.drawString(moduleElement!!.displayName, (moduleElement.x + 5), moduleElement.y + 7, if (moduleElement.module.state) guiColor else Int.MAX_VALUE)
+        Fonts.minecraftFont.drawString(moduleElement!!.displayName, (moduleElement.x + 5), moduleElement.y + 7, if (moduleElement.module.state) guiColor else Int.MAX_VALUE)
         drawValues(moduleElement, mouseX, mouseY)
     }
 
     
     private fun drawBoolValue(value: BoolValue, moduleElement: ModuleElement, mouseX: Int, mouseY: Int) {
         val text = value.name
-        val textWidth = Fonts.font35.getStringWidth(text).toFloat()
+        val textWidth = Fonts.minecraftFont.getStringWidth(text).toFloat()
         if (moduleElement.settingsWidth < textWidth + 8) moduleElement.settingsWidth = textWidth + 8
-        RenderUtils.drawRect((moduleElement.x + moduleElement.width + 4).toFloat(), (yPos + 2).toFloat(), (moduleElement.x + moduleElement.width + moduleElement.settingsWidth), (yPos + 14).toFloat(), Int.MIN_VALUE)
+        RenderUtils.drawRect(moduleElement.x + moduleElement.width + 4, yPos + 2, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 14, Int.MIN_VALUE)
 
-        if ((mouseX >= moduleElement.x + moduleElement.width + 4) && (mouseX <= (moduleElement.x + moduleElement.width + moduleElement.settingsWidth)) && (mouseY >= yPos + 2) && (mouseY <= yPos + 14)) {
+        if (isHovering(mouseX, mouseY, moduleElement.x + moduleElement.width + 4, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 2, yPos + 14)) {
+
             if (Mouse.isButtonDown(0) && moduleElement.isntPressed()) {
                 value.set(!value.get())
                 mc.soundHandler.playSound(PositionedSoundRecord.create(ResourceLocation("gui.button.press"), 1.0f))
             }
         }
         GlStateManager.resetColor()
-        Fonts.font35.drawString(text, moduleElement.x + moduleElement.width + 6, yPos + 4, if (value.get()) guiColor else Int.MAX_VALUE)
+        Fonts.minecraftFont.drawString(text, moduleElement.x + moduleElement.width + 6, yPos + 4, if (value.get()) guiColor else Int.MAX_VALUE)
         yPos += 12
     }
 
     private fun drawListValue(value: ListValue, moduleElement: ModuleElement, mouseX: Int, mouseY: Int) {
         val text = value.name
-        val textWidth = Fonts.font35.getStringWidth(text).toFloat()
-        if (moduleElement.settingsWidth < textWidth + 16) moduleElement.settingsWidth = textWidth + 16
-        RenderUtils.drawRect((moduleElement.x + moduleElement.width + 4).toFloat(), (yPos + 2).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth, (yPos + 14).toFloat(), Int.MIN_VALUE)
+        val textWidth = Fonts.minecraftFont.getStringWidth(text).toFloat()
+        if (moduleElement.settingsWidth < textWidth + 16) 
+            moduleElement.settingsWidth = textWidth + 16
+
+        RenderUtils.drawRect(moduleElement.x + moduleElement.width + 4, yPos + 2, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 14, Int.MIN_VALUE)
         GlStateManager.resetColor()
-        Fonts.font35.drawString("§c$text", moduleElement.x + moduleElement.width + 6, yPos + 4, 0xffffff)
-        Fonts.font35.drawString(if (value.openList) "-" else "+", (moduleElement.x + moduleElement.width + moduleElement.settingsWidth - if (value.openList) 5 else 6).toInt(), yPos + 4, 0xffffff)
-        if (mouseX >= moduleElement.x + moduleElement.width + 4 && mouseX <= moduleElement.x + moduleElement.width + moduleElement.settingsWidth && mouseY >= yPos + 2 && mouseY <= yPos + 14) {
+        Fonts.minecraftFont.drawString("§c$text", moduleElement.x + moduleElement.width + 6, yPos + 4, 0xffffff)
+        Fonts.minecraftFont.drawString(if (value.openList) "-" else "+", (moduleElement.x + moduleElement.width + moduleElement.settingsWidth).toInt() - if (value.openList) 5 else 6, yPos + 4, 0xffffff)
+        
+        if (isHovering(mouseX, mouseY, moduleElement.x + moduleElement.width + 4, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 2, yPos + 14)) {
             if (Mouse.isButtonDown(0) && moduleElement.isntPressed()) {
                 value.openList = !value.openList
                 mc.soundHandler.playSound(PositionedSoundRecord.create(ResourceLocation("gui.button.press"), 1.0f))
             }
         }
         yPos += 12
+
+        if (!value.openList) return
+
         for (valueOfList in value.values) {
-            val textWidth2 = Fonts.font35.getStringWidth(">$valueOfList").toFloat()
-            if (moduleElement.settingsWidth < textWidth2 + 8) moduleElement.settingsWidth = textWidth2 + 8
-            if (value.openList) {
-                RenderUtils.drawRect((moduleElement.x + moduleElement.width + 4).toFloat(), (yPos + 2).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth, (yPos + 14).toFloat(), Int.MIN_VALUE )
-                if (mouseX >= moduleElement.x + moduleElement.width + 4 && mouseX <= moduleElement.x + moduleElement.width + moduleElement.settingsWidth && mouseY >= yPos + 2 && mouseY <= yPos + 14) {
-                    if (Mouse.isButtonDown(0) && moduleElement.isntPressed()) {
-                        value.set(valueOfList)
-                        mc.soundHandler.playSound(PositionedSoundRecord.create(ResourceLocation("gui.button.press"), 1.0f))
-                    }
+            val textWidth2 = Fonts.minecraftFont.getStringWidth(">$valueOfList").toFloat()
+            if (moduleElement.settingsWidth < textWidth2 + 8)
+                moduleElement.settingsWidth = textWidth2 + 8
+
+            RenderUtils.drawRect(moduleElement.x + moduleElement.width + 4, yPos + 2, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 14, Int.MIN_VALUE )
+            if (isHovering(mouseX, mouseY, moduleElement.x + moduleElement.width + 4, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 2, yPos + 14)) {
+                if (Mouse.isButtonDown(0) && moduleElement.isntPressed()) {
+                    value.set(valueOfList)
+                    mc.soundHandler.playSound(PositionedSoundRecord.create(ResourceLocation("gui.button.press"), 1.0f))
                 }
-                GlStateManager.resetColor()
-                Fonts.font35.drawString(">", moduleElement.x + moduleElement.width + 6, yPos + 4, Int.MAX_VALUE)
-                Fonts.font35.drawString( valueOfList, moduleElement.x + moduleElement.width + 14, yPos + 4, if (value.get().equals(valueOfList, ignoreCase = true) ) guiColor else Int.MAX_VALUE)
-                yPos += 12
             }
+
+            GlStateManager.resetColor()
+            Fonts.minecraftFont.drawString(">", moduleElement.x + moduleElement.width + 6, yPos + 4, Int.MAX_VALUE)
+            Fonts.minecraftFont.drawString(valueOfList, moduleElement.x + moduleElement.width + 14, yPos + 4, if (value.get().equals(valueOfList, true)) guiColor else Int.MAX_VALUE)
+            yPos += 12
         }
     }
 
     private fun drawFloatValue(value: FloatValue, moduleElement: ModuleElement, mouseX: Int, mouseY: Int) {
-        val text = value.name + "§f: §c" + round(value.get()) + value.suffix
-        val textWidth = Fonts.font35.getStringWidth(text).toFloat()
-        if (moduleElement.settingsWidth < textWidth + 8) moduleElement.settingsWidth = textWidth + 8
-        RenderUtils.drawRect((moduleElement.x + moduleElement.width + 4).toFloat(), (yPos + 2).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth, (yPos + 24).toFloat(), Int.MIN_VALUE )
-        RenderUtils.drawRect((moduleElement.x + moduleElement.width + 8).toFloat(), (yPos + 18).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth - 4, (yPos + 19).toFloat(), Int.MAX_VALUE )
+        val text = value.name + "§f: §c${round(value.get())}${value.suffix}"
+        val textWidth = Fonts.minecraftFont.getStringWidth(text).toFloat()
+        if (moduleElement.settingsWidth < textWidth + 8) 
+            moduleElement.settingsWidth = textWidth + 8
+
+        RenderUtils.drawRect(moduleElement.x + moduleElement.width + 4, yPos + 2, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 24, Int.MIN_VALUE)
+        RenderUtils.drawRect(moduleElement.x + moduleElement.width + 8, yPos + 18, moduleElement.x + moduleElement.width + moduleElement.settingsWidth - 4, yPos + 19, Int.MAX_VALUE)
+
         val sliderValue = moduleElement.x + moduleElement.width + (moduleElement.settingsWidth - 12) * (value.get() - value.minimum) / (value.maximum - value.minimum)
-        RenderUtils.drawRect(8 + sliderValue, (yPos + 15).toFloat(), sliderValue + 11, (yPos + 21).toFloat(), guiColor )
-        if (mouseX >= moduleElement.x + moduleElement.width + 4 && mouseX <= moduleElement.x + moduleElement.width + moduleElement.settingsWidth - 4 && mouseY >= yPos + 15 && mouseY <= yPos + 21) {
+        RenderUtils.drawRect(sliderValue + 8, yPos + 15, sliderValue + 11, yPos + 21, guiColor)
+        
+        if (isHovering(mouseX, mouseY, moduleElement.x + moduleElement.width + 4, moduleElement.x + moduleElement.width + moduleElement.settingsWidth - 4, yPos + 15, yPos + 21)) {
             val dWheel = Mouse.getDWheel()
             if (Mouse.hasWheel() && dWheel != 0) {
-                if (dWheel > 0) value.set(min((value.get() + 0.01f).toDouble(), value.maximum.toDouble()))
-                if (dWheel < 0) value.set(max((value.get() - 0.01f).toDouble(), value.minimum.toDouble()))
+                if (dWheel > 0) value.set(min(value.get() + 0.01f, value.maximum))
+                else value.set(max(value.get() - 0.01f, value.minimum))
             }
             if (Mouse.isButtonDown(0)) {
-                val i = MathHelper.clamp_double(((mouseX - moduleElement.x - moduleElement.width - 8) / (moduleElement.settingsWidth - 12)).toDouble(), 0.0, 1.0)
-                value.set(round((value.minimum + (value.maximum - value.minimum) * i).toFloat()))
+                val i = ((mouseX - moduleElement.x - moduleElement.width - 8) / (moduleElement.settingsWidth - 12)).coerceIn(0f, 1f)
+                value.set(round(value.minimum + (value.maximum - value.minimum) * i))
             }
         }
         GlStateManager.resetColor()
-        Fonts.font35.drawString(text, moduleElement.x + moduleElement.width + 6, yPos + 4, 0xffffff)
+        Fonts.minecraftFont.drawString(text, moduleElement.x + moduleElement.width + 6, yPos + 4, 0xffffff)
         yPos += 22
     }
 
     private fun drawIntegerValue(value: IntegerValue, moduleElement: ModuleElement, mouseX: Int, mouseY: Int) {
-        val text = value.name + "§f: §c" + if (value is BlockValue) BlockUtils.getBlockName(value.get()) + " (" + value.get() + ")" else value.get().toString() + value.suffix
-        val textWidth = Fonts.font35.getStringWidth(text).toFloat()
-        if (moduleElement.settingsWidth < textWidth + 8) moduleElement.settingsWidth = textWidth + 8
-        RenderUtils.drawRect((moduleElement.x + moduleElement.width + 4).toFloat(), (yPos + 2).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth, (yPos + 24).toFloat(), Int.MIN_VALUE)
-        RenderUtils.drawRect((moduleElement.x + moduleElement.width + 8).toFloat(), (yPos + 18).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth - 4, (yPos + 19).toFloat(), Int.MAX_VALUE)
+        val text = "${value.name}§f: §c" + if (value is BlockValue) "${BlockUtils.getBlockName(value.get())} (${value.get()})" else "${value.get()}${value.suffix}"
+        val textWidth = Fonts.minecraftFont.getStringWidth(text).toFloat()
+        if (moduleElement.settingsWidth < textWidth + 8)
+            moduleElement.settingsWidth = textWidth + 8
+
+        RenderUtils.drawRect(moduleElement.x + moduleElement.width + 4, yPos + 2, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 24, Int.MIN_VALUE)
+        RenderUtils.drawRect(moduleElement.x + moduleElement.width + 8, yPos + 18, moduleElement.x + moduleElement.width + moduleElement.settingsWidth - 4, yPos + 19, Int.MAX_VALUE)
+
         val sliderValue = moduleElement.x + moduleElement.width + (moduleElement.settingsWidth - 12) * (value.get() - value.minimum) / (value.maximum - value.minimum)
-        RenderUtils.drawRect(8 + sliderValue, (yPos + 15).toFloat(), sliderValue + 11, (yPos + 21).toFloat(), guiColor)
-        if (mouseX >= moduleElement.x + moduleElement.width + 4 && mouseX <= moduleElement.x + moduleElement.width + moduleElement.settingsWidth && mouseY >= yPos + 15 && mouseY <= yPos + 21) {
+        RenderUtils.drawRect(sliderValue + 8, yPos + 15, sliderValue + 11, yPos + 21, guiColor)
+
+        if (isHovering(mouseX, mouseY, moduleElement.x + moduleElement.width + 4, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 15, yPos + 21)) {
             val dWheel = Mouse.getDWheel()
             if (Mouse.hasWheel() && dWheel != 0) {
-                if (dWheel > 0) value.set(min((value.get() + 1).toDouble(), value.maximum.toDouble()))
-                if (dWheel < 0) value.set(max((value.get() - 1).toDouble(), value.minimum.toDouble()))
+                if (dWheel > 0) value.set(min(value.get() + 1, value.maximum))
+                else value.set(max(value.get() - 1, value.minimum))
             }
             if (Mouse.isButtonDown(0)) {
-                val i = MathHelper.clamp_double(((mouseX - moduleElement.x - moduleElement.width - 8) / (moduleElement.settingsWidth - 12)).toDouble(), 0.0, 1.0)
+                val i = ((mouseX - moduleElement.x - moduleElement.width - 8) / (moduleElement.settingsWidth - 12)).coerceIn(0f, 1f)
                 value.set((value.minimum + (value.maximum - value.minimum) * i).toInt())
             }
         }
         GlStateManager.resetColor()
-        Fonts.font35.drawString(text, moduleElement.x + moduleElement.width + 6, yPos + 4, 0xffffff)
+        Fonts.minecraftFont.drawString(text, moduleElement.x + moduleElement.width + 6, yPos + 4, 0xffffff)
         yPos += 22
     }
 
@@ -370,17 +378,21 @@ class DropDownClickGui: GuiScreen() {
         RenderUtils.drawRect((moduleElement.x + moduleElement.width + 4).toFloat(), (yPos + 2).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth, (yPos + 14).toFloat(), Int.MIN_VALUE)
         var displayString = "Font: Unknown"
         if (fontRenderer is GameFontRenderer) {
-            displayString = "Font: " + fontRenderer.defaultFont.font.name + " - " + fontRenderer.defaultFont.font.size
-        } else if (fontRenderer === Fonts.minecraftFont) displayString = "Font: Minecraft" else {
+            displayString = "Font: ${fontRenderer.defaultFont.font.name} - ${fontRenderer.defaultFont.font.size}" 
+        } else if (fontRenderer === Fonts.minecraftFont)
+            displayString = "Font: Minecraft"
+        else {
             val objects = Fonts.getFontDetails(fontRenderer)
-            if (objects != null) {
+            if (objects != null)
                 displayString = objects[0].toString() + if (objects[1] as Int != -1) " - " + objects[1] else ""
-            }
         }
-        Fonts.font35.drawString(displayString, moduleElement.x + moduleElement.width + 6, yPos + 4, Color.WHITE.rgb)
-        val stringWidth = Fonts.font35.getStringWidth(displayString)
-        if (moduleElement.settingsWidth < stringWidth + 8) moduleElement.settingsWidth = (stringWidth + 8).toFloat()
-        if ((Mouse.isButtonDown(0) && !mouseDown || Mouse.isButtonDown(1) && !rightMouseDown) && mouseX >= moduleElement.x + moduleElement.width + 4 && mouseX <= moduleElement.x + moduleElement.width + moduleElement.settingsWidth && mouseY >= yPos + 4 && mouseY <= yPos + 12) {
+
+        Fonts.minecraftFont.drawString(displayString, moduleElement.x + moduleElement.width + 6, yPos + 4, Color.WHITE.rgb)
+        val stringWidth = Fonts.minecraftFont.getStringWidth(displayString).toFloat()
+        if (moduleElement.settingsWidth < stringWidth + 8)
+            moduleElement.settingsWidth = stringWidth + 8
+
+        if ((Mouse.isButtonDown(0) && !mouseDown || Mouse.isButtonDown(1) && !rightMouseDown) && isHovering(mouseX, mouseY, moduleElement.x + moduleElement.width + 4, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 4, yPos + 12)) {
             val fonts = Fonts.fonts
             if (Mouse.isButtonDown(0)) {
                 var i = 0
@@ -413,88 +425,96 @@ class DropDownClickGui: GuiScreen() {
     }
     
     private fun drawTextValue(value: TextValue, moduleElement: ModuleElement, mouseX: Int, mouseY: Int) {
-        val text = value.name + "§f: §c" + value.get()
-        val textWidth = Fonts.font35.getStringWidth(text).toFloat()
-        if (moduleElement.settingsWidth < textWidth + 8) moduleElement.settingsWidth = textWidth + 8
-        RenderUtils.drawRect((moduleElement.x + moduleElement.width + 4).toFloat(), (yPos + 2).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth, (yPos + 14).toFloat(), Int.MIN_VALUE)
+        val text = "${value.name}§f: §c${value.get()}"
+        val textWidth = Fonts.minecraftFont.getStringWidth(text).toFloat()
+        if (moduleElement.settingsWidth < textWidth + 8)
+            moduleElement.settingsWidth = textWidth + 8
+        RenderUtils.drawRect(moduleElement.x + moduleElement.width + 4, yPos + 2, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 14, Int.MIN_VALUE)
         GlStateManager.resetColor()
-        Fonts.font35.drawString(text, moduleElement.x + moduleElement.width + 6, yPos + 4, 0xffffff)
+        Fonts.minecraftFont.drawString(text, moduleElement.x + moduleElement.width + 6, yPos + 4, 0xffffff)
         yPos += 12
     }
 
     private fun drawIntRangeValue(value: IntRangeValue, moduleElement: ModuleElement, mouseX: Int, mouseY: Int) {
-        val text = value.name + "§f: §c${value.get().getMin()} - ${value.get().getMax()}"
-        val textWidth = Fonts.font35.getStringWidth(text).toFloat()
-        if (moduleElement.settingsWidth < textWidth + 8) moduleElement.settingsWidth = textWidth + 8
-        RenderUtils.drawRect((moduleElement.x + moduleElement.width + 4).toFloat(), (yPos + 2).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth, (yPos + 24).toFloat(), Int.MIN_VALUE)
-        RenderUtils.drawRect((moduleElement.x + moduleElement.width + 8).toFloat(), (yPos + 18).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth - 4, (yPos + 19).toFloat(), Int.MAX_VALUE)
-        val sliderMinValue = moduleElement.x + moduleElement.width + (moduleElement.settingsWidth - 12) * (value.get().getMin() - value.minimum) / (value.maximum - value.minimum)
-        RenderUtils.drawRect(8 + sliderMinValue, (yPos + 15).toFloat(), sliderMinValue + 10, (yPos + 21).toFloat(), guiColor)
-        val sliderMaxValue = moduleElement.x + moduleElement.width + (moduleElement.settingsWidth - 12) * (value.get().getMax() - value.minimum) / (value.maximum - value.minimum)
-        RenderUtils.drawRect(8 + sliderMaxValue, (yPos + 15).toFloat(), sliderMaxValue + 11, (yPos + 21).toFloat(), guiColor)
-        if (mouseX >= moduleElement.x + moduleElement.width + 4 && mouseX <= moduleElement.x + moduleElement.width + moduleElement.settingsWidth && mouseY >= yPos + 15 && mouseY <= yPos + 21) {
+        val text = value.name + "§f: §c${value.getMinValue()} - ${value.getMaxValue()}"
+        val textWidth = Fonts.minecraftFont.getStringWidth(text).toFloat()
+        if (moduleElement.settingsWidth < textWidth + 8)
+            moduleElement.settingsWidth = textWidth + 8
+
+        RenderUtils.drawRect(moduleElement.x + moduleElement.width + 4, yPos + 2, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 24, Int.MIN_VALUE)
+        RenderUtils.drawRect(moduleElement.x + moduleElement.width + 8, yPos + 18, moduleElement.x + moduleElement.width + moduleElement.settingsWidth - 4, yPos + 19, Int.MAX_VALUE)
+        val sliderMinValue = moduleElement.x + moduleElement.width + (moduleElement.settingsWidth - 12) * (value.getMinValue() - value.minimum) / (value.maximum - value.minimum)
+        RenderUtils.drawRect(sliderMinValue + 8, yPos + 15, sliderMinValue + 10, yPos + 21, guiColor)
+        val sliderMaxValue = moduleElement.x + moduleElement.width + (moduleElement.settingsWidth - 12) * (value.getMaxValue() - value.minimum) / (value.maximum - value.minimum)
+        RenderUtils.drawRect(sliderMaxValue + 8, yPos + 15, sliderMaxValue + 11, yPos + 21, guiColor)
+        
+        if (isHovering(mouseX, mouseY, moduleElement.x + moduleElement.width + 4, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 15, yPos + 21)) {
             val dWheel = Mouse.getDWheel()
 
             if ((mouseX >= sliderMaxValue + 12 && mouseX <= moduleElement.x + moduleElement.width + moduleElement.settingsWidth - 4) || (mouseX >= moduleElement.x + moduleElement.width + moduleElement.settingsWidth / 2 - 2 && mouseX <= sliderMaxValue + 14)) {
                 if (Mouse.hasWheel() && dWheel != 0) {
-                    if (dWheel > 0) value.setMaxValue(min((value.get().getMax() + 1).toDouble(), value.maximum.toDouble()))
-                    if (dWheel < 0) value.setMaxValue(max((value.get().getMax() - 1).toDouble(), value.minimum.toDouble()))
+                    if (dWheel > 0) value.setMaxValue(min(value.getMaxValue() + 1, value.maximum))
+                    else value.setMaxValue(max(value.getMaxValue() - 1, value.minimum))
                 }
                 if (Mouse.isButtonDown(0)) {
-                    val i = MathHelper.clamp_double(((mouseX - moduleElement.x - moduleElement.width - 8) / (moduleElement.settingsWidth - 12)).toDouble(), 0.0, 1.0)
+                    val i = ((mouseX - moduleElement.x - moduleElement.width - 8) / (moduleElement.settingsWidth - 12)).coerceIn(0f, 1f)
                     value.setMaxValue((value.minimum + (value.maximum - value.minimum) * i).toInt())
                 }
             } else if ((mouseX >= moduleElement.x + moduleElement.width + 4 && mouseX <= sliderMinValue + 11) || (mouseX >= sliderMinValue + 8 && mouseX <= moduleElement.x + moduleElement.width + moduleElement.settingsWidth / 2 - 2)) {
                 if (Mouse.hasWheel() && dWheel != 0) {
-                    if (dWheel > 0) value.setMinValue(min((value.get().getMin() + 1).toDouble(), value.maximum.toDouble()))
-                    if (dWheel < 0) value.setMinValue(max((value.get().getMin() - 1).toDouble(), value.minimum.toDouble()))
+                    if (dWheel > 0) value.setMinValue(min(value.getMinValue() + 1, value.maximum))
+                    else value.setMinValue(max(value.getMinValue() - 1, value.minimum))
                 }
                 if (Mouse.isButtonDown(0)) {
-                    val i = MathHelper.clamp_double(((mouseX - moduleElement.x - moduleElement.width - 8) / (moduleElement.settingsWidth - 12)).toDouble(), 0.0, 1.0)
+                    val i = ((mouseX - moduleElement.x - moduleElement.width - 8) / (moduleElement.settingsWidth - 12)).coerceIn(0f, 1f)
                     value.setMinValue((value.minimum + (value.maximum - value.minimum) * i).toInt())
                 }
             }
         }
         GlStateManager.resetColor()
-        Fonts.font35.drawString(text, moduleElement.x + moduleElement.width + 6, yPos + 4, 0xffffff)
+        Fonts.minecraftFont.drawString(text, moduleElement.x + moduleElement.width + 6, yPos + 4, 0xffffff)
         yPos += 22
     }
 
     private fun drawFloatRangeValue(value: FloatRangeValue, moduleElement: ModuleElement, mouseX: Int, mouseY: Int) {
-        val text = value.name + "§f: §c${round(value.get().getMin())}${value.suffix} - ${round(value.get().getMax())}${value.suffix}"
-        val textWidth = Fonts.font35.getStringWidth(text).toFloat()
-        if (moduleElement.settingsWidth < textWidth + 8) moduleElement.settingsWidth = textWidth + 8
-        RenderUtils.drawRect((moduleElement.x + moduleElement.width + 4).toFloat(), (yPos + 2).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth, (yPos + 24).toFloat(), Int.MIN_VALUE)
-        RenderUtils.drawRect((moduleElement.x + moduleElement.width + 8).toFloat(), (yPos + 18).toFloat(), moduleElement.x + moduleElement.width + moduleElement.settingsWidth - 4, (yPos + 19).toFloat(), Int.MAX_VALUE)
-        val sliderMinValue = moduleElement.x + moduleElement.width + (moduleElement.settingsWidth - 12) * (value.get().getMin() - value.minimum) / (value.maximum - value.minimum)
-        RenderUtils.drawRect(8 + sliderMinValue, (yPos + 15).toFloat(), sliderMinValue + 10, (yPos + 21).toFloat(), guiColor)
-        val sliderMaxValue = moduleElement.x + moduleElement.width + (moduleElement.settingsWidth - 12) * (value.get().getMax() - value.minimum) / (value.maximum - value.minimum)
-        RenderUtils.drawRect(8 + sliderMaxValue, (yPos + 15).toFloat(), sliderMaxValue + 11, (yPos + 21).toFloat(), guiColor)
-        if (mouseX >= moduleElement.x + moduleElement.width + 4 && mouseX <= moduleElement.x + moduleElement.width + moduleElement.settingsWidth && mouseY >= yPos + 15 && mouseY <= yPos + 21) {
+        val text = value.name + "§f: §c${round(value.getMinValue())}${value.suffix} - ${round(value.getMaxValue())}${value.suffix}"
+        val textWidth = Fonts.minecraftFont.getStringWidth(text).toFloat()
+        if (moduleElement.settingsWidth < textWidth + 8)
+            moduleElement.settingsWidth = textWidth + 8
+
+        RenderUtils.drawRect(moduleElement.x + moduleElement.width + 4, yPos + 2, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 24, Int.MIN_VALUE)
+        RenderUtils.drawRect(moduleElement.x + moduleElement.width + 8, yPos + 18, moduleElement.x + moduleElement.width + moduleElement.settingsWidth - 4, yPos + 19, Int.MAX_VALUE)
+        
+        val sliderMinValue = moduleElement.x + moduleElement.width + (moduleElement.settingsWidth - 12) * (value.getMinValue() - value.minimum) / (value.maximum - value.minimum)
+        RenderUtils.drawRect(sliderMinValue + 8, yPos + 15, sliderMinValue + 10, yPos + 21, guiColor)
+        val sliderMaxValue = moduleElement.x + moduleElement.width + (moduleElement.settingsWidth - 12) * (value.getMaxValue() - value.minimum) / (value.maximum - value.minimum)
+        RenderUtils.drawRect(sliderMaxValue + 8, yPos + 15, sliderMaxValue + 11, yPos + 21, guiColor)
+        
+        if (isHovering(mouseX, mouseY, moduleElement.x + moduleElement.width + 4, moduleElement.x + moduleElement.width + moduleElement.settingsWidth, yPos + 15, yPos + 21)) {
             val dWheel = Mouse.getDWheel()
 
             if ((mouseX >= sliderMaxValue + 12 && mouseX <= moduleElement.x + moduleElement.width + moduleElement.settingsWidth - 4) || (mouseX >= moduleElement.x + moduleElement.width + moduleElement.settingsWidth / 2 - 2 && mouseX <= sliderMaxValue + 14)) {
                 if (Mouse.hasWheel() && dWheel != 0) {
-                    if (dWheel > 0) value.setMaxValue(min((value.get().getMax() + 0.01f).toDouble(), value.maximum.toDouble()))
-                    if (dWheel < 0) value.setMaxValue(max((value.get().getMax() - 0.01f).toDouble(), value.minimum.toDouble()))
+                    if (dWheel > 0) value.setMaxValue(min(value.getMaxValue() + 0.01f, value.maximum))
+                    else value.setMaxValue(max(value.getMaxValue() - 0.01f, value.minimum))
                 }
                 if (Mouse.isButtonDown(0)) {
-                    val i = MathHelper.clamp_double(((mouseX - moduleElement.x - moduleElement.width - 8) / (moduleElement.settingsWidth - 12)).toDouble(), 0.0, 1.0)
-                    value.setMaxValue(round((value.minimum + (value.maximum - value.minimum) * i).toFloat()))
+                    val i = ((mouseX - moduleElement.x - moduleElement.width - 8) / (moduleElement.settingsWidth - 12)).coerceIn(0f, 1f)
+                    value.setMaxValue(round(value.minimum + (value.maximum - value.minimum) * i))
                 }
             } else if ((mouseX >= moduleElement.x + moduleElement.width + 4 && mouseX <= sliderMinValue + 11) || (mouseX >= sliderMinValue + 8 && mouseX <= moduleElement.x + moduleElement.width + moduleElement.settingsWidth / 2 - 2)) {
                 if (Mouse.hasWheel() && dWheel != 0) {
-                    if (dWheel > 0) value.setMinValue(min((value.get().getMin() + 0.01f).toDouble(), value.maximum.toDouble()))
-                    if (dWheel < 0) value.setMinValue(max((value.get().getMin() - 0.01f).toDouble(), value.minimum.toDouble()))
+                    if (dWheel > 0) value.setMinValue(min(value.getMinValue() + 0.01f, value.maximum))
+                    else value.setMinValue(max(value.getMinValue() - 0.01f, value.minimum))
                 }
                 if (Mouse.isButtonDown(0)) {
-                    val i = MathHelper.clamp_double(((mouseX - moduleElement.x - moduleElement.width - 8) / (moduleElement.settingsWidth - 12)).toDouble(), 0.0, 1.0)
-                    value.setMinValue(round((value.minimum + (value.maximum - value.minimum) * i).toFloat()))
+                    val i = ((mouseX - moduleElement.x - moduleElement.width - 8) / (moduleElement.settingsWidth - 12)).coerceIn(0f, 1f)
+                    value.setMinValue(round(value.minimum + (value.maximum - value.minimum) * i))
                 }
             }
         }
         GlStateManager.resetColor()
-        Fonts.font35.drawString(text, moduleElement.x + moduleElement.width + 6, yPos + 4, 0xffffff)
+        Fonts.minecraftFont.drawString(text, moduleElement.x + moduleElement.width + 6, yPos + 4, 0xffffff)
         yPos += 22
     }
 }
