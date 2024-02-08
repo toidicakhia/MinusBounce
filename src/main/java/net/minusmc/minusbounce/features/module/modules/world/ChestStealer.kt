@@ -28,7 +28,7 @@ import net.minusmc.minusbounce.value.BoolValue
 import net.minusmc.minusbounce.value.IntegerValue
 import kotlin.random.Random
 
-@ModuleInfo(name = "Stealer", spacedName = "Stealer", description = "Automatically steals all items from a chest.", category = ModuleCategory.WORLD)
+@ModuleInfo(name = "ChestStealer", spacedName = "Chest Stealer", description = "Automatically steals all items from a chest.", category = ModuleCategory.WORLD)
 class ChestStealer : Module() {
 
     /**

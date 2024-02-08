@@ -42,7 +42,7 @@ object ClickGUI: Module() {
     }
     val gradEndValue = IntegerValue("GradientEndAlpha", 0, 0, 255) { backgroundValue.get().equals("gradient", true) }
 
-    val animationValue = ListValue("Animation", arrayOf("Slide", "Zoom", "ZoomBounce", "None"), "Azura")
+    val animationValue = ListValue("Animation", arrayOf("Slide", "Zoom", "ZoomBounce", "None"), "None")
     val animSpeedValue = FloatValue("AnimSpeed", 1F, 0.01F, 5F, "x")
 
     val accentColor: Color?

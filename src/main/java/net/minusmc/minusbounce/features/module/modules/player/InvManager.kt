@@ -391,7 +391,7 @@ class InvManager : Module() {
             } else {
                 (nbtItemNotGarbage.get() && ItemHelper.hasNBTGoal(itemStack, goal)) ||
                         item is ItemFood || itemStack.unlocalizedName == "item.arrow" ||
-                        (item is ItemBlock && !InventoryUtils.isBlockListBlock(item)) ||
+                        (item is ItemBlock && InventoryUtils.isBlockListBlock(item)) ||
                         item is ItemBed || (item is ItemPotion && (!onlyPositivePotionValue.get() || InventoryUtils.isPositivePotion(item, itemStack))) ||
                         item is ItemEnderPearl || item is ItemBucket || ignoreVehiclesValue.get() && (item is ItemBoat || item is ItemMinecart)
             }
