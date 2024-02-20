@@ -359,7 +359,8 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer impl
             this.setSprinting(false);
         }
 
-        if (scaffold.getState() && !scaffold.getCanSprint()) this.setSprinting(false);
+        if (this.isSprinting() && scaffold.getState() && !scaffold.getCanSprint())
+            this.setSprinting(false);
         
         if (this.isSprinting() && noSlow.getState() && noSlow.getNoSprintValue().get() && noSlow.isSlowing()) {
             this.setSprinting(false);
