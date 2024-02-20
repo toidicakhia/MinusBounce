@@ -141,6 +141,8 @@ class KillAura : Module() {
 
         updateHitable()
         blockingMode.onPostMotion()
+
+        updateTarget()
     }
 
 

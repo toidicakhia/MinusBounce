@@ -364,21 +364,18 @@ class Scaffold: Module() {
         if (!rotationsValue.get().equals("None", true) && keepLengthValue.get() > 0 && lockRotation != null)
             RotationUtils.setTargetRot(RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, lockRotation!!, rotationSpeed), keepLengthValue.get())
 
-        if (placeModeValue.equals("pre")) place()
-
         if (!placeCondition || if (!autoBlockMode.get().equals("off", true)) InventoryUtils.findAutoBlockBlock() == -1 else mc.thePlayer.heldItem == null || !(mc.thePlayer.heldItem.item is ItemBlock && isBlockToScaffold(mc.thePlayer.heldItem.item as ItemBlock))) {
             return
         }
 
         findBlock(expandLengthValue.get() > 1 && !towerStatus)
 
+        if (placeModeValue.get().equals("pre", true)) place()
+
         // Placeable delay
         if (targetPlace == null && !placeableDelay.get().equals("Off", true) && !towerStatus) {
             delayTimer.reset()
         }
-
-        if (towerStatus)
-            towerMode.onPreMotion(event)
     }
 
     @EventTarget
@@ -401,19 +398,18 @@ class Scaffold: Module() {
                 else -> false
             }
 
+        if (towerStatus)
+            towerMode.onPostMotion()
+
         if (!rotationsValue.get().equals("None", true) && keepLengthValue.get() > 0 && lockRotation != null)
             RotationUtils.setTargetRot(RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, lockRotation!!, rotationSpeed), keepLengthValue.get())
 
-        if (placeModeValue.equals("post")) place()
+        if (placeModeValue.get().equals("post", true)) place()
 
         // Placeable delay
         if (targetPlace == null && !placeableDelay.get().equals("Off", true) && !towerStatus) {
             delayTimer.reset()
         }
-
-        if (towerStatus)
-            towerMode.onPostMotion()
-        
     }
 
     private fun findBlock(expand: Boolean) {
