@@ -1110,6 +1110,11 @@ public abstract class MixinMinecraft {
         return (char) (Keyboard.getEventCharacter() + 256);
     }
 
+    @Redirect(method = "dispatchKeypresses", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/stream/GuiStreamUnavailable;func_152321_a(Lnet/minecraft/client/gui/GuiScreen;)V", remap = false))
+    private void noGuiStream1(GuiScreen screen) {
+        // no-op
+    }
+
     /**
      * @author CCBlueX
      */

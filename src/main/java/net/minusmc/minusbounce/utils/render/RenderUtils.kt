@@ -2180,14 +2180,14 @@ object RenderUtils : MinecraftInstance() {
 
     fun drawAnimatedGradient(left: Double, top: Double, right: Double, bottom: Double, col1: Int, col2: Int) {
         val currentTime = System.currentTimeMillis()
-        if (startTime.toInt() === 0) {
+        if (startTime.toInt() == 0) {
             startTime = currentTime
         }
-        val elapsedTime: Long = currentTime - startTime
+        val elapsedTime = currentTime - startTime
         val progress: Float = (elapsedTime % animationDuration) as Float / animationDuration
         val color1: Int
         val color2: Int
-        if ((elapsedTime / animationDuration % 2).toInt() === 0) {
+        if ((elapsedTime / animationDuration % 2).toInt() == 0) {
             color1 = interpolateColors(col1, col2, progress)
             color2 = interpolateColors(col2, col1, progress)
         } else {

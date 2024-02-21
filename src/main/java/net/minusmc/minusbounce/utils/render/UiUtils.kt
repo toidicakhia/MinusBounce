@@ -45,7 +45,6 @@ object UiUtils {
     }
 
     fun drawImage(image: ResourceLocation?, x: Int, y: Int, width: Int, height: Int) {
-        val scaledResolution = ScaledResolution(Minecraft.getMinecraft())
         GL11.glDisable(2929)
         GL11.glEnable(3042)
         GL11.glDepthMask(false)
@@ -62,7 +61,6 @@ object UiUtils {
     }
 
     fun drawImage(image: ResourceLocation?, x: Int, y: Int, width: Int, height: Int, color: Color) {
-        val scaledResolution = ScaledResolution(Minecraft.getMinecraft())
         GL11.glDisable(2929)
         GL11.glEnable(3042)
         GL11.glDepthMask(false)

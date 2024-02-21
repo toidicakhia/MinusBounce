@@ -130,6 +130,7 @@ class KillAura : Module() {
 
     @EventTarget
     fun onPreMotion(event: PreMotionEvent) {
+        runClick()
         blockingMode.onPreMotion()
 
         updateTarget()
@@ -137,6 +138,7 @@ class KillAura : Module() {
 
     @EventTarget
     fun onPostMotion(event: PostMotionEvent) {
+        runClick()
         target ?: return
 
         updateHitable()
@@ -161,8 +163,7 @@ class KillAura : Module() {
         blockingMode.onPacket(event)
     }
 
-    @EventTarget
-    fun onUpdate(event: UpdateEvent) {
+    private fun runClick() {
         if (target == null) {
             stopBlocking()
             return
@@ -346,7 +347,7 @@ class KillAura : Module() {
         val defRotation = getTargetRotation(entity) ?: return false
         
         if (silentRotationValue.get()) {
-            RotationUtils.setTargetRot(defRotation, 0)
+            RotationUtils.setTargetRot(defRotation, 4)
         } else {
             defRotation.toPlayer(mc.thePlayer!!)
         }
@@ -358,9 +359,9 @@ class KillAura : Module() {
 
         if (predictValue.get() && !rotations.get().equals("Grim", true) && !rotations.get().equals("Intave", true)) {
             boundingBox = boundingBox.offset(
-                    (entity.posX - entity.prevPosX) * RandomUtils.nextFloat(predictSize.getMinValue(), predictSize.getMaxValue()),
-                    (entity.posY - entity.prevPosY) * RandomUtils.nextFloat(predictSize.getMinValue(), predictSize.getMaxValue()),
-                    (entity.posZ - entity.prevPosZ) * RandomUtils.nextFloat(predictSize.getMinValue(), predictSize.getMaxValue())
+                (entity.posX - entity.prevPosX) * RandomUtils.nextFloat(predictSize.getMinValue(), predictSize.getMaxValue()),
+                (entity.posY - entity.prevPosY) * RandomUtils.nextFloat(predictSize.getMinValue(), predictSize.getMaxValue()),
+                (entity.posZ - entity.prevPosZ) * RandomUtils.nextFloat(predictSize.getMinValue(), predictSize.getMaxValue())
             )
         }
 
