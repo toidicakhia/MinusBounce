@@ -52,6 +52,7 @@ object MinusBounce {
     lateinit var pluginManager: PluginManager
     lateinit var clickGui: DropDownClickGui
     lateinit var sessionManager: SessionManager
+    lateinit var movementCorrection: MovementCorrection
 
     // HUD & ClickGUI
     lateinit var hud: HUD
@@ -123,6 +124,8 @@ object MinusBounce {
 
         // Load generators
         GuiAltManager.loadActiveGenerators()
+
+        ClassUtils.classCache.clear()
 
         ClientUtils.logger.info("Finished loading $CLIENT_NAME in ${System.currentTimeMillis() - lastTick}ms.")
 

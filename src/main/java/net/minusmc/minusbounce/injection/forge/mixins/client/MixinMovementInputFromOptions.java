@@ -43,7 +43,6 @@ public class MixinMovementInputFromOptions extends MixinMovementInput {
         this.sneak = this.gameSettings.keyBindSneak.isKeyDown();
 
         final MoveInputEvent moveInputEvent = new MoveInputEvent(this.moveForward, this.moveStrafe, this.jump, this.sneak, 0.3D);
-
         MinusBounce.eventManager.callEvent(moveInputEvent);
 
         final double sneakMultiplier = moveInputEvent.getSneakMultiplier();

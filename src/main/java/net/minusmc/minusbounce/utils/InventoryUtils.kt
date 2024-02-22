@@ -119,10 +119,8 @@ object InventoryUtils : MinecraftInstance(), Listenable {
         for (i in 36..44) {
             val itemStack = mc.thePlayer.inventoryContainer.getSlot(i).stack ?: continue
             if (itemStack.item is ItemBlock && itemStack.stackSize > 0) {
-                val itemBlock = itemStack.item as ItemBlock
-                val block = itemBlock.getBlock()
-                if (isBlockListBlock(block))
-                    return i
+                val item = itemStack.item as ItemBlock
+                if (isBlockListBlock(item)) return i
             }
         }
         return -1
@@ -144,9 +142,8 @@ object InventoryUtils : MinecraftInstance(), Listenable {
 
     fun isPositivePotion(item: ItemPotion, stack: ItemStack): Boolean {
         item.getEffects(stack).forEach {
-            if (isPositivePotionEffect(it.potionID)) {
+            if (isPositivePotionEffect(it.potionID))
                 return true
-            }
         }
 
         return false

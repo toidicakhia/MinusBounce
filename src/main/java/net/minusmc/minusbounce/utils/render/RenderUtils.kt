@@ -1175,14 +1175,6 @@ object RenderUtils : MinecraftInstance() {
         disableBlend()
     }
 
-    fun drawRect(rect: net.minusmc.minusbounce.utils.geom.Rectangle, color: Int) {
-        drawRect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, color)
-    }
-
-    fun drawRect(rect: net.minusmc.minusbounce.utils.geom.Rectangle, color: Color) {
-        drawRect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, color.rgb)
-    }
-
     /**
      * Like [.drawRect], but without setup
      */

@@ -13,25 +13,32 @@ import net.minusmc.minusbounce.utils.misc.MathUtils
 import kotlin.math.*
 
 object MovementCorrection: MinecraftInstance(), Listenable {
+    @JvmField
 	var fixType = Type.NONE
 
-    @EventTarget
-    fun onInput(event: MoveInputEvent) {
+    @EventTarget(priority = 2)
+    fun onMoveInput(event: MoveInputEvent) {
         if (fixType != Type.STRICT) return
-        val rotation = RotationUtils.targetRotation ?: return
 
-        val forward = event.forward.toFloat()
-        val strafe = event.strafe.toFloat()
+        val rotation = RotationUtils.targetRotation
+        println(rotation)
 
-        val offset = MathUtils.toRadians(mc.thePlayer.rotationYaw - rotation.yaw)
-        val cosValue = cos(offset)
-        val sinValue = sin(offset)
+        if (rotation != null) {
+            val forward = event.forward.toFloat()
+            val strafe = event.strafe.toFloat()
 
-        event.forward = round(forward * cosValue + strafe * sinValue)
-        event.strafe = round(strafe * cosValue - forward * sinValue)
+            val offset = MathUtils.toRadians(mc.thePlayer.rotationYaw - rotation.yaw)
+            val cosValue = cos(offset)
+            val sinValue = sin(offset)
+
+            println("sin = $sinValue cos = $cosValue")
+
+            event.forward = round(forward * cosValue + strafe * sinValue)
+            event.strafe = round(strafe * cosValue - forward * sinValue)
+        }
     }
 
-    @EventTarget 
+    @EventTarget(priority = 2)
     fun onJump(event: JumpEvent) {
         if (fixType != Type.NONE) {
         	val rotation = RotationUtils.targetRotation ?: return
@@ -39,7 +46,7 @@ object MovementCorrection: MinecraftInstance(), Listenable {
         }
     }
 
-    @EventTarget 
+    @EventTarget(priority = 2)
     fun onStrafe(event: StrafeEvent) {
         if (fixType != Type.NONE) {
         	val rotation = RotationUtils.targetRotation ?: return

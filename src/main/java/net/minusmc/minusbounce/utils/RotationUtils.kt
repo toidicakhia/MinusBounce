@@ -27,18 +27,18 @@ object RotationUtils : MinecraftInstance(), Listenable {
     var targetRotation: Rotation? = null
 
     @JvmField
-    public var serverRotation: Rotation? = Rotation(0f, 0f)
+    var serverRotation: Rotation? = Rotation(0f, 0f)
 
     private var x = random.nextDouble()
     private var y = random.nextDouble()
     private var z = random.nextDouble()
     
     @EventTarget
-    fun onTick(event: PreUpdateEvent){
+    fun onTick(event: TickEvent) {
         if (targetRotation != null){
             keepLength--
 
-            if(keepLength <= 0){
+            if (keepLength <= 0){
                 targetRotation = null
                 keepLength = 0
             }
@@ -54,6 +54,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
      *
      * @param rotation your target rotation
      */
+
     fun setTargetRot(rotation: Rotation, keepLength: Int) {
         if (java.lang.Double.isNaN(rotation.yaw.toDouble()) || java.lang.Double.isNaN(rotation.pitch.toDouble()) || rotation.pitch > 90 || rotation.pitch < -90) return
         rotation.fixedSensitivity(mc.gameSettings.mouseSensitivity)

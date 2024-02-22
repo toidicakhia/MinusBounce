@@ -22,6 +22,7 @@ import net.minusmc.minusbounce.features.module.modules.movement.TargetStrafe
 import net.minusmc.minusbounce.features.module.modules.player.Blink
 import net.minusmc.minusbounce.features.module.modules.render.FreeCam
 import net.minusmc.minusbounce.features.module.modules.world.Scaffold
+import net.minusmc.minusbounce.features.special.MovementCorrection
 import net.minusmc.minusbounce.utils.*
 import net.minusmc.minusbounce.utils.EntityUtils.isAlive
 import net.minusmc.minusbounce.utils.EntityUtils.isSelected
@@ -347,10 +348,15 @@ class KillAura : Module() {
         val defRotation = getTargetRotation(entity) ?: return false
         
         if (silentRotationValue.get()) {
-            RotationUtils.setTargetRot(defRotation, 4)
+            RotationUtils.setTargetRot(defRotation, 0)
         } else {
             defRotation.toPlayer(mc.thePlayer!!)
         }
+
+        MovementCorrection.fixType = if (movementCorrection.get())
+            MovementCorrection.Type.STRICT 
+            else MovementCorrection.Type.NONE
+
         return true
     }
 

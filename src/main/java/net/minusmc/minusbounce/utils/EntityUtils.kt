@@ -75,14 +75,6 @@ object EntityUtils : MinecraftInstance() {
         return entity is EntityLivingBase && entity != mc.thePlayer
     }
 
-    fun closestPerson(): EntityLivingBase? {
-        val targets = mc.theWorld.loadedEntityList.filter {
-            it is EntityLivingBase && it != mc.thePlayer && isSelected(it, true) && mc.thePlayer.canEntityBeSeen(it)
-        }
-        val entity = targets.minByOrNull { mc.thePlayer.getDistanceToEntity(it) }
-        return entity as EntityLivingBase?
-    }
-
     fun isAnimal(entity: Entity?): Boolean {
         return entity is EntityAnimal || entity is EntitySquid || entity is EntityGolem ||
                 entity is EntityBat
@@ -106,10 +98,6 @@ object EntityUtils : MinecraftInstance() {
         if (entityPlayer == null) return 0
         val networkPlayerInfo = mc.netHandler.getPlayerInfo(entityPlayer.uniqueID)
         return networkPlayerInfo?.responseTime ?: 0
-    }
-
-    fun isRendered(entityToCheck: Entity?): Boolean {
-        return mc.theWorld != null && mc.theWorld.getLoadedEntityList().contains(entityToCheck)
     }
 
     fun isFriend(entity: EntityLivingBase?): Boolean {
