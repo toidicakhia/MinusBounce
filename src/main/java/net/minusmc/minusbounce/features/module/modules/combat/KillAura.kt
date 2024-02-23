@@ -57,7 +57,7 @@ class KillAura : Module() {
     private val interactValue = BoolValue("Interact", true)
 
     // Modes
-    private val rotations = ListValue("RotationMode", arrayOf("Vanilla", "BackTrack", "Grim", "Intave", "None"), "BackTrack")
+    private val rotations = ListValue("RotationMode", arrayOf("Vanilla", "NCP", "Grim", "Intave", "None"), "BackTrack")
     private val intaveRandomAmount = FloatValue("RandomAmount", 4f, 0.25f, 10f) { rotations.get().equals("Intave", true) }
     private val turnSpeed = FloatRangeValue("TurnSpeed", 180f, 180f, 0f, 180f, "°", {!rotations.get().equals("None", true)})
     private val noHitCheck = BoolValue("NoHitCheck", false) { !rotations.get().equals("none", true) }
@@ -376,37 +376,27 @@ class KillAura : Module() {
             "vanilla" -> {
                 val (_, rotation) = RotationUtils.searchCenter(
                         boundingBox,
-                        false,
-                        false,
                         predictValue.get(),
                         throughWallsValue.get(),
                         rangeValue.get()
                 ) ?: return null
 
-                val limitedRotation = RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, rotation, rotationSpeed)
-
-                limitedRotation
+                RotationUtils.limitAngleChange(RotationUtils.serverRotation, rotation, rotationSpeed)
             }
-            "backtrack" -> {
-                val rotation = RotationUtils.otherRotation(boundingBox, RotationUtils.getCenter(entity.entityBoundingBox), predictValue.get(), throughWallsValue.get(), rangeValue.get())
-                val limitedRotation = RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, rotation, rotationSpeed)
-
-                limitedRotation
+            "ncp" -> {
+                val rotation = RotationUtils.toRotation(RotationUtils.getCenter(entity.entityBoundingBox), predictValue.get())
+                RotationUtils.limitAngleChange(RotationUtils.serverRotation, rotation, rotationSpeed)
             }
             "grim" -> {
                 val rotation = RotationUtils.calculate(getNearestPointBB(mc.thePlayer.getPositionEyes(1F), boundingBox))
-                val limitedRotation = RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, rotation, rotationSpeed)
-
-                limitedRotation
+                RotationUtils.limitAngleChange(RotationUtils.serverRotation, rotation, rotationSpeed)
             }
             "intave" -> {
-                val rotation: Rotation? = RotationUtils.getAngles(entity)
+                val rotation = RotationUtils.getAngles(entity)
                 val amount = intaveRandomAmount.get()
-                val yaw = rotation!!.yaw + Math.random() * amount - amount / 2
+                val yaw = rotation.yaw + Math.random() * amount - amount / 2
                 val pitch = rotation.pitch + Math.random() * amount - amount / 2
-                val limitedRotation = RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, Rotation(yaw.toFloat(), pitch.toFloat()), rotationSpeed)
-
-                limitedRotation
+                RotationUtils.limitAngleChange(RotationUtils.serverRotation, Rotation(yaw.toFloat(), pitch.toFloat()), rotationSpeed)
             }
             else -> RotationUtils.serverRotation
         }

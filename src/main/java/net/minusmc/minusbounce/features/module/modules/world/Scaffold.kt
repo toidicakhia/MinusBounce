@@ -362,7 +362,7 @@ class Scaffold: Module() {
     @EventTarget
     fun onPreMotion(event: PreMotionEvent) {
         if (!rotationsValue.get().equals("None", true) && keepLengthValue.get() > 0 && lockRotation != null)
-            RotationUtils.setTargetRot(RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, lockRotation!!, rotationSpeed), keepLengthValue.get())
+            RotationUtils.setTargetRot(RotationUtils.limitAngleChange(RotationUtils.serverRotation, lockRotation!!, rotationSpeed), keepLengthValue.get())
 
         if (!placeCondition || if (!autoBlockMode.get().equals("off", true)) InventoryUtils.findAutoBlockBlock() == -1 else mc.thePlayer.heldItem == null || !(mc.thePlayer.heldItem.item is ItemBlock && isBlockToScaffold(mc.thePlayer.heldItem.item as ItemBlock))) {
             return
@@ -402,7 +402,7 @@ class Scaffold: Module() {
             towerMode.onPostMotion()
 
         if (!rotationsValue.get().equals("None", true) && keepLengthValue.get() > 0 && lockRotation != null)
-            RotationUtils.setTargetRot(RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, lockRotation!!, rotationSpeed), keepLengthValue.get())
+            RotationUtils.setTargetRot(RotationUtils.limitAngleChange(RotationUtils.serverRotation, lockRotation!!, rotationSpeed), keepLengthValue.get())
 
         if (placeModeValue.get().equals("post", true)) place()
 
@@ -513,7 +513,7 @@ class Scaffold: Module() {
         mc.timer.timerSpeed = 1f
         shouldGoDown = false
 
-        val limitedRotation = RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), 58f)
+        val limitedRotation = RotationUtils.limitAngleChange(RotationUtils.serverRotation, Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch), 58f)
         RotationUtils.setTargetRot(limitedRotation, 2)
         if (slot != mc.thePlayer.inventory.currentItem) mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
     }
@@ -741,7 +741,7 @@ class Scaffold: Module() {
                 }
                 else -> return false
             }
-            val limitedRotation = RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, lockRotation!!, rotationSpeed)
+            val limitedRotation = RotationUtils.limitAngleChange(RotationUtils.serverRotation, lockRotation!!, rotationSpeed)
             RotationUtils.setTargetRot(limitedRotation, keepLengthValue.get())
         }
 
@@ -775,7 +775,7 @@ class Scaffold: Module() {
                 else -> return false
             }
             if (rotationsValue.get().equals("Normal", true) || (rotationsValue.get().equals("Grim", true) && !mc.thePlayer.onGround)){
-                val limitedRotation = RotationUtils.limitAngleChange(RotationUtils.serverRotation!!, lockRotation!!, rotationSpeed)
+                val limitedRotation = RotationUtils.limitAngleChange(RotationUtils.serverRotation, lockRotation!!, rotationSpeed)
                 RotationUtils.setTargetRot(limitedRotation, keepLengthValue.get())
             } else RotationUtils.setTargetRot(lockRotation!!)
         }

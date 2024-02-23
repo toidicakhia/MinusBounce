@@ -52,4 +52,20 @@ object MathUtils {
         return mouseX >= x && mouseX <= x2 && mouseY >= y && mouseY <= y2
     }
 
+    /**
+     * Wrapper to wrap angle to range from -180 to 180 degrees
+     */
+    fun wrapAngleTo180(degree: Double): Double {
+        var value = degree % 360.0
+
+        if (value >= 180.0)
+            value -= 360.0
+
+        if (value < -180.0)
+            value += 360.0
+
+        return value
+    }
+
+    fun wrapAngleTo180(degree: Float): Float = wrapAngleTo180(degree.toDouble()).toFloat()
 }

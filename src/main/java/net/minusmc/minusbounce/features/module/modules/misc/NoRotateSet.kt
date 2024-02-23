@@ -29,15 +29,15 @@ class NoRotateSet : Module() {
         mc.thePlayer ?: return
 
         if (packet is S08PacketPlayerPosLook) {
-            if (noZeroValue.get() && packet.getYaw() == 0F && packet.getPitch() == 0F)
+            if (noZeroValue.get() && packet.yaw == 0F && packet.pitch == 0F)
                 return
 
-            if (illegalRotationValue.get() || packet.getPitch() <= 90 && packet.getPitch() >= -90 &&
-                    RotationUtils.serverRotation != null && packet.getYaw() != RotationUtils.serverRotation!!.yaw &&
-                    packet.getPitch() != RotationUtils.serverRotation!!.pitch) {
+            if (illegalRotationValue.get() || packet.pitch <= 90 && packet.pitch >= -90 &&
+                    packet.yaw != RotationUtils.serverRotation.yaw &&
+                    packet.pitch != RotationUtils.serverRotation.pitch) {
 
                 if (confirmValue.get())
-                    mc.netHandler.addToSendQueue(C05PacketPlayerLook(packet.getYaw(), packet.getPitch(), mc.thePlayer.onGround))
+                    mc.netHandler.addToSendQueue(C05PacketPlayerLook(packet.yaw, packet.pitch, mc.thePlayer.onGround))
             }
 
             packet.yaw = mc.thePlayer.rotationYaw

@@ -19,6 +19,7 @@ import kotlin.math.pow
  * Rotations
  */
 data class Rotation(var yaw: Float, var pitch: Float) {
+    constructor(yaw: Double, pitch: Double): this(yaw.toFloat(), pitch.toFloat())
 
     /**
      * Set rotations to [player]
@@ -43,7 +44,7 @@ data class Rotation(var yaw: Float, var pitch: Float) {
         val gcd = f * f * f * 1.2F
 
         // get previous rotation
-        val rotation = RotationUtils.serverRotation!!
+        val rotation = RotationUtils.serverRotation
 
         // fix yaw
         var deltaYaw = yaw - rotation.yaw

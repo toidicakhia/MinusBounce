@@ -15,7 +15,7 @@ import net.minecraft.util.Vec3
 object RaycastUtils : MinecraftInstance() {
     fun raycastEntity(range: Double, entityFilter: IEntityFilter): Entity? {
         return raycastEntity(
-            range, RotationUtils.serverRotation!!.yaw, RotationUtils.serverRotation!!.pitch,
+            range, RotationUtils.serverRotation.yaw, RotationUtils.serverRotation.pitch,
             entityFilter
         )
     }

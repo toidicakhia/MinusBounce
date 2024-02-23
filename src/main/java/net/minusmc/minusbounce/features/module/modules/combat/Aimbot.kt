@@ -20,10 +20,6 @@ import net.minusmc.minusbounce.value.BoolValue
 import net.minusmc.minusbounce.value.FloatValue
 import kotlin.random.Random
 
-/*
-TASK: Better aimbot (aimassist) cai nay thuc ra la y tuong wow
- */
-
 @ModuleInfo(name = "Aimbot", description = "Automatically faces selected entities around you.", category = ModuleCategory.COMBAT)
 class Aimbot : Module() {
 
@@ -65,11 +61,9 @@ class Aimbot : Module() {
         } else {
             RotationUtils.searchCenter(
                 boundingBox,
-                random = false,
-                outborder = false,
-                predict = true,
-                throughWalls = false,
-                distance = range
+                true,
+                false,
+                range
             )!!.rotation
         }
         val rotation = RotationUtils.limitAngleChange(player.rotation, destinationRotation, (turnSpeedValue.get() + Math.random()).toFloat())
