@@ -64,6 +64,16 @@ object PacketUtils : MinecraftInstance(), Listenable {
         }
     }
 
+    fun receivePacketNoEvent(packet: Packet<INetHandlerPlayServer>) {
+        val netManager = mc.netHandler?.networkManager ?: return
+
+        if (netManager.channel.isOpen()) {
+            try {
+                packet.processPacket(netManager.packetListener as INetHandlerPlayServer)
+            } catch (e: Exception) {}
+        }
+    }
+
     @EventTarget
     fun onWorld(event: WorldEvent) {
         packetList.clear()
