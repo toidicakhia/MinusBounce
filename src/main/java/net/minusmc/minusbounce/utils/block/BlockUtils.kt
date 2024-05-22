@@ -12,11 +12,16 @@ import net.minecraft.block.state.IBlockState
 import net.minecraft.init.Blocks
 import net.minecraft.util.*
 import net.minusmc.minusbounce.injection.access.StaticStorage
-import net.minusmc.minusbounce.utils.*
-import net.minusmc.minusbounce.utils.extensions.*
+import net.minusmc.minusbounce.utils.MinecraftInstance
+import net.minusmc.minusbounce.utils.PlaceRotation
+import net.minusmc.minusbounce.utils.Rotation
+import net.minusmc.minusbounce.utils.extensions.iterator
 import net.minusmc.minusbounce.utils.player.RotationUtils
 import kotlin.collections.set
-import kotlin.math.*
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.floor
+import kotlin.math.sqrt
 
 
 object BlockUtils : MinecraftInstance() {
@@ -212,18 +217,20 @@ object BlockUtils : MinecraftInstance() {
     }
 
     fun getEnumFacing(position: Vec3): PlaceInfo? {
-
-        val facings = arrayOf(EnumFacing.EAST, EnumFacing.WEST, EnumFacing.DOWN, EnumFacing.SOUTH, EnumFacing.NORTH)
+        val facings = arrayOf(EnumFacing.EAST, EnumFacing.WEST, EnumFacing.DOWN, EnumFacing.NORTH, EnumFacing.SOUTH)
 
         for (facing in facings) {
-            val directionVec = Vec3(facing.directionVec.x.toDouble(), facing.directionVec.y.toDouble(), facing.directionVec.z.toDouble())
-            val blockPosAfterAddEnum = position.add(directionVec)
-            if (mc.theWorld.getBlockState(BlockPos(blockPosAfterAddEnum.xCoord, blockPosAfterAddEnum.yCoord, blockPosAfterAddEnum.zCoord)) !is BlockAir)
-                return PlaceInfo(
-                    BlockPos(blockPosAfterAddEnum.xCoord, blockPosAfterAddEnum.yCoord, blockPosAfterAddEnum.zCoord), facing.opposite, directionVec)
+            val blockPos = position.add(Vec3(facing.directionVec))
+
+            if (block(blockPos.xCoord, blockPos.yCoord, blockPos.zCoord) !is BlockAir)
+                return PlaceInfo(BlockPos(0, 0, 0), facing.opposite, Vec3(facing.directionVec))
         }
 
         return null
+    }
+
+    fun block(x: Double, y: Double, z: Double): Block {
+        return mc.theWorld.getBlockState(BlockPos(x, y, z)).block
     }
 
     fun getPlacePossibility(offsetX: Double, offsetY: Double, offsetZ: Double): Vec3? {
@@ -256,10 +263,10 @@ object BlockUtils : MinecraftInstance() {
             sqrt(d0 * d0 + d1 * d1 + d2 * d2)
         }
     }
-
+    
     private fun blockRelativeToPlayer(offsetX: Double, offsetY: Double, offsetZ: Double): Block {
         return mc.theWorld.getBlockState(BlockPos(mc.thePlayer).add(offsetX, offsetY, offsetZ)).block
     }
 
-    private fun blockRelativeToPlayer(offsetX: Int, offsetY: Int, offsetZ: Int) = blockRelativeToPlayer(offsetX.toDouble(), offsetY.toDouble(), offsetZ.toDouble())
+    fun blockRelativeToPlayer(offsetX: Int, offsetY: Int, offsetZ: Int) = blockRelativeToPlayer(offsetX.toDouble(), offsetY.toDouble(), offsetZ.toDouble())
 }

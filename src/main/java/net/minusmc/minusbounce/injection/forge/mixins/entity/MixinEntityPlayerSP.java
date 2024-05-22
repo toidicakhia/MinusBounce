@@ -27,7 +27,6 @@ import net.minusmc.minusbounce.MinusBounce;
 import net.minusmc.minusbounce.event.*;
 import net.minusmc.minusbounce.features.module.modules.combat.KillAura;
 import net.minusmc.minusbounce.features.module.modules.combat.Criticals;
-import net.minusmc.minusbounce.features.module.modules.combat.SuperKnockback;
 import net.minusmc.minusbounce.features.module.modules.misc.AntiDesync;
 import net.minusmc.minusbounce.features.module.modules.movement.Fly;
 import net.minusmc.minusbounce.features.module.modules.movement.InvMove;
@@ -36,6 +35,7 @@ import net.minusmc.minusbounce.features.module.modules.movement.Sprint;
 import net.minusmc.minusbounce.features.module.modules.world.Scaffold;
 import net.minusmc.minusbounce.injection.implementations.IEntityPlayerSP;
 import net.minusmc.minusbounce.utils.player.RotationUtils;
+import net.minusmc.minusbounce.utils.Rotation;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -194,6 +194,12 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer impl
                 float yaw = event.getYaw();
                 float pitch = event.getPitch();
 
+                final Rotation currentRotation = RotationUtils.currentRotation;
+                if (currentRotation != null) {
+                    yaw = currentRotation.getYaw();
+                    pitch = currentRotation.getPitch();
+                }
+
                 double xDiff = event.getX() - this.lastReportedPosX;
                 double yDiff = event.getY() - this.lastReportedPosY;
                 double zDiff = event.getZ() - this.lastReportedPosZ;
@@ -319,7 +325,6 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer impl
         this.movementInput.updatePlayerMoveState();
         
         final NoSlow noSlow = MinusBounce.moduleManager.getModule(NoSlow.class);
-        final SuperKnockback superKB = MinusBounce.moduleManager.getModule(SuperKnockback.class);
         final KillAura killAura = MinusBounce.moduleManager.getModule(KillAura.class);
         final Sprint sprint = MinusBounce.moduleManager.getModule(Sprint.class);
 
@@ -356,9 +361,6 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer impl
             this.setSprinting(false);
         
         if (this.isSprinting() && noSlow.getState() && noSlow.getNoSprintValue().get() && noSlow.isSlowing())
-            this.setSprinting(false);
-
-        if (this.isSprinting() && superKB.getState() && !superKB.getCanSprint())
             this.setSprinting(false);
 
         if (this.capabilities.allowFlying) {

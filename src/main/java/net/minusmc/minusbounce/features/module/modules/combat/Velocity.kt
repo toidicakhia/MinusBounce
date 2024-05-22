@@ -29,11 +29,11 @@ class Velocity : Module() {
             ?: throw NullPointerException() // this should not happen
 
     private val modeValue: ListValue = object : ListValue("Mode", modes.map { it.modeName }.toTypedArray(), "Cancel") {
-        override fun onChange(oldValue: String, newValue: String) {
+        override fun onPreChange(oldValue: String, newValue: String) {
             if (state) onDisable()
         }
 
-        override fun onChanged(oldValue: String, newValue: String) {
+        override fun onPostChange(oldValue: String, newValue: String) {
             if (state) onEnable()
         }
     }
@@ -51,6 +51,11 @@ class Velocity : Module() {
 
     override fun onDisable() {
         mc.thePlayer?.speedInAir = 0.02F
+    }
+
+    @EventTarget
+    fun onEntityDamage(event: EntityDamageEvent) {
+        mode.onEntityDamage(event)
     }
 
     @EventTarget

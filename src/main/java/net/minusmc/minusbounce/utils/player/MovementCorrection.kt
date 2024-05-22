@@ -19,29 +19,22 @@ object MovementCorrection: MinecraftInstance(), Listenable {
     fun onMoveInput(event: MoveInputEvent) {
         val forward = event.forward
         val strafe = event.strafe
-        if (type == Type.STRICT && RotationUtils.active) {
+        if (type == Type.STRICT) {
 
-            val rotation = RotationUtils.targetRotation ?: return
+            val rotation = RotationUtils.currentRotation ?: return
             val offset = MathUtils.toRadians(mc.thePlayer.rotationYaw - rotation.yaw)
 
-            val calcForward = ceil(abs(forward)) * forward.sign
-            val calcStrafe = ceil(abs(strafe)) * strafe.sign
-
-            val f = if (event.forward != 0f) event.forward else event.strafe
-
-            /* Handle NegativeZero */
-            event.forward = round(calcForward * cos(offset) + calcStrafe * sin(offset)) * abs(f)
-            event.strafe = round(calcStrafe * cos(offset) - calcForward * sin(offset)) * abs(f)
+            event.forward = round(forward * cos(offset) + strafe * sin(offset))
+            event.strafe = round(strafe * cos(offset) - forward * sin(offset))
         }
     }
 
     @EventTarget(priority = -2)
     fun onStrafe(event: StrafeEvent){
-
         if (type == Type.NONE)
             return
 
-        RotationUtils.targetRotation?.let {if (RotationUtils.active) event.yaw = it.yaw}
+        RotationUtils.currentRotation?.let {event.yaw = it.yaw}
     }
 
     @EventTarget(priority = -2)
@@ -49,7 +42,7 @@ object MovementCorrection: MinecraftInstance(), Listenable {
         if (type == Type.NONE)
             return
 
-        RotationUtils.targetRotation?.let {if (RotationUtils.active) event.yaw = it.yaw}
+        RotationUtils.currentRotation?.let {event.yaw = it.yaw}
     }
 
     override fun handleEvents() = true
