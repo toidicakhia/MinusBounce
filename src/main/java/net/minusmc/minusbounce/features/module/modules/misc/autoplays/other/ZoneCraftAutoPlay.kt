@@ -5,32 +5,24 @@ import net.minusmc.minusbounce.features.module.modules.misc.autoplays.AutoPlayMo
 import net.minusmc.minusbounce.event.PacketEvent
 import net.minecraft.network.play.client.*
 import net.minecraft.network.play.server.S02PacketChat
-
 /**
- * Auto join to other match in minigames in Universocraft
- * @author toidicakhia, cranci1
+ * Auto join to other match in minigames in MineManClub
+ * Method is same as Universocraft (autoplays/other/UniversocraftAutoPlay.kt)
  */
 
-class UniversoCraftAutoPlay: AutoPlayMode("UniversoCraft") {
+class ZoneCraftAutoPlay: AutoPlayMode("ZoneCraft") {
     override fun onPacket(event: PacketEvent) {
         val packet = event.packet
-
-        /**
-         * We don't execute specific commands in minigames, we get a command and execute this.
-         * When S02PacketChat is handled, get text and match with pattern.
-         * After this, get siblings and find the text component that has clicked the event
-         * If it is found, execute a command in it.
-         */
 
         if (packet !is S02PacketChat)
             return
 
         val text = packet.chatComponent.unformattedText
-        if (!text.contains("Jugar de nuevo", true))
+        if (!text.contains("Volver a jugar", true))
             return
 
         val commandTextComponent = packet.chatComponent.siblings.firstOrNull {
-            it.unformattedText.contains("Jugar de nuevo", true)
+            it.unformattedText.contains("Volver a jugar", true)
         } ?: return
 
         val command = commandTextComponent.chatStyle.chatClickEvent.value
