@@ -32,6 +32,7 @@ import net.minusmc.minusbounce.utils.RaycastUtils.runWithModifiedRaycastResult
 import net.minusmc.minusbounce.utils.render.BlurUtils
 import net.minusmc.minusbounce.utils.render.RenderUtils
 import net.minusmc.minusbounce.utils.timer.MSTimer
+import net.minusmc.minusbounce.utils.misc.MathUtils
 import net.minusmc.minusbounce.utils.misc.RandomUtils
 import net.minusmc.minusbounce.utils.player.MovementCorrection
 import net.minusmc.minusbounce.utils.player.MovementUtils
@@ -76,6 +77,7 @@ class Scaffold: Module() {
     private val swingValue = ListValue("Swing", arrayOf("Normal", "Packet", "Off"), "Normal")
     private val downValue = BoolValue("Down", false)
     private val searchValue = BoolValue("Search", true)
+    private val searchModeValue = ListValue("SearchMode", arrayOf("Area", "Center", "TryRotation"), "Center")
     private val placeModeValue = ListValue("PlaceTiming", arrayOf("Pre", "Post", "Legit"), "Post")
 
     private val eagleValue = ListValue("Eagle", arrayOf("Normal", "Slient", "Off"), "Off")
@@ -85,8 +87,7 @@ class Scaffold: Module() {
     }
     private val expandLengthValue = IntegerValue("ExpandLength", 1, 1, 6, " blocks")
 
-    //val rotationsValue = ListValue("Rotation", arrayOf("Normal", "Intave", "Bridge", "None"), "Normal")
-    val rotationsValue = ListValue("Rotation", arrayOf("Normal", "Intave", "Backwards", "None"), "Normal")
+    val rotationsValue = ListValue("Rotation", arrayOf("Normal", "Bridge", "Intave", "None"), "Normal")
 
     private val maxTurnSpeed: FloatValue = object: FloatValue("MaxTurnSpeed", 180F, 0F, 180F, "°", {!rotationsValue.get().equals("None", true)}) {
         override fun onPostChange(oldValue: Float, newValue: Float) {
@@ -339,21 +340,7 @@ class Scaffold: Module() {
         }
 
 
-
-        lockRotation?.let {
-            RotationUtils.setTargetRotation(it, keepLengthValue.get(), minTurnSpeed.get(), maxTurnSpeed.get(), 
-                if (movementCorrection.get()) MovementCorrection.Type.STRICT else MovementCorrection.Type.NONE)
-        }
-
-        // raytrace check
-        runWithModifiedRaycastResult(mc.playerController.blockReachDistance, 0f) {obj ->
-            if (obj.typeOfHit != MovingObjectPosition.MovingObjectType.BLOCK) {
-                return@runWithModifiedRaycastResult
-            }
-
-            if (obj.blockPos == targetPlace!!.blockPos && obj.sideHit == targetPlace!!.enumFacing)
-                place()
-        }
+        if (placeModeValue.get().equals("legit", true)) place()
     }
 
     @EventTarget
@@ -373,6 +360,11 @@ class Scaffold: Module() {
 
         if (!placeCondition || if (!autoBlockMode.get().equals("off", true)) InventoryUtils.findAutoBlockBlock() == -1 else mc.thePlayer.heldItem == null || !(mc.thePlayer.heldItem.item is ItemBlock && isBlockToScaffold(mc.thePlayer.heldItem.item as ItemBlock))) {
             return
+        }
+
+        lockRotation?.let {
+            RotationUtils.setTargetRotation(it, keepLengthValue.get(), minTurnSpeed.get(), maxTurnSpeed.get(), 
+                if (movementCorrection.get()) MovementCorrection.Type.STRICT else MovementCorrection.Type.NONE)
         }
 
         if (placeModeValue.get().equals("pre", true)) place()
@@ -405,6 +397,11 @@ class Scaffold: Module() {
 
         if (towerStatus)
             towerMode.onPostMotion()
+
+        lockRotation?.let {
+            RotationUtils.setTargetRotation(it, keepLengthValue.get(), minTurnSpeed.get(), maxTurnSpeed.get(), 
+                if (movementCorrection.get()) MovementCorrection.Type.STRICT else MovementCorrection.Type.NONE)
+        }
 
         if (placeModeValue.get().equals("post", true)) place()
 
@@ -445,7 +442,7 @@ class Scaffold: Module() {
     }
 
     private fun place() {
-        if (targetPlace == null) {
+        val targetPlace = this.targetPlace ?: run {
             if ((placeableDelay.get().equals("Smart", true) && mc.rightClickDelayTimer > 0) || placeableDelay.get() == "Normal")
                 delayTimer.reset()
             return
@@ -453,6 +450,13 @@ class Scaffold: Module() {
 
         if (!towerStatus && (!delayTimer.hasTimePassed(delay) || (canSameY && launchY - 1 != targetPlace!!.vec3.yCoord.toInt())))
             return
+
+        if (hitableCheckValue.get() && !rotationsValue.get().equals("none", true)) {
+            performBlockRaytrace(currentRotation, mc.playerController.blockReachDistance)?.let {
+                if (it.blockPos != targetPlace.blockPos || it.sideHit != targetPlace.enumFacing)
+                    return
+            } 
+        }
 
         var blockSlot = -1
         var itemStack = mc.thePlayer.heldItem
@@ -489,7 +493,7 @@ class Scaffold: Module() {
             mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
         }
 
-        targetPlace = null
+        this.targetPlace = null
 
     }
 
@@ -661,78 +665,137 @@ class Scaffold: Module() {
 
 
     private fun search(blockPosition: BlockPos, checks: Boolean): Boolean {
-        if (!BlockUtils.isReplaceable(blockPosition)) 
-            return false
+        mc.thePlayer ?: return false
 
-        val placeRotation = BlockUtils.searchBlock(blockPosition, checks) ?: return false
+        val playerEye = mc.thePlayer.eyes
+        val maxReach = mc.playerController.blockReachDistance
 
-        if (lockRotation != null) {
-            performBlockRaytrace(lockRotation!!, mc.playerController.blockReachDistance)?.let {
-                if (it.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && 
-                    it.blockPos == blockPosition && it.sideHit == placeRotation.placeInfo.enumFacing) {
-                    targetPlace = placeRotation.placeInfo
-                    return true
+        var placeRotation: PlaceRotation? = null
+        var considerablePlaceRotation: PlaceRotation? = null
+
+        for (side in StaticStorage.facings()) {
+            val neighborBlock = blockPosition.offset(side)
+
+            if (!BlockUtils.canBeClicked(neighborBlock))
+                continue
+
+            when (searchModeValue.get().lowercase()) {
+                "area" -> for (x in 0.1..0.9) {
+                    for (y in 0.1..0.9) {
+                        for (z in 0.1..0.9) {
+                            val currentPlaceRotation = findTargetPlace(blockPosition, neighborBlock, Vec3(x, y, z), side, playerEye, maxReach) ?: continue
+
+                            if (placeRotation == null || RotationUtils.getRotationDifference(currentPlaceRotation.rotation, currentRotation) < RotationUtils.getRotationDifference(placeRotation.rotation, currentRotation))
+                                placeRotation = currentPlaceRotation
+                        }
+                    }
+                }
+
+                "center" -> {
+                    val currentPlaceRotation = findTargetPlace(blockPosition, neighborBlock, Vec3(0.5, 0.5, 0.5), side, playerEye, maxReach) ?: continue
+
+                    if (placeRotation == null || RotationUtils.getRotationDifference(currentPlaceRotation.rotation, currentRotation) < RotationUtils.getRotationDifference(placeRotation.rotation, currentRotation))
+                        placeRotation = currentPlaceRotation
+                }
+
+                "tryrotation" -> {
+                    val list = floatArrayOf(-135f, -45f, 45f, 135f)
+
+                    val pitchList = 75.0..80.0 + if (isLookingDiagonally) 1.0 else 0.0
+
+                    for (yaw in list) {
+                        for (pitch in pitchList step 0.1) {
+                            val rotation = Rotation(yaw, pitch.toFloat())
+                            val raytrace = RaycastUtils.performBlockRaytrace(rotation, maxReach) ?: continue
+
+                            val currentPlaceRotation =
+                                PlaceRotation(PlaceInfo(raytrace.blockPos, raytrace.sideHit, raytrace.hitVec), rotation)
+
+                            if (raytrace.blockPos == neighborBlock && raytrace.sideHit == side.opposite) {
+                                val isInStablePitchRange = if (isLookingDiagonally) {
+                                    pitch >= 75.6
+                                } else {
+                                    pitch in 73.5..75.7
+                                }
+
+                                // The module should be looking to aim at (nearly) the upper face of the block. Provides stable bridging most of the time.
+                                if (isInStablePitchRange) {
+                                    if (considerablePlaceRotation == null || RotationUtils.getRotationDifference(rotation, currentRotation) < RotationUtils.getRotationDifference(considerablePlaceRotation.rotation, currentRotation))
+                                        considerablePlaceRotation = currentPlaceRotation
+                                }
+
+                                if (placeRotation == null || RotationUtils.getRotationDifference(currentPlaceRotation.rotation, currentRotation) < RotationUtils.getRotationDifference(placeRotation.rotation, currentRotation))
+                                        placeRotation = currentPlaceRotation
+                            }
+                        }
+                    }
                 }
             }
         }
         
+        placeRotation = considerablePlaceRotation ?: placeRotation
 
-        lockRotation = when(rotationsValue.get().lowercase()) {
-            "normal" -> placeRotation.rotation
-            "intave" -> Rotation(mc.thePlayer.rotationYaw + 180, placeRotation.rotation.pitch)
-            else -> return false
-        }
+        placeRotation ?: return false
+        placeRotation.rotation.fixedSensitivity(mc.gameSettings.mouseSensitivity)
 
+
+        lockRotation = placeRotation.rotation
         targetPlace = placeRotation.placeInfo
         return true
     }
 
-    // private fun search(blockPosition: BlockPos, checks: Boolean): Boolean {
+    private fun findTargetPlace(blockPosition: BlockPos, neighborBlock: BlockPos, vec3: Vec3, side: EnumFacing, eyes: Vec3, maxReach: Float): PlaceRotation? {
+        mc.theWorld ?: return null
 
-    //     if (lockRotation != null && targetPlace != null)
-    //         performBlockRaytrace(lockRotation!!, mc.playerController.blockReachDistance)?.let {
-    //             if (it.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && 
-    //                 it.blockPos == blockPosition && it.sideHit == targetPlace!!.enumFacing) {
-    //                 return true
-    //             }
-    //         }
+        val vec = (Vec3(blockPosition) + vec3).addVector(
+            side.directionVec.x * vec3.xCoord, side.directionVec.y  * vec3.yCoord, side.directionVec.z * vec3.zCoord
+        )
 
-    //     val startYaw = when (rotationsValue.get().lowercase()) {
-    //         "intave" -> 180f
-    //         //"bridge" -> calcBridgeRotation()
-    //         else -> mc.thePlayer.rotationYaw - 180f
-    //     }
+        val distance = eyes.distanceTo(vec)
 
-    //     val endYaw = when (rotationsValue.get().lowercase()) {
-    //         "intave" -> 180f
-    //         //"bridge" -> calcBridgeRotation()
-    //         else -> mc.thePlayer.rotationYaw + 180f
-    //     }
-    //     val placeInfo = BlockUtils.getEnumFacing(Vec3(blockPosition.x.toDouble(), blockPosition.y.toDouble(), blockPosition.z.toDouble())) ?: return false
-    //     var yaw = startYaw
-    //     while (yaw <= endYaw) {
-    //         for (pitch in -90.0..90.0 step 10.0) {
-    //             val rotation = Rotation(yaw, pitch.toFloat())
+        if (distance > maxReach || mc.theWorld.rayTraceBlocks(eyes, vec, false, true, false) != null)
+            return null
 
-    //             performBlockRaytrace(rotation, mc.playerController.blockReachDistance)?.let {
-    //                 if (it.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK && 
-    //                     it.blockPos == blockPosition && it.sideHit == placeInfo.enumFacing) {
-    //                     lockRotation = rotation
-    //                     targetPlace = PlaceInfo(it.blockPos, it.sideHit, it.hitVec)
-    //                     return true
-    //                 }
-    //             }
-    //         }
-    //         yaw += 30f
-    //     }
+        var rotation = RotationUtils.toRotation(vec, false)
 
-    //     return false
+        rotation = when (rotationsValue.get().lowercase()) {
+            "bridge" -> Rotation(round(rotation.yaw / 45f) * 45f, rotation.pitch)
+            "intave" -> Rotation(180f, rotation.pitch)
+            else -> rotation
+        }
 
-    // }
+        rotation.fixedSensitivity(mc.gameSettings.mouseSensitivity)
 
-    private fun fakeJump() {
-        mc.thePlayer.isAirBorne = true
-        mc.thePlayer.triggerAchievement(StatList.jumpStat)
+        // check raytrace
+        RaycastUtils.performBlockRaytrace(currentRotation, maxReach)?.let {
+            if (it.blockPos == neighborBlock && it.sideHit == side.opposite) {
+                val placeInfo = PlaceInfo(it.blockPos, side.opposite, modifyVec(it.hitVec, side, Vec3(neighborBlock)))
+
+                return PlaceRotation(placeInfo, currentRotation)
+            }
+        }
+
+        val raytrace = RaycastUtils.performBlockRaytrace(rotation, maxReach) ?: return null
+
+        return if (raytrace.blockPos == neighborBlock && raytrace.sideHit == side.opposite) {
+            val placeInfo = PlaceInfo(raytrace.blockPos, side.opposite, modifyVec(raytrace.hitVec, side, Vec3(neighborBlock)))
+            PlaceRotation(placeInfo, rotation)
+        } else null
+    }
+
+    private fun modifyVec(original: Vec3, direction: EnumFacing, pos: Vec3): Vec3 {
+        val x = original.xCoord
+        val y = original.yCoord
+        val z = original.zCoord
+
+        val side = direction.opposite
+
+        return when (side.axis ?: return original) {
+            EnumFacing.Axis.Y -> Vec3(x, pos.yCoord + side.directionVec.y.coerceAtLeast(0), z)
+            EnumFacing.Axis.X -> Vec3(pos.xCoord + side.directionVec.x.coerceAtLeast(0), y, z)
+            EnumFacing.Axis.Z -> Vec3(x, y, pos.zCoord + side.directionVec.z.coerceAtLeast(0))
+        }
+
     }
 
     private val blocksAmount: Int
@@ -778,6 +841,16 @@ class Scaffold: Module() {
             "falldown" -> mc.thePlayer.fallDistance > 0f
             else -> false
         }
+
+    private val isLookingDiagonally: Boolean
+        get() {
+            // Round the rotation to the nearest multiple of 45 degrees so that way we check if the player faces diagonally
+            val yaw = round(abs(MathUtils.wrapAngleTo180(mc.thePlayer.rotationYaw)).roundToInt() / 45f) * 45f
+            return (yaw == 45f || yaw == 135f) && MovementUtils.isMoving
+        }
+
+    private val currentRotation: Rotation
+        get() = RotationUtils.currentRotation ?: mc.thePlayer.rotation
 
     override val tag: String
         get() = if (towerStatus) "Tower, ${towerModeValue.get()}" else placeModeValue.get()

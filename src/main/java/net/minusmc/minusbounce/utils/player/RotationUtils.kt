@@ -34,8 +34,10 @@ object RotationUtils : MinecraftInstance(), Listenable {
     private var minRotationSpeed = 180f
     private var maxRotationSpeed = 180f
 
+    private var lastRotationSpeed = 180f
+
     private val rotationSpeed: Float
-        get() = RandomUtils.nextFloat(minRotationSpeed, maxRotationSpeed)
+        get() = RandomUtils.nextFloat(lastRotationSpeed, maxRotationSpeed)
 
     var active = false
 
@@ -102,11 +104,16 @@ object RotationUtils : MinecraftInstance(), Listenable {
     }
 
     fun setTargetRotation(rotation: Rotation, keepLength: Int = 1, minRotationSpeed: Float = 180f, maxRotationSpeed: Float = 180f, fixType: MovementCorrection.Type = MovementCorrection.Type.NONE) {
+        if (rotation.yaw.isNaN() || rotation.pitch.isNaN() || rotation.pitch > 90 || rotation.pitch < -90)
+            return
+        
+
         MovementCorrection.type = fixType
         this.minRotationSpeed = minRotationSpeed
         this.maxRotationSpeed = maxRotationSpeed
         this.targetRotation = rotation
         this.keepLength = keepLength
+        this.lastRotationSpeed = minRotationSpeed
         active = true
     }
 
@@ -181,21 +188,36 @@ object RotationUtils : MinecraftInstance(), Listenable {
      * @param predict predict new enemy position
      * @param predictSize predict size of predict
      */
-    fun faceBow(target: Entity, predict: Boolean, predictSize: Float) {
-        val player = mc.thePlayer
+    fun faceBow(target: Entity, predict: Boolean, predictSize: Float): Rotation {
+
+        var deltaPredictX = 0.0
+        var deltaPredictY = 0.0
+        var deltaPredictZ = 0.0
+
+        if (predict) {
+            deltaPredictX = (target.posX - target.prevPosX) * predictSize - mc.thePlayer.posX + mc.thePlayer.prevPosX
+            deltaPredictY = (target.entityBoundingBox.minY - target.prevPosY) * predictSize - mc.thePlayer.posY + mc.thePlayer.prevPosY
+            deltaPredictZ = (target.posZ - target.prevPosZ) * predictSize - mc.thePlayer.posZ + mc.thePlayer.prevPosZ
+        }
+
         val (posX, posY, posZ) = Vec3(
-            target.posX + (if (predict) (target.posX - target.prevPosX) * predictSize else 0.0) - (player.posX + (if (predict) player.posX - player.prevPosX else 0.0)),
-            target.entityBoundingBox.minY + (if (predict) (target.entityBoundingBox.minY - target.prevPosY) * predictSize else 0.0) + target.eyeHeight - 0.15 - (player.entityBoundingBox.minY + if (predict) player.posY - player.prevPosY else 0.0) - player.eyeHeight,
-            target.posZ + (if (predict) (target.posZ - target.prevPosZ) * predictSize else 0.0) - (player.posZ + if (predict) player.posZ - player.prevPosZ else 0.0)
+            target.posX - mc.thePlayer.posX + deltaPredictX,
+            target.entityBoundingBox.minY + target.eyeHeight - 0.15 - mc.thePlayer.entityBoundingBox.minY - mc.thePlayer.eyeHeight + deltaPredictY,
+            target.posZ - mc.thePlayer.posZ + deltaPredictZ
         )
-        val posSqrt = sqrt(posX * posX + posZ * posZ)
 
-        var velocity = player.itemInUseDuration / 20f
+        val distance = sqrt(posX * posX + posZ * posZ)
+
+        var velocity = mc.thePlayer.itemInUseDuration / 20f
         velocity = (velocity * velocity + velocity * 2) / 3
-        if (velocity > 1) velocity = 1f
 
-        val rotation = Rotation((atan2(posZ, posX) * 180 / Math.PI).toFloat() - 90, -Math.toDegrees(atan((velocity * velocity - sqrt(velocity * velocity * velocity * velocity - 0.006f * (0.006f * (posSqrt * posSqrt) + 2 * posY * (velocity * velocity)))) / (0.006f * posSqrt))).toFloat())
-        setTargetRotation(rotation, fixType = MovementCorrection.Type.NONE)
+        if (velocity > 1) 
+            velocity = 1f
+
+        val yaw = MathUtils.toDegrees(atan2(posZ, posX)).toFloat() - 90
+        val pitch = MathUtils.toDegrees(-atan((velocity * velocity - sqrt(velocity * velocity * velocity * velocity - 0.006f * 0.006f * distance * distance + 0.003f * posY * velocity * velocity)) / 0.006f / distance)).toFloat()
+
+        return Rotation(yaw, pitch)
     }
 
     /**
@@ -245,23 +267,26 @@ object RotationUtils : MinecraftInstance(), Listenable {
         val eyes = mc.thePlayer.getPositionEyes(1f)
         var attackRotation: VecRotation? = null
 
+        val currentRotation = this.currentRotation ?: mc.thePlayer.rotation
+
         for (x in 0.0..1.0)
             for (y in 0.0..1.0)
                 for (z in 0.0..1.0) {
                     val vec3 = Vec3(
-                        bb.minX + (bb.maxX - bb.minX) * 0.5, 
-                        bb.minY + (bb.maxY - bb.minY) * 0.5, 
-                        bb.minZ + (bb.maxZ - bb.minZ) * 0.5
+                        bb.minX + (bb.maxX - bb.minX) * x, 
+                        bb.minY + (bb.maxY - bb.minY) * y, 
+                        bb.minZ + (bb.maxZ - bb.minZ) * z
                     )
 
                     val rotation = toRotation(vec3, predict)
                     rotation.fixedSensitivity(mc.gameSettings.mouseSensitivity)
+
                     val vecDist = eyes.distanceTo(vec3)
                     if (vecDist > lookRange)
                         continue
 
                     if (vecDist > throughWallsRange || isVisible(vec3)) {
-                        if (attackRotation == null || getRotationDifference(rotation) < getRotationDifference(attackRotation.rotation))
+                        if (attackRotation == null || getRotationDifference(rotation, currentRotation) < getRotationDifference(attackRotation.rotation, currentRotation))
                             attackRotation = VecRotation(vec3, rotation)
                     }
                 }
@@ -304,7 +329,7 @@ object RotationUtils : MinecraftInstance(), Listenable {
      * @param b rotation
      * @return difference between rotation
      */
-    private fun getRotationDifference(a: Rotation, b: Rotation?): Double {
+    fun getRotationDifference(a: Rotation, b: Rotation?): Double {
         return hypot(getAngleDifference(a.yaw, b!!.yaw).toDouble(), (a.pitch - b.pitch).toDouble())
     }
 

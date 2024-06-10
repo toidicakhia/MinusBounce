@@ -26,7 +26,6 @@ import net.minecraft.util.*;
 import net.minusmc.minusbounce.MinusBounce;
 import net.minusmc.minusbounce.event.*;
 import net.minusmc.minusbounce.features.module.modules.combat.KillAura;
-import net.minusmc.minusbounce.features.module.modules.combat.Criticals;
 import net.minusmc.minusbounce.features.module.modules.misc.AntiDesync;
 import net.minusmc.minusbounce.features.module.modules.movement.Fly;
 import net.minusmc.minusbounce.features.module.modules.movement.InvMove;
@@ -111,22 +110,22 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer impl
     }
 
     @Shadow
-    private double lastReportedPosX;
+    public double lastReportedPosX;
 
     @Shadow
-    private int positionUpdateTicks;
+    public int positionUpdateTicks;
 
     @Shadow
-    private double lastReportedPosY;
+    public double lastReportedPosY;
 
     @Shadow
-    private double lastReportedPosZ;
+    public double lastReportedPosZ;
 
     @Shadow
-    private float lastReportedYaw;
+    public float lastReportedYaw;
 
     @Shadow
-    private float lastReportedPitch;
+    public float lastReportedPitch;
 
     @Unique
     private boolean lastOnGround;
@@ -149,6 +148,7 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer impl
 
     /**
      * @author CCBlueX
+     * @reason Pre and Post Motion Event
      */
     @Overwrite
     public void onUpdateWalkingPlayer() {
@@ -206,9 +206,7 @@ public abstract class MixinEntityPlayerSP extends MixinAbstractClientPlayer impl
                 double yawDiff = yaw - lastReportedYaw;
                 double pitchDiff = pitch - lastReportedPitch;
 
-                final Criticals criticals = MinusBounce.moduleManager.getModule(Criticals.class);
-
-                boolean moved = xDiff * xDiff + yDiff * yDiff + zDiff * zDiff > (MinusBounce.moduleManager.getModule(AntiDesync.class).getState() ? 0D : 9.0E-4D) || this.positionUpdateTicks >= 20 || (criticals.getState() && criticals.getAntiDesync());
+                boolean moved = xDiff * xDiff + yDiff * yDiff + zDiff * zDiff > (MinusBounce.moduleManager.getModule(AntiDesync.class).getState() ? 0D : 9.0E-4D) || this.positionUpdateTicks >= 20;
                 boolean rotated = yawDiff != 0.0D || pitchDiff != 0.0D;
 
                 if (this.ridingEntity == null) {
