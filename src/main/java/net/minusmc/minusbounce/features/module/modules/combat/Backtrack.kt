@@ -22,7 +22,7 @@ import net.minusmc.minusbounce.value.*
 import org.lwjgl.opengl.GL11
 
 
-@ModuleInfo("BackTrack", "Back Track", "Let you attack in their previous position", ModuleCategory.COMBAT)
+@ModuleInfo(name = "BackTrack", spacedName = "Back track", description = "Let you attack in their previous position", category = ModuleCategory.COMBAT)
 class BackTrack : Module() {
     private val delayValue = IntRangeValue("Delay", 100, 200, 0, 1000)
     private val hitRange = FloatValue("Range", 3F, 0F, 10F)
@@ -34,6 +34,12 @@ class BackTrack : Module() {
     private var canFlushPacket = false
 
     private var delay = 0L
+
+    private val scaffoldModule: Scaffold
+        get() = MinusBounce.moduleManager[Scaffold::class.java]!!
+
+    private val blinkModule: Blink
+        get() = MinusBounce.moduleManager[Blink::class.java]!!
 
     override fun onEnable() {
         packets.clear()
@@ -48,7 +54,10 @@ class BackTrack : Module() {
         mc.theWorld ?: return
         mc.netHandler ?: return
 
-        if (MinusBounce.moduleManager[Scaffold::class.java]!!.state) {
+        if (blinkModule.blinkingReceive())
+            return
+
+        if (scaffoldModule.state) {
             packets.clear()
             return
         }
