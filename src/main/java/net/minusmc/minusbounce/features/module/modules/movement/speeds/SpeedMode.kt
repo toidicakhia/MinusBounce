@@ -17,16 +17,15 @@ abstract class SpeedMode(val modeName: String, val typeName: SpeedType): Minecra
 
 	open fun onEnable() {}
 
-	open fun onDisable() {
-		mc.timer.timerSpeed = 1f
-		mc.thePlayer.speedInAir = 0.02f
-	}
+	open fun onDisable() {}
 
     open fun onUpdate() {}
     open fun onTick() {}
 	open fun onPreMotion(event: PreMotionEvent) {}
 	open fun onPostMotion(event: PostMotionEvent) {}
-    open fun onPacket(event: PacketEvent) {}
+    open fun onReceivedPacket(event: ReceivedPacketEvent) {}
     open fun onMove(event: MoveEvent) {}
     open fun onJump(event: JumpEvent) {}
+    open fun onStrafe(event: StrafeEvent) {}
+    open fun onPreUpdate() {}
 }

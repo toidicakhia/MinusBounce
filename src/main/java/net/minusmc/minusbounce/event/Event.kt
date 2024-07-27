@@ -5,7 +5,9 @@
  */
 package net.minusmc.minusbounce.event
 
-open class Event
+open class Event {
+    var stopRunEvent: Boolean = false
+}
 
 open class CancellableEvent : Event() {
 
@@ -15,17 +17,12 @@ open class CancellableEvent : Event() {
      * @return state of cancel
      */
     var isCancelled: Boolean = false
-        private set
-
-    /**
-     * Allows you to cancel a event
-     */
-    fun cancelEvent() {
-        isCancelled = true
-    }
-
 }
 
-enum class EventState(val stateName: String) {
-    PRE("PRE"), POST("POST")
+enum class EventPriority(val priority: Int) {
+    LOWEST(-100),
+    LOW(-50),
+    MEDIUM(0),
+    HIGH(50),
+    HIGHEST(100)
 }

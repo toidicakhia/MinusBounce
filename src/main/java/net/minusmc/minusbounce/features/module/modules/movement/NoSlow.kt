@@ -5,8 +5,6 @@
  */
 package net.minusmc.minusbounce.features.module.modules.movement
 
-import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms
 import net.minecraft.item.*
 import net.minecraft.network.play.client.C03PacketPlayer.C06PacketPlayerPosLook
 import net.minecraft.network.play.client.C07PacketPlayerDigging
@@ -66,8 +64,8 @@ class NoSlow : Module() {
         }
     }
 
-    private val blockForwardMultiplier = FloatValue("BlockForwardMultiplier", 1.0F, 0.2F, 1.0F, "x")
-    private val blockStrafeMultiplier = FloatValue("BlockStrafeMultiplier", 1.0F, 0.2F, 1.0F, "x")
+    private val swordForwardMultiplier = FloatValue("SwordForwardMultiplier", 1.0F, 0.2F, 1.0F, "x")
+    private val swordStrafeMultiplier = FloatValue("SwordStrafeMultiplier", 1.0F, 0.2F, 1.0F, "x")
 
     private val foodModeValue: ListValue = object: ListValue("FoodMode", foodModes.map{ it.modeName }.toTypedArray(), "Vanilla") {
         override fun onPreChange(oldValue: String, newValue: String) {
@@ -92,17 +90,10 @@ class NoSlow : Module() {
 
     private val bowForwardMultiplier = FloatValue("BowForwardMultiplier", 1.0F, 0.2F, 1.0F, "x")
     private val bowStrafeMultiplier = FloatValue("BowStrafeMultiplier", 1.0F, 0.2F, 1.0F, "x")
-
     private val sneakMultiplier = FloatValue("SneakMultiplier", 1.0F, 0.3F, 1.0F, "x")
 
-    val noSprintValue = BoolValue("NoSprint", false)
     val soulsandValue = BoolValue("Soulsand", true)
     val liquidPushValue = BoolValue("LiquidPush", true)
-    private val antiSwitchItem = BoolValue("AntiSwitchItem", false)
-
-    // override fun onInitialize() {
-    //     modes.map { mode -> mode.values.forEach { value -> value.name = "${mode.modeName}-${value.name}" } }
-    // }
 
     override fun onEnable() {
         swordMode.onEnable()
@@ -117,23 +108,6 @@ class NoSlow : Module() {
     }
 
     @EventTarget
-    fun onPacket(event: PacketEvent) {
-        mc.thePlayer ?: return
-        val packet = event.packet
-        if (antiSwitchItem.get() && packet is S09PacketHeldItemChange && (mc.thePlayer.isUsingItem || mc.thePlayer.isBlocking)) {
-            event.cancelEvent()
-            mc.netHandler.addToSendQueue(C09PacketHeldItemChange(packet.heldItemHotbarIndex))
-            mc.netHandler.addToSendQueue(C09PacketHeldItemChange(mc.thePlayer.inventory.currentItem))
-        }
-
-        if (isEating) foodMode.onPacket(event)
-
-        if (isBowing) bowMode.onPacket(event)
-
-        if (isBlocking) swordMode.onPacket(event)
-    }
-
-    @EventTarget
     fun onInput(event: MoveInputEvent) {
         event.sneakMultiplier = sneakMultiplier.get().toDouble()
     }
@@ -144,9 +118,7 @@ class NoSlow : Module() {
         mc.theWorld ?: return
 
         if (isEating) foodMode.onPreMotion(event)
-
         if (isBowing) bowMode.onPreMotion(event)
-
         if (isBlocking) swordMode.onPreMotion(event)
     }
 
@@ -156,9 +128,7 @@ class NoSlow : Module() {
         mc.theWorld ?: return
 
         if (isEating) foodMode.onPostMotion(event)
-
         if (isBowing) bowMode.onPostMotion(event)
-
         if (isBlocking) swordMode.onPostMotion(event)
     }
 
@@ -171,7 +141,7 @@ class NoSlow : Module() {
 
     private fun getMultiplier(item: Item?, isForward: Boolean) = when (item) {
         is ItemFood, is ItemPotion, is ItemBucketMilk -> if (isForward) foodForwardMultiplier.get() else foodStrafeMultiplier.get()
-        is ItemSword -> if (isForward) blockForwardMultiplier.get() else blockStrafeMultiplier.get()
+        is ItemSword -> if (isForward) swordForwardMultiplier.get() else swordStrafeMultiplier.get()
         is ItemBow -> if (isForward) bowForwardMultiplier.get() else bowStrafeMultiplier.get()
         else -> 0.2F
     }
@@ -187,15 +157,4 @@ class NoSlow : Module() {
     val isBowing: Boolean
         get() = mc.thePlayer.isUsingItem && mc.thePlayer.heldItem.item is ItemBow
 
-    val isSlowing: Boolean
-        get() = isBowing || isEating || isBlocking
-
-    // override val values = super.values.toMutableList().also {
-    //     modes.map {
-    //         mode -> mode.values.forEach { value ->
-    //             val displayableFunction = value.displayableFunction
-    //             it.add(value.displayable { displayableFunction.invoke() && modeValue.get() == mode.modeName })
-    //         }
-    //     }
-    // }
 }

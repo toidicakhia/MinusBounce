@@ -11,7 +11,6 @@ import net.minecraft.util.*
 import net.minecraft.network.play.client.C03PacketPlayer
 import net.minusmc.minusbounce.event.*
 import net.minusmc.minusbounce.utils.MinecraftInstance
-import net.minusmc.minusbounce.utils.RaycastUtils.IEntityFilter
 import net.minusmc.minusbounce.utils.RaycastUtils.raycastEntity
 import net.minusmc.minusbounce.utils.Rotation
 import net.minusmc.minusbounce.utils.VecRotation
@@ -80,12 +79,11 @@ object RotationUtils : MinecraftInstance(), Listenable {
     }
 
     @EventTarget
-    fun onPacket(event: PacketEvent) {
+    fun onSentPacket(event: SentPacketEvent) {
         val packet = event.packet
 
-        if (packet !is C03PacketPlayer || !packet.rotating) {
+        if (packet !is C03PacketPlayer || !packet.rotating)
             return
-        }
 
         currentRotation?.let {
             packet.yaw = it.yaw
@@ -106,7 +104,6 @@ object RotationUtils : MinecraftInstance(), Listenable {
     fun setTargetRotation(rotation: Rotation, keepLength: Int = 1, minRotationSpeed: Float = 180f, maxRotationSpeed: Float = 180f, fixType: MovementCorrection.Type = MovementCorrection.Type.NONE) {
         if (rotation.yaw.isNaN() || rotation.pitch.isNaN() || rotation.pitch > 90 || rotation.pitch < -90)
             return
-        
 
         MovementCorrection.type = fixType
         this.minRotationSpeed = minRotationSpeed
@@ -366,24 +363,11 @@ object RotationUtils : MinecraftInstance(), Listenable {
      * @return if crosshair is over target
      */
     fun isFaced(targetEntity: Entity, blockReachDistance: Double): Boolean {
-        return raycastEntity(
-            blockReachDistance,
-            object : IEntityFilter {
-                override fun canRaycast(entity: Entity?): Boolean {
-                    return entity === targetEntity
-                }
-            }) != null
+        return raycastEntity(blockReachDistance) {it === targetEntity} != null
     }
 
     fun isFaced(targetEntity: Entity, blockReachDistance: Double, rotation: Rotation): Boolean {
-        return raycastEntity(
-            blockReachDistance,
-            rotation,
-            object : IEntityFilter {
-                override fun canRaycast(entity: Entity?): Boolean {
-                    return entity === targetEntity
-                }
-            }) != null
+        return raycastEntity(blockReachDistance, rotation) {it === targetEntity} != null
     }
 
 

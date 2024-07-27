@@ -8,7 +8,7 @@ package net.minusmc.minusbounce.features.module.modules.misc
 import net.minecraft.network.play.client.C19PacketResourcePackStatus
 import net.minecraft.network.play.server.S48PacketResourcePackSend
 import net.minusmc.minusbounce.event.EventTarget
-import net.minusmc.minusbounce.event.PacketEvent
+import net.minusmc.minusbounce.event.ReceivedPacketEvent
 import net.minusmc.minusbounce.features.module.Module
 import net.minusmc.minusbounce.features.module.ModuleCategory
 import net.minusmc.minusbounce.features.module.ModuleInfo
@@ -21,7 +21,7 @@ import java.net.URISyntaxException
 class PackSpoofer : Module() {
 
     @EventTarget
-    fun onPacket(event: PacketEvent) {
+    fun onReceivedPacket(event: ReceivedPacketEvent) {
         val packet = event.packet
 
         if (packet is S48PacketResourcePackSend) {
@@ -42,7 +42,7 @@ class PackSpoofer : Module() {
 
                     if (!file2.isFile() || url.contains("minusbounce", true)) {
                         mc.netHandler.addToSendQueue(C19PacketResourcePackStatus(hash, C19PacketResourcePackStatus.Action.FAILED_DOWNLOAD))
-                        event.cancelEvent()
+                        event.isCancelled = true
                         return
                     }
                 }
@@ -56,7 +56,7 @@ class PackSpoofer : Module() {
                 mc.netHandler.addToSendQueue(C19PacketResourcePackStatus(hash, C19PacketResourcePackStatus.Action.FAILED_DOWNLOAD))
             }
 
-            event.cancelEvent()
+            event.isCancelled = true
         }
     }
 

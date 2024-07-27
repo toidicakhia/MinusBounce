@@ -2,7 +2,7 @@ package net.minusmc.minusbounce.features.module.modules.misc.autoplays.other
 
 
 import net.minusmc.minusbounce.features.module.modules.misc.autoplays.AutoPlayMode
-import net.minusmc.minusbounce.event.PacketEvent
+import net.minusmc.minusbounce.event.ReceivedPacketEvent
 import net.minecraft.network.play.client.*
 import net.minecraft.network.play.server.S02PacketChat
 import net.minecraft.network.play.server.S2DPacketOpenWindow
@@ -14,15 +14,15 @@ class RedeskyAutoPlay: AutoPlayMode("Redesky") {
 	private var clicking = false
 	private var clickState = 0
 
-	override fun onPacket(event: PacketEvent) {
+	override fun onReceivedPacket(event: ReceivedPacketEvent) {
 		val packet = event.packet
 
 		if (clicking && (packet is C0EPacketClickWindow || packet is C07PacketPlayerDigging)) {
-            event.cancelEvent()
+            event.isCancelled = true
             return
         }
         if (clickState == 2 && packet is S2DPacketOpenWindow)
-            event.cancelEvent()
+            event.isCancelled = true
         
         if (packet is S2FPacketSetSlot) {
             val item = packet.func_149174_e() ?: return

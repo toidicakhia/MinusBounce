@@ -9,7 +9,7 @@ import net.minusmc.minusbounce.MinusBounce
 import net.minusmc.minusbounce.event.ClickWindowEvent
 import net.minusmc.minusbounce.event.EventTarget
 import net.minusmc.minusbounce.event.PreMotionEvent
-import net.minusmc.minusbounce.event.PacketEvent
+import net.minusmc.minusbounce.event.SentPacketEvent
 import net.minusmc.minusbounce.event.UpdateEvent
 import net.minusmc.minusbounce.features.module.Module
 import net.minusmc.minusbounce.features.module.ModuleCategory
@@ -24,8 +24,8 @@ import net.minecraft.network.play.client.C03PacketPlayer
 import net.minecraft.network.play.client.C16PacketClientStatus
 import net.minecraft.client.settings.GameSettings
 
-@ModuleInfo(name = "InvMove", spacedName = "Inv Move", description = "Allows you to walk while an inventory is opened.", category = ModuleCategory.MOVEMENT)
-class InvMove : Module() {
+@ModuleInfo(name = "InventoryMove", spacedName = "Inventory Move", description = "Allows you to walk while an inventory is opened.", category = ModuleCategory.MOVEMENT)
+class InventoryMove : Module() {
 
     val modeValue = ListValue("Mode", arrayOf("Vanilla", "Silent", "Blink"), "Vanilla")
     private val sprintModeValue = ListValue("InvSprint", arrayOf("AACAP", "Stop", "Keep"), "Keep")
@@ -62,16 +62,16 @@ class InvMove : Module() {
     @EventTarget
     fun onClick(event: ClickWindowEvent) {
         if (noMoveClicksValue.get() && MovementUtils.isMoving)
-            event.cancelEvent()
+            event.isCancelled = true
     }
 
     @EventTarget
-    fun onPacket(event: PacketEvent) {
+    fun onSentPacket(event: SentPacketEvent) {
         val packet = event.packet
         when (modeValue.get().lowercase()) {
-            "silent" -> if (packet is C16PacketClientStatus && packet.status == C16PacketClientStatus.EnumState.OPEN_INVENTORY_ACHIEVEMENT) event.cancelEvent()
+            "silent" -> if (packet is C16PacketClientStatus && packet.status == C16PacketClientStatus.EnumState.OPEN_INVENTORY_ACHIEVEMENT) event.isCancelled = true
             "blink" -> if (mc.currentScreen != null && mc.currentScreen !is GuiChat && mc.currentScreen !is GuiIngameMenu && (!noDetectableValue.get() || mc.currentScreen !is GuiContainer) && packet is C03PacketPlayer) {
-                event.cancelEvent()
+                event.isCancelled = true
                 playerPackets.add(packet)
             }
         }

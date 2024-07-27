@@ -5,6 +5,9 @@ import net.minusmc.minusbounce.event.JumpEvent
 
 class NegativityNoWeb: NoWebMode("Negativity") {
     override fun onUpdate() {
+        if (!mc.thePlayer.isInWeb)
+            return
+
         mc.thePlayer.jumpMovementFactor = 0.4f
         
         if (mc.thePlayer.ticksExisted % 2 == 0)
@@ -15,6 +18,6 @@ class NegativityNoWeb: NoWebMode("Negativity") {
     }
 
     override fun onJump(event: JumpEvent) {
-        event.cancelEvent()
+        event.isCancelled = true
     }
 }

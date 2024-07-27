@@ -29,6 +29,7 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.MathHelper
 import net.minecraft.util.ResourceLocation
+import net.minusmc.minusbounce.event.*
 import net.minusmc.minusbounce.MinusBounce
 import net.minusmc.minusbounce.features.module.modules.render.TargetMark
 import net.minusmc.minusbounce.ui.font.Fonts
@@ -39,13 +40,18 @@ import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 import kotlin.math.*
 
+import org.lwjgl.Sys
+
 
 object RenderUtils : MinecraftInstance() {
     private val glCapMap: MutableMap<Int, Boolean> = HashMap()
-    var deltaTime = 0
+    
     private val DISPLAY_LISTS_2D = IntArray(4)
-    private var startTime: Long = 0
+    
     private const val ANIMATION_DURATION = 500
+
+    private var startTime = 0L
+    var deltaTime = 0
 
     init {
         for (i in DISPLAY_LISTS_2D.indices) {
@@ -2301,6 +2307,73 @@ object RenderUtils : MinecraftInstance() {
 
     fun setGlState(cap: Int, state: Boolean) {
         if (state) glEnable(cap) else glDisable(cap)
+    }
+
+    fun stop3D() {
+        GlStateManager.enableCull()
+        glEnable(GL_TEXTURE_2D)
+        glEnable(GL_DEPTH_TEST)
+        glDepthMask(true)
+        glDisable(GL_BLEND)
+    }
+
+    fun start3D() {
+        glDisable(GL_TEXTURE_2D)
+        glDisable(GL_DEPTH_TEST)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glDepthMask(false)
+        GlStateManager.disableCull()
+    }
+
+    fun renderHitbox(bb: AxisAlignedBB, type: Int) {
+        glBegin(type)
+
+        glVertex3d(bb.minX, bb.minY, bb.maxZ)
+        glVertex3d(bb.maxX, bb.minY, bb.maxZ)
+        glVertex3d(bb.maxX, bb.minY, bb.minZ)
+        glVertex3d(bb.minX, bb.minY, bb.minZ)
+
+        glEnd()
+
+        glBegin(type)
+
+        glVertex3d(bb.minX, bb.maxY, bb.maxZ)
+        glVertex3d(bb.maxX, bb.maxY, bb.maxZ)
+        glVertex3d(bb.maxX, bb.maxY, bb.minZ)
+        glVertex3d(bb.minX, bb.maxY, bb.minZ)
+
+        glEnd()
+
+        glBegin(type)
+
+        glVertex3d(bb.minX, bb.minY, bb.minZ)
+        glVertex3d(bb.minX, bb.minY, bb.maxZ)
+        glVertex3d(bb.minX, bb.maxY, bb.maxZ)
+        glVertex3d(bb.minX, bb.maxY, bb.minZ)
+
+        glEnd()
+        glBegin(type)
+
+        glVertex3d(bb.maxX, bb.minY, bb.minZ)
+        glVertex3d(bb.maxX, bb.minY, bb.maxZ)
+        glVertex3d(bb.maxX, bb.maxY, bb.maxZ)
+        glVertex3d(bb.maxX, bb.maxY, bb.minZ)
+
+        glEnd()
+        glBegin(type)
+        glVertex3d(bb.minX, bb.minY, bb.minZ)
+        glVertex3d(bb.maxX, bb.minY, bb.minZ)
+        glVertex3d(bb.maxX, bb.maxY, bb.minZ)
+        glVertex3d(bb.minX, bb.maxY, bb.minZ)
+
+        glEnd()
+        glBegin(type)
+        glVertex3d(bb.minX, bb.minY, bb.maxZ)
+        glVertex3d(bb.maxX, bb.minY, bb.maxZ)
+        glVertex3d(bb.maxX, bb.maxY, bb.maxZ)
+        glVertex3d(bb.minX, bb.maxY, bb.maxZ)
+
+        glEnd()
     }
 
 }

@@ -24,6 +24,11 @@ import net.minecraft.util.EnumFacing
 class AttackEvent(val targetEntity: Entity?) : CancellableEvent()
 
 /**
+ * Called when player received knockback from target
+ */
+class KnockbackEvent(var reduceY: Boolean) : CancellableEvent()
+
+/**
  * Called when minecraft get bounding box of block
  */
 class BlockBBEvent(blockPos: BlockPos, val block: Block, var boundingBox: AxisAlignedBB?) : Event() {
@@ -43,19 +48,9 @@ class ClickBlockEvent(val clickedBlock: BlockPos?, val enumFacing: EnumFacing?) 
 class ClientShutdownEvent : Event()
 
 /**
- * Called when the other entity moves
- */
-data class EntityMovementEvent(val movedEntity: Entity) : Event()
-
-/**
  * Called when an entity receives damage
  */
 class EntityDamageEvent(val damagedEntity: Entity): Event()
-
-/**
- * Called when a model updates
- */
-class UpdateModelEvent(val player: EntityPlayer, val model: ModelPlayer) : Event()
 
 /**
  * Called when world is going to be rendered
@@ -64,17 +59,11 @@ class Render3DEvent(val partialTicks: Float) : Event()
 
 /**
  * Called when player jumps
- *
- * @param motion jump motion (y motion)
- * @param yaw
  */
 class JumpEvent(var motion: Float, var yaw: Float) : CancellableEvent()
 
 /**
  * interpolated look vector
- *
- * @param yaw
- * @param pitch
  */
 class LookEvent(var yaw: Float, var pitch: Float) : Event()
 
@@ -86,8 +75,6 @@ class MoveInputEvent(var forward: Float, var strafe: Float, var jump: Boolean, v
 
 /**
  * Called when user press a key once
- *
- * @param key Pressed key
  */
 class KeyEvent(val key: Int) : Event()
 
@@ -103,17 +90,11 @@ class PostMotionEvent: Event()
 
 /**
  * Called when player sprints or sneaks, after pre-motion event
- *
- * @param sprinting player's sprint state
- * @param sneaking player's sneak state
  */
 class ActionEvent(var sprinting: Boolean, var sneaking: Boolean) : Event()
 
 /**
  * Called in "onLivingUpdate" when the player is using a use item.
- *
- * @param strafe the applied strafe slow down
- * @param forward the applied forward slow down
  */
 class SlowDownEvent(var strafe: Float, var forward: Float) : CancellableEvent()
 
@@ -124,10 +105,6 @@ class StrafeEvent(var strafe: Float, var forward: Float, var friction: Float, va
 
 /**
  * Called when player moves
- *
- * @param x motion
- * @param y motion
- * @param z motion
  */
 class MoveEvent(var x: Double, var y: Double, var z: Double) : CancellableEvent() {
     var isSafeWalk = false
@@ -145,14 +122,19 @@ class MoveEvent(var x: Double, var y: Double, var z: Double) : CancellableEvent(
 }
 
 /**
- * Called when receive or send a packet
+ * Called when send a packet
  */
-class PacketEvent(val packet: Packet<*>) : CancellableEvent()
+class SentPacketEvent(val packet: Packet<*>) : CancellableEvent()
+
+/**
+ * Called when receive a packet
+ */
+class ReceivedPacketEvent(val packet: Packet<*>) : CancellableEvent()
 
 /**
  * Called when a block tries to push you
  */
-class PushOutEvent : CancellableEvent()
+class PushOutEvent: CancellableEvent()
 
 /**
  * Called when screen is going to be rendered
@@ -224,4 +206,14 @@ class ReloadClientEvent : Event()
  * Called when entity except self was killed
  */
 class EntityKilledEvent(val targetEntity: EntityLivingBase): Event()
+
+/**
+ * Game loop event
+ */
+class GameLoopEvent: Event()
+
+/**
+ * Sprint state event
+ */
+class SprintStateEvent: CancellableEvent()
 

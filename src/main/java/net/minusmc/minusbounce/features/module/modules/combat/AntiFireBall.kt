@@ -57,9 +57,9 @@ class AntiFireBall : Module() {
             RotationUtils.setTargetRotation(
                 RotationUtils.toRotation(nearestPoint, true),
                 keepLength = 2,
-                minRotationSpeed = turnSpeed.getMinValue(),
-                maxRotationSpeed = turnSpeed.getMaxValue(),
-                fixType = MovementCorrection.Type.STRICT
+                minRotationSpeed = turnSpeed.minValue,
+                maxRotationSpeed = turnSpeed.maxValue,
+                fixType = MovementCorrection.Type.LIQUID_BOUNCE
             )
 
             target = entity
