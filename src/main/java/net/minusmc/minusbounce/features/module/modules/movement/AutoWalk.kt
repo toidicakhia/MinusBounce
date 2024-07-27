@@ -1,5 +1,6 @@
 package net.minusmc.minusbounce.features.module.modules.movement
 
+import net.minecraft.client.settings.GameSettings
 import net.minusmc.minusbounce.features.module.ModuleInfo
 import net.minusmc.minusbounce.features.module.ModuleCategory
 import net.minusmc.minusbounce.features.module.Module

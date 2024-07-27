@@ -16,7 +16,7 @@ val EntityPlayer.eyeVec3: Vec3
 
 val EntityLivingBase.renderHurtTime: Float
     get() {
-        val hurtTimeLeft = if (this.hurtTime != 0) Minecraft.getMinecraft().timer.renderPartialTicks else 0
+        val hurtTimeLeft = if (this.hurtTime != 0) Minecraft.getMinecraft().timer.renderPartialTicks else 0f
         return this.hurtTime - hurtTimeLeft
     }
 

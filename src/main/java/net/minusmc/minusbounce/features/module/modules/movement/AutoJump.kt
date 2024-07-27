@@ -11,7 +11,7 @@ class AutoJump: Module() {
 	
 	@EventTarget
 	fun onUpdate(event: UpdateEvent) {
-		if (mc.thePlayer.onGround && !mc.thePlayer.keyBindJump.pressed) 
+		if (mc.thePlayer.onGround && !mc.gameSettings.keyBindJump.pressed) 
 			mc.thePlayer.jump()
 	}
 }
