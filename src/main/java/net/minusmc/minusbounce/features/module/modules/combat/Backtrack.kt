@@ -32,9 +32,9 @@ class BackTrack : Module() {
     private val packets = mutableListOf<Packet<*>>()
     private val timer = MSTimer()
     private var target: EntityLivingBase? = null
-    private var canFlushPacket = false
 
     private var delay = 0L
+    private var canFlushPacket = false
 
     private val scaffoldModule: Scaffold
         get() = MinusBounce.moduleManager[Scaffold::class.java]!!
@@ -43,12 +43,20 @@ class BackTrack : Module() {
         get() = MinusBounce.moduleManager[Blink::class.java]!!
 
     override fun onEnable() {
+        canFlushPacket = false
         packets.clear()
         target = null
         delay = 0L
-        canFlushPacket = false
     }
     
+    @EventTarget
+    fun onWorld(event: WorldEvent) {
+        canFlushPacket = false
+        packets.clear()
+        target = null
+        delay = 0L
+    }
+
     @EventTarget(priority = 5)
     fun onPacket(event: ReceivedPacketEvent) {
         mc.thePlayer ?: return
@@ -66,19 +74,17 @@ class BackTrack : Module() {
         val packet = event.packet
         val target = this.target
 
+        canFlushPacket = false
+
         when (packet) {
-            is S06PacketUpdateHealth -> {
-                if (packet.health <= 0)
-                    canFlushPacket = true
-            }
+            is S06PacketUpdateHealth -> if (packet.health <= 0)
+                canFlushPacket = true
 
             is S08PacketPlayerPosLook, is S40PacketDisconnect, is S02PacketChat ->
                 canFlushPacket = true
 
-            is S13PacketDestroyEntities -> {
-                if (target != null && target.entityId in packet.entityIDs)
-                    canFlushPacket = true
-            }
+            is S13PacketDestroyEntities -> if (target != null && target.entityId in packet.entityIDs)
+                canFlushPacket = true
 
             is S14PacketEntity -> {
                 val entity = mc.theWorld.getEntityByID(packet.entityId)
@@ -101,7 +107,14 @@ class BackTrack : Module() {
             }
         }
 
-        if (target == null || canFlushPacket) {
+        if (canFlushPacket) {
+            flushPackets()
+            this.target = null
+            timer.reset()
+            return
+        }
+
+        if (target == null) {
             flushPackets()
             timer.reset()
             return
@@ -141,12 +154,6 @@ class BackTrack : Module() {
         val realDistance = mc.thePlayer.getDistance(realX, realY, realZ)
         val targetDistance = mc.thePlayer.getDistance(target.posX, target.posY, target.posZ)
 
-        if (canFlushPacket) {
-            flushPackets()
-            canFlushPacket = false
-            return
-        }
-
         if (targetDistance >= realDistance || realDistance > hitRange.get())
             flushPackets()
         else if (timer.hasTimePassed(delay)) {
@@ -179,7 +186,7 @@ class BackTrack : Module() {
         val realDistance = mc.thePlayer.getDistance(realX, realY, realZ)
         val targetDistance = mc.thePlayer.getDistance(target.posX, target.posY, target.posZ)
 
-        if (targetDistance >= realDistance || realDistance > hitRange.get() || timer.hasTimePassed(delay) || canFlushPacket)
+        if (targetDistance >= realDistance || realDistance > hitRange.get() || timer.hasTimePassed(delay))
             render = false
 
         if (target != mc.thePlayer && !target.isInvisible && render) {
