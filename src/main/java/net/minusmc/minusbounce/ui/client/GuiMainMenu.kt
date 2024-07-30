@@ -53,7 +53,6 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
         Fonts.fontLexend72.drawCenteredString(MinusBounce.CLIENT_NAME, 10f, 6f, Color.WHITE.rgb, false)
 
         val bHeight = (this.height / 3.5).toInt()
-        
         Gui.drawRect(0, 0, 0, 0, Integer.MIN_VALUE)
         Fonts.fontLexend40.drawString("Version: ${MinusBounce.CLIENT_VERSION}", 3F, (height - mc.fontRendererObj.FONT_HEIGHT * 2 - 4).toFloat(), 0xffffff, false)
         Fonts.fontLexend40.drawString("Made by ${MinusBounce.CLIENT_CREATOR}", 3F, (height - mc.fontRendererObj.FONT_HEIGHT - 2).toFloat(), 0xffffff, false)
