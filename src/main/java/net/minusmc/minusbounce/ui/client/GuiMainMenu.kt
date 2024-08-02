@@ -14,30 +14,53 @@ import net.minusmc.minusbounce.MinusBounce
 import net.minusmc.minusbounce.plugin.PluginGuiManager
 import net.minusmc.minusbounce.ui.client.altmanager.GuiAltManager
 import net.minusmc.minusbounce.ui.font.Fonts
-import net.minusmc.minusbounce.utils.render.RenderUtils
-import net.minusmc.minusbounce.utils.render.ShaderUtils
+import net.minusmc.minusbounce.utils.render.*
+import net.minusmc.minusbounce.utils.timer.MSTimer
+import net.minusmc.minusbounce.utils.animation.EaseInOutTimer
+import net.minusmc.minusbounce.utils.geometry.Rectagle
 import java.awt.Color
+import org.lwjgl.opengl.GL11.*
 
 class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
+    private val logoAnimation = EaseInOutTimer(hover = false)
+
     override fun initGui() {
-        buttonList.add(MainButton(0, width / 2 - 55, height / 2 - 35, "Singleplayer"))
-        buttonList.add(MainButton(1, width / 2 - 55, height / 2, "Multiplayer"))
-        buttonList.add(MainButton(2, width / 2 - 55, height / 2 + 35, "Alt manager"))
-        buttonList.add(HeaderButton(3, width - 286, 20, "Mods"))
-        buttonList.add(HeaderButton(6, width - 214, 20, "Background"))
-        buttonList.add(HeaderButton(4, width - 142, 20, "Options"))
-        buttonList.add(HeaderButton(5, width - 70, 20, "Quit"))
-        
+        buttonList.add(MainButton(0, width / 2 - 55, height / 2 - 25, "Singleplayer"))
+        buttonList.add(MainButton(1, width / 2 - 55, height / 2 + 10, "Multiplayer"))
+        buttonList.add(MainButton(2, width / 2 - 55, height / 2 + 45, "Alt manager"))
+
         super.initGui()
     }
-
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
         drawBackground(0)
 
-        RenderUtils.drawImage(ResourceLocation("minusbounce/big.png"), 15, 15, 40, 40)
-        Fonts.fontSatoshiBold70.drawString("Minus", 65f, 15f, Color.WHITE.rgb, true)
-        Fonts.fontSatoshiBold70.drawString("Bounce", 65f, 27f + mc.fontRendererObj.FONT_HEIGHT, Color.WHITE.rgb, true)
+        // draw logo
 
+        logoAnimation.update()
+        val easeProgress = EaseUtils.easeOutBack(logoAnimation.progress.toDouble())
+        val deltaX = easeProgress * 40
+        val deltaXText = easeProgress * 50
+        val patternLogoBox = Rectagle(width / 2 - 78, height / 2 - 110, width / 2 - 28, height / 2 - 30)
+
+        // hover but very funny
+        // val logoBox = Rectagle(width / 2 - 78, height / 2 - 100f, width / 2 + 60f, height / 2 - 40f)
+
+        // if (logoBox.isMouseHover(mouseX, mouseY)) {
+        //     if (logoAnimation.state == EaseInOutTimer.State.OUT && logoAnimation.timePassed)
+        //         logoAnimation.resetTime()
+
+        //     logoAnimation.state = EaseInOutTimer.State.IN
+        // } else {
+        //     if (logoAnimation.state == EaseInOutTimer.State.IN && logoAnimation.timePassed)
+        //         logoAnimation.resetTime()
+
+        //     logoAnimation.state = EaseInOutTimer.State.OUT
+        // }
+
+        drawLogoText("Minus", width / 2 - 75f + deltaXText.toFloat(), height / 2 - 100f, patternLogoBox)
+        drawLogoText("Bounce", width / 2 - 75f + deltaXText.toFloat(), height / 2 - 80f + mc.fontRendererObj.FONT_HEIGHT, patternLogoBox)
+        RenderUtils.drawImage(ResourceLocation("minusbounce/big.png"), width / 2 - 28 - deltaX.toInt(), height / 2 - 100, 56, 56)
+        
         Gui.drawRect(0, 0, 0, 0, Integer.MIN_VALUE)
         Fonts.fontLexend40.drawString("Version: ${MinusBounce.CLIENT_VERSION}", 3F, (height - mc.fontRendererObj.FONT_HEIGHT * 2 - 4).toFloat(), Color.WHITE.rgb, true)
         Fonts.fontLexend40.drawString("Made by ${MinusBounce.CLIENT_CREATOR}", 3F, (height - mc.fontRendererObj.FONT_HEIGHT - 2).toFloat(), Color.WHITE.rgb, true)
@@ -59,28 +82,50 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
     }
 
     override fun keyTyped(typedChar: Char, keyCode: Int) {}
+
+    private fun drawLogoText(text: String, x: Float, y: Float, box: Rectagle) {
+        var currentX = x
+        val currentY = y
+        for (char in text) {
+            val charWidth = Fonts.fontSatoshiBold95.getCharWidth(char)
+
+            if (currentX > box.x && currentX < box.x2 && currentY > box.y && currentY < box.y2) {
+                currentX += charWidth
+                continue
+            }
+
+            Fonts.fontSatoshiBold95.drawString(char.toString(), currentX, currentY, Color.WHITE.rgb, true)
+            currentX += charWidth
+        }
+    }
 }
 
 class MainButton(buttonId: Int, x: Int, y: Int, buttonText: String): GuiButton(buttonId, x, y, buttonText) {
+    //val boxButton = Rectagle(xPosition, yPosition, xPosition + 110, yPosition + 25)
+    //val animation = EaseInOutTimer(hover = true)
+
     init {
         width = 110
         height = 25
     }
 
     override fun drawButton(mc: Minecraft?, mouseX: Int, mouseY: Int) {
-        ShaderUtils.drawRoundedRect(xPosition.toFloat(), yPosition.toFloat(), (xPosition + width).toFloat(), (yPosition + height).toFloat(), 4f, Color(249, 246, 238, 220).rgb)
+        // if (boxButton.isMouseHover(mouseX, mouseY)) {
+        //     if (animation.state == EaseInOutTimer.State.OUT && animation.timePassed)
+        //         animation.resetTime()
+
+        //     animation.state = EaseInOutTimer.State.IN
+        // } else {
+        //     if (animation.state == EaseInOutTimer.State.IN && animation.timePassed)
+        //         animation.resetTime()
+
+        //     animation.state = EaseInOutTimer.State.OUT
+        // }
+
+        //val easeProgress = EaseUtils.easeOutBack(animation.progress.toDouble()) * 255
+
+        ShaderUtils.drawRoundedRect(xPosition.toFloat(), yPosition.toFloat(), (xPosition + width).toFloat(), (yPosition + height).toFloat(), 4f, Color.WHITE.rgb)
         GlStateManager.resetColor()
-        Fonts.fontLexend50.drawCenteredString(displayString, xPosition + width / 2f, yPosition + (height - Fonts.fontLexend40.FONT_HEIGHT) / 2f, Color(54, 69, 79).rgb, false)
-    }
-}
-
-class HeaderButton(buttonId: Int, x: Int, y: Int, buttonText: String): GuiButton(buttonId, x, y, buttonText) {
-    init {
-        width = 70
-        height = 25
-    }
-
-    override fun drawButton(mc: Minecraft?, mouseX: Int, mouseY: Int) {
-        Fonts.fontLexend40.drawCenteredString(displayString, xPosition + width / 2f, yPosition + (height - Fonts.fontLexend40.FONT_HEIGHT) / 2f, Color.WHITE.rgb, false)
+        Fonts.font50.drawCenteredString(displayString, xPosition + width / 2f, yPosition + (height - Fonts.font50.FONT_HEIGHT) / 2f + 2, Color(54, 69, 79, 255).rgb, false)
     }
 }

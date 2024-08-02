@@ -59,7 +59,7 @@ class KillAura : Module() {
         }
     }
 
-    val rotationRangeValue: FloatValue = object: FloatValue("RotationRange", 5f, 1f, 8f, "m") {
+    private val rotationRangeValue: FloatValue = object: FloatValue("RotationRange", 5f, 1f, 8f, "m") {
         override fun onPostChange(oldValue: Float, newValue: Float) {
             set(newValue.coerceAtLeast(rangeValue.get()))
         }

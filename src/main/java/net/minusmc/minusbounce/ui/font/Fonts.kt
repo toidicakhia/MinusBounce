@@ -65,8 +65,8 @@ object Fonts {
     @field:FontDetails(fontName = "Lexend Bold", fontSize = 40)
     lateinit var fontLexendBold40: GameFontRenderer
 
-    @field:FontDetails(fontName = "Satoshi Bold", fontSize = 70)
-    lateinit var fontSatoshiBold70: GameFontRenderer
+    @field:FontDetails(fontName = "Satoshi Bold", fontSize = 95)
+    lateinit var fontSatoshiBold95: GameFontRenderer
 
     @field:FontDetails(fontName = "Minecraft Font")
     val minecraftFont = Minecraft.getMinecraft().fontRendererObj
@@ -96,7 +96,7 @@ object Fonts {
         fontLexend50 = GameFontRenderer(getFont("Lexend-Regular.ttf", 50))
         fontLexend72 = GameFontRenderer(getFont("Lexend-Regular.ttf", 72))
         fontLexendBold40 = GameFontRenderer(getFont("Lexend-Bold.ttf", 40))
-        fontSatoshiBold70 = GameFontRenderer(getFont("Satoshi-Bold.otf", 70))
+        fontSatoshiBold95 = GameFontRenderer(getFont("Satoshi-Bold.otf", 95))
 
         try {
             CUSTOM_FONT_RENDERERS.clear()
