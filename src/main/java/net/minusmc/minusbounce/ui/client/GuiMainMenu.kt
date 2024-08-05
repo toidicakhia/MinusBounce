@@ -22,7 +22,7 @@ import java.awt.Color
 import org.lwjgl.opengl.GL11.*
 
 class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
-    private val logoAnimation = EaseInOutTimer(hover = false)
+    private val logoAnimation = EaseInOutTimer()
 
     override fun initGui() {
         buttonList.add(MainButton(0, width / 2 - 55, height / 2 - 25, "Singleplayer"))
@@ -33,29 +33,11 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
     }
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
         drawBackground(0)
-
-        // draw logo
-
         logoAnimation.update()
         val easeProgress = EaseUtils.easeOutBack(logoAnimation.progress.toDouble())
         val deltaX = easeProgress * 40
         val deltaXText = easeProgress * 50
         val patternLogoBox = Rectagle(width / 2 - 78, height / 2 - 110, width / 2 - 28, height / 2 - 30)
-
-        // hover but very funny
-        // val logoBox = Rectagle(width / 2 - 78, height / 2 - 100f, width / 2 + 60f, height / 2 - 40f)
-
-        // if (logoBox.isMouseHover(mouseX, mouseY)) {
-        //     if (logoAnimation.state == EaseInOutTimer.State.OUT && logoAnimation.timePassed)
-        //         logoAnimation.resetTime()
-
-        //     logoAnimation.state = EaseInOutTimer.State.IN
-        // } else {
-        //     if (logoAnimation.state == EaseInOutTimer.State.IN && logoAnimation.timePassed)
-        //         logoAnimation.resetTime()
-
-        //     logoAnimation.state = EaseInOutTimer.State.OUT
-        // }
 
         drawLogoText("Minus", width / 2 - 75f + deltaXText.toFloat(), height / 2 - 100f, patternLogoBox)
         drawLogoText("Bounce", width / 2 - 75f + deltaXText.toFloat(), height / 2 - 80f + mc.fontRendererObj.FONT_HEIGHT, patternLogoBox)
@@ -89,41 +71,21 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
         for (char in text) {
             val charWidth = Fonts.fontSatoshiBold95.getCharWidth(char)
 
-            if (currentX > box.x && currentX < box.x2 && currentY > box.y && currentY < box.y2) {
-                currentX += charWidth
-                continue
-            }
-
-            Fonts.fontSatoshiBold95.drawString(char.toString(), currentX, currentY, Color.WHITE.rgb, true)
+            if (!box.isMouseHover(currentX, currentY))
+                Fonts.fontSatoshiBold95.drawString(char.toString(), currentX, currentY, Color.WHITE.rgb, true)
+            
             currentX += charWidth
         }
     }
 }
 
 class MainButton(buttonId: Int, x: Int, y: Int, buttonText: String): GuiButton(buttonId, x, y, buttonText) {
-    //val boxButton = Rectagle(xPosition, yPosition, xPosition + 110, yPosition + 25)
-    //val animation = EaseInOutTimer(hover = true)
-
     init {
         width = 110
         height = 25
     }
 
     override fun drawButton(mc: Minecraft?, mouseX: Int, mouseY: Int) {
-        // if (boxButton.isMouseHover(mouseX, mouseY)) {
-        //     if (animation.state == EaseInOutTimer.State.OUT && animation.timePassed)
-        //         animation.resetTime()
-
-        //     animation.state = EaseInOutTimer.State.IN
-        // } else {
-        //     if (animation.state == EaseInOutTimer.State.IN && animation.timePassed)
-        //         animation.resetTime()
-
-        //     animation.state = EaseInOutTimer.State.OUT
-        // }
-
-        //val easeProgress = EaseUtils.easeOutBack(animation.progress.toDouble()) * 255
-
         ShaderUtils.drawRoundedRect(xPosition.toFloat(), yPosition.toFloat(), (xPosition + width).toFloat(), (yPosition + height).toFloat(), 4f, Color.WHITE.rgb)
         GlStateManager.resetColor()
         Fonts.font50.drawCenteredString(displayString, xPosition + width / 2f, yPosition + (height - Fonts.font50.FONT_HEIGHT) / 2f + 2, Color(54, 69, 79, 255).rgb, false)
