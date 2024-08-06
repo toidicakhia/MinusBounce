@@ -19,9 +19,10 @@ object MathUtils {
      */
 
 	fun round(number: Float, scale: Int): BigDecimal {
-        var bd = BigDecimal(number.toString())
+        val bd = BigDecimal(number.toString())
         return bd.setScale(scale, 4)
     }
+
     fun round(number: Float): BigDecimal = round(number, 2)
     
     fun round(number: Double, scale: Int) = round(number.toFloat(), 2)
@@ -49,7 +50,7 @@ object MathUtils {
     }
 
     fun isHovering(mouseX: Int, mouseY: Int, x: Int, x2: Int, y: Int, y2: Int): Boolean {
-        return mouseX >= x && mouseX <= x2 && mouseY >= y && mouseY <= y2
+        return mouseX in x..x2 && mouseY in y..y2
     }
 
     /**
@@ -68,4 +69,9 @@ object MathUtils {
     }
 
     fun wrapAngleTo180(degree: Float): Float = wrapAngleTo180(degree.toDouble()).toFloat()
+
+    fun interpolate(current: Float, old: Float, scale: Float) = old + (current - old) * scale
+
+    fun interpolate(current: Double, old: Double, scale: Double) = old + (current - old) * scale
+
 }

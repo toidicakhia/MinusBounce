@@ -27,20 +27,18 @@ import net.minecraft.item.ItemStack
 import net.minecraft.item.ItemSword
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
-import net.minecraft.util.MathHelper
 import net.minecraft.util.ResourceLocation
-import net.minusmc.minusbounce.event.*
 import net.minusmc.minusbounce.MinusBounce
 import net.minusmc.minusbounce.features.module.modules.render.TargetMark
 import net.minusmc.minusbounce.ui.font.Fonts
 import net.minusmc.minusbounce.utils.MinecraftInstance
 import net.minusmc.minusbounce.utils.block.BlockUtils
+import net.minusmc.minusbounce.utils.extensions.step
+import net.minusmc.minusbounce.utils.misc.MathUtils
 import net.minusmc.minusbounce.utils.render.ColorUtils.setColour
 import org.lwjgl.opengl.GL11.*
 import java.awt.Color
 import kotlin.math.*
-
-import org.lwjgl.Sys
 
 
 object RenderUtils : MinecraftInstance() {
@@ -169,16 +167,16 @@ object RenderUtils : MinecraftInstance() {
         val f = 0.00390625f
         val f1 = 0.00390625f
         val tessellator = Tessellator.getInstance()
-        val worldrenderer = tessellator.worldRenderer
-        worldrenderer.begin(7, DefaultVertexFormats.POSITION_TEX)
-        worldrenderer.pos((x + 0).toDouble(), (y + height).toDouble(), zLevel.toDouble())
+        val worldRenderer = tessellator.worldRenderer
+        worldRenderer.begin(7, DefaultVertexFormats.POSITION_TEX)
+        worldRenderer.pos((x + 0).toDouble(), (y + height).toDouble(), zLevel.toDouble())
             .tex(((textureX + 0).toFloat() * f).toDouble(), ((textureY + height).toFloat() * f1).toDouble()).endVertex()
-        worldrenderer.pos((x + width).toDouble(), (y + height).toDouble(), zLevel.toDouble())
+        worldRenderer.pos((x + width).toDouble(), (y + height).toDouble(), zLevel.toDouble())
             .tex(((textureX + width).toFloat() * f).toDouble(), ((textureY + height).toFloat() * f1).toDouble())
             .endVertex()
-        worldrenderer.pos((x + width).toDouble(), (y + 0).toDouble(), zLevel.toDouble())
+        worldRenderer.pos((x + width).toDouble(), (y + 0).toDouble(), zLevel.toDouble())
             .tex(((textureX + width).toFloat() * f).toDouble(), ((textureY + 0).toFloat() * f1).toDouble()).endVertex()
-        worldrenderer.pos((x + 0).toDouble(), (y + 0).toDouble(), zLevel.toDouble())
+        worldRenderer.pos((x + 0).toDouble(), (y + 0).toDouble(), zLevel.toDouble())
             .tex(((textureX + 0).toFloat() * f).toDouble(), ((textureY + 0).toFloat() * f1).toDouble()).endVertex()
         tessellator.draw()
     }
@@ -244,22 +242,12 @@ object RenderUtils : MinecraftInstance() {
         glEnable(GL_DEPTH_TEST)
     }
 
-    fun isInViewFrustrum(entity: Entity): Boolean {
-        return isInViewFrustrum(entity.entityBoundingBox) || entity.ignoreFrustumCheck
-    }
+    fun isInViewFrustrum(entity: Entity) = isInViewFrustrum(entity.entityBoundingBox) || entity.ignoreFrustumCheck
 
-    private fun isInViewFrustrum(bb: AxisAlignedBB): Boolean {
+    fun isInViewFrustrum(bb: AxisAlignedBB): Boolean {
         val current = mc.renderViewEntity
         frustrum.setPosition(current.posX, current.posY, current.posZ)
         return frustrum.isBoundingBoxInFrustum(bb)
-    }
-
-    fun interpolate(current: Float, old: Float, scale: Float): Float {
-        return old + (current - old) * scale
-    }
-
-    fun interpolate(current: Double, old: Double, scale: Double): Double {
-        return old + (current - old) * scale
     }
 
     fun startSmooth() {
@@ -300,37 +288,19 @@ object RenderUtils : MinecraftInstance() {
         drawBorder(x, y, x2, y2, width, color1)
     }
 
-    fun originalRoundedRect(
-        paramXStart: Float,
-        paramYStart: Float,
-        paramXEnd: Float,
-        paramYEnd: Float,
-        radius: Float,
-        color: Int
-    ) {
-        var paramXStart = paramXStart
-        var paramYStart = paramYStart
-        var paramXEnd = paramXEnd
-        var paramYEnd = paramYEnd
+    fun originalRoundedRect(paramXStart: Float, paramYStart: Float, paramXEnd: Float, paramYEnd: Float, radius: Float, color: Int) {
+        val (xStart, xEnd) = if (paramXStart > paramXEnd) paramXEnd to paramXStart else paramXStart to paramXEnd
+        val (yStart, yEnd) = if (paramYStart > paramYEnd) paramYEnd to paramYStart else paramYStart to paramYEnd
+
         val alpha = (color shr 24 and 0xFF) / 255.0f
         val red = (color shr 16 and 0xFF) / 255.0f
         val green = (color shr 8 and 0xFF) / 255.0f
         val blue = (color and 0xFF) / 255.0f
-        var z: Float
-        if (paramXStart > paramXEnd) {
-            z = paramXStart
-            paramXStart = paramXEnd
-            paramXEnd = z
-        }
-        if (paramYStart > paramYEnd) {
-            z = paramYStart
-            paramYStart = paramYEnd
-            paramYEnd = z
-        }
-        val x1 = (paramXStart + radius).toDouble()
-        val y1 = (paramYStart + radius).toDouble()
-        val x2 = (paramXEnd - radius).toDouble()
-        val y2 = (paramYEnd - radius).toDouble()
+
+        val x1 = (xStart + radius).toDouble()
+        val y1 = (yStart + radius).toDouble()
+        val x2 = (xEnd - radius).toDouble()
+        val y2 = (yEnd - radius).toDouble()
         val tessellator = Tessellator.getInstance()
         val worldrenderer = tessellator.worldRenderer
         GlStateManager.enableBlend()
@@ -338,45 +308,20 @@ object RenderUtils : MinecraftInstance() {
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
         GlStateManager.color(red, green, blue, alpha)
         worldrenderer.begin(GL_POLYGON, DefaultVertexFormats.POSITION)
-        val degree = Math.PI / 180
-        run {
-            var i = 0.0
-            while (i <= 90) {
-                worldrenderer.pos(
-                    x2 + sin(i * degree) * radius,
-                    y2 + cos(i * degree) * radius,
-                    0.0
-                ).endVertex()
-                i += 1.0
-            }
-        }
-        run {
-            var i = 90.0
-            while (i <= 180) {
-                worldrenderer.pos(
-                    x2 + sin(i * degree) * radius,
-                    y1 + cos(i * degree) * radius,
-                    0.0
-                ).endVertex()
-                i += 1.0
-            }
-        }
-        run {
-            var i = 180.0
-            while (i <= 270) {
-                worldrenderer.pos(
-                    x1 + sin(i * degree) * radius,
-                    y1 + cos(i * degree) * radius,
-                    0.0
-                ).endVertex()
-                i += 1.0
-            }
-        }
-        var i = 270.0
-        while (i <= 360) {
+        val degree = PI / 180
+
+        for (i in 0.0..90.0 step 1.0)
+            worldrenderer.pos(x2 + sin(i * degree) * radius, y2 + cos(i * degree) * radius, 0.0).endVertex()
+
+        for (i in 90.0..180.0 step 1.0)
+            worldrenderer.pos(x2 + sin(i * degree) * radius, y1 + cos(i * degree) * radius, 0.0).endVertex()
+
+        for (i in 180.0..270.0 step 1.0)
+            worldrenderer.pos(x1 + sin(i * degree) * radius, y1 + cos(i * degree) * radius, 0.0).endVertex()
+
+        for (i in 270.0..360.0 step 1.0)
             worldrenderer.pos(x1 + sin(i * degree) * radius, y2 + cos(i * degree) * radius, 0.0).endVertex()
-            i += 1.0
-        }
+
         tessellator.draw()
         enableTexture2D()
         disableBlend()
@@ -386,90 +331,10 @@ object RenderUtils : MinecraftInstance() {
         newDrawRect(left.toDouble(), top.toDouble(), right.toDouble(), bottom.toDouble(), color)
     }
 
-    fun whatRoundedRect(
-        paramXStart: Float,
-        paramYStart: Float,
-        paramXEnd: Float,
-        paramYEnd: Float,
-        color: Int,
-        radius: Float
-    ) {
-        var paramXStart = paramXStart
-        var paramYStart = paramYStart
-        var paramXEnd = paramXEnd
-        var paramYEnd = paramYEnd
-        var z: Float
-        if (paramXStart > paramXEnd) {
-            z = paramXStart
-            paramXStart = paramXEnd
-            paramXEnd = z
-        }
-        if (paramYStart > paramYEnd) {
-            z = paramYStart
-            paramYStart = paramYEnd
-            paramYEnd = z
-        }
-        val x1 = (paramXStart + radius).toDouble()
-        val y1 = (paramYStart + radius).toDouble()
-        val x2 = (paramXEnd - radius).toDouble()
-        val y2 = (paramYEnd - radius).toDouble()
-        glPushMatrix()
-        glEnable(GL_BLEND)
-        glDisable(GL_TEXTURE_2D)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glEnable(GL_LINE_SMOOTH)
-        glLineWidth(1f)
-        glColor(color)
-        glBegin(GL_POLYGON)
-        val degree = Math.PI / 180
-        run {
-            var i = 0.0
-            while (i <= 90) {
-                glVertex2d(x2 + sin(i * degree) * radius, y2 + cos(i * degree) * radius)
-                i += 1.0
-            }
-        }
-        run {
-            var i = 90.0
-            while (i <= 180) {
-                glVertex2d(x2 + sin(i * degree) * radius, y1 + cos(i * degree) * radius)
-                i += 1.0
-            }
-        }
-        run {
-            var i = 180.0
-            while (i <= 270) {
-                glVertex2d(x1 + sin(i * degree) * radius, y1 + cos(i * degree) * radius)
-                i += 1.0
-            }
-        }
-        var i = 270.0
-        while (i <= 360) {
-            glVertex2d(x1 + sin(i * degree) * radius, y2 + cos(i * degree) * radius)
-            i += 1.0
-        }
-        glEnd()
-        glEnable(GL_TEXTURE_2D)
-        glDisable(GL_BLEND)
-        glDisable(GL_LINE_SMOOTH)
-        glPopMatrix()
-    }
+    fun newDrawRect(pLeft: Double, pTop: Double, pRight: Double, pBottom: Double, color: Int) {
+        val (left, right) = if (pLeft > pRight) pRight to pLeft else pLeft to pRight
+        val (top, bottom) = if (pTop > pBottom) pBottom to pTop else pTop to pBottom
 
-    fun newDrawRect(left: Double, top: Double, right: Double, bottom: Double, color: Int) {
-        var left = left
-        var top = top
-        var right = right
-        var bottom = bottom
-        if (left < right) {
-            val i = left
-            left = right
-            right = i
-        }
-        if (top < bottom) {
-            val j = top
-            top = bottom
-            bottom = j
-        }
         val f3 = (color shr 24 and 255).toFloat() / 255.0f
         val f = (color shr 16 and 255).toFloat() / 255.0f
         val f1 = (color shr 8 and 255).toFloat() / 255.0f
@@ -491,44 +356,32 @@ object RenderUtils : MinecraftInstance() {
     }
 
     @JvmOverloads
-    fun drawRoundedRectWithWidthHeight(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int, popPush: Boolean = true) {
-        drawRoundedRect(x, y, x + width, y + height, radius, color, popPush)
+    fun drawRoundedRectWithWidthHeight(x: Number, y: Number, width: Number, height: Number, radius: Number, color: Int, popPush: Boolean = true) {
+        drawRoundedRect(x.toDouble(), y.toDouble(), x.toDouble() + width.toDouble(), y.toDouble() + height.toDouble(), radius.toDouble(), color, popPush)
     }
 
     @JvmOverloads
-    fun drawRoundedRect(
-        paramXStart: Float,
-        paramYStart: Float,
-        paramXEnd: Float,
-        paramYEnd: Float,
-        radius: Float,
-        color: Int,
-        popPush: Boolean = true
-    ) {
-        var paramXStart = paramXStart
-        var paramYStart = paramYStart
-        var paramXEnd = paramXEnd
-        var paramYEnd = paramYEnd
+    fun drawRoundedRect(paramXStart: Number, paramYStart: Number, paramXEnd: Number, paramYEnd: Number, radius: Number, color: Int, popPush: Boolean = true) {
+        drawRoundedRect(paramXStart.toDouble(), paramYStart.toDouble(), paramXEnd.toDouble(), paramYEnd.toDouble(), radius.toDouble(), color, popPush)
+    }
+
+    fun drawRoundedRect(paramXStart: Double, paramYStart: Double, paramXEnd: Double, paramYEnd: Double, radius: Double, color: Int, popPush: Boolean = true) {
+        val (xStart, xEnd) = if (paramXStart > paramXEnd) paramXEnd to paramXStart else paramXStart to paramXEnd
+        val (yStart, yEnd) = if (paramYStart > paramYEnd) paramYEnd to paramYStart else paramYStart to paramYEnd
+
         val alpha = (color shr 24 and 0xFF) / 255.0f
         val red = (color shr 16 and 0xFF) / 255.0f
         val green = (color shr 8 and 0xFF) / 255.0f
         val blue = (color and 0xFF) / 255.0f
-        var z: Float
-        if (paramXStart > paramXEnd) {
-            z = paramXStart
-            paramXStart = paramXEnd
-            paramXEnd = z
-        }
-        if (paramYStart > paramYEnd) {
-            z = paramYStart
-            paramYStart = paramYEnd
-            paramYEnd = z
-        }
-        val x1 = (paramXStart + radius).toDouble()
-        val y1 = (paramYStart + radius).toDouble()
-        val x2 = (paramXEnd - radius).toDouble()
-        val y2 = (paramYEnd - radius).toDouble()
-        if (popPush) glPushMatrix()
+
+        val x1 = xStart + radius
+        val y1 = yStart + radius
+        val x2 = xEnd - radius
+        val y2 = yEnd - radius
+
+        if (popPush)
+            glPushMatrix()
+
         glEnable(GL_BLEND)
         glDisable(GL_TEXTURE_2D)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -536,33 +389,20 @@ object RenderUtils : MinecraftInstance() {
         glLineWidth(1f)
         glColor4f(red, green, blue, alpha)
         glBegin(GL_POLYGON)
-        val degree = Math.PI / 180
-        run {
-            var i = 0.0
-            while (i <= 90) {
-                glVertex2d(x2 + sin(i * degree) * radius, y2 + cos(i * degree) * radius)
-                i += 1.0
-            }
-        }
-        run {
-            var i = 90.0
-            while (i <= 180) {
-                glVertex2d(x2 + sin(i * degree) * radius, y1 + cos(i * degree) * radius)
-                i += 1.0
-            }
-        }
-        run {
-            var i = 180.0
-            while (i <= 270) {
-                glVertex2d(x1 + sin(i * degree) * radius, y1 + cos(i * degree) * radius)
-                i += 1.0
-            }
-        }
-        var i = 270.0
-        while (i <= 360) {
+        val degree = PI / 180
+
+        for (i in 0.0..90.0 step 1.0)
+            glVertex2d(x2 + sin(i * degree) * radius, y2 + cos(i * degree) * radius)
+
+        for (i in 90.0..180.0 step 1.0)
+            glVertex2d(x2 + sin(i * degree) * radius, y1 + cos(i * degree) * radius)
+
+        for (i in 180.0..270.0 step 1.0)
+            glVertex2d(x1 + sin(i * degree) * radius, y1 + cos(i * degree) * radius)
+
+        for (i in 270.0..360.0 step 1.0)
             glVertex2d(x1 + sin(i * degree) * radius, y2 + cos(i * degree) * radius)
-            i += 1.0
-        }
+
         glEnd()
         glEnable(GL_TEXTURE_2D)
         glDisable(GL_BLEND)
@@ -570,18 +410,7 @@ object RenderUtils : MinecraftInstance() {
         if (popPush) glPopMatrix()
     }
 
-    fun drawScaledCustomSizeModalRect(
-        x: Int,
-        y: Int,
-        u: Float,
-        v: Float,
-        uWidth: Int,
-        vHeight: Int,
-        width: Int,
-        height: Int,
-        tileWidth: Float,
-        tileHeight: Float
-    ) {
+    fun drawScaledCustomSizeModalRect(x: Int, y: Int, u: Float, v: Float, uWidth: Int, vHeight: Int, width: Int, height: Int, tileWidth: Float, tileHeight: Float) {
         val f = 1.0f / tileWidth
         val f1 = 1.0f / tileHeight
         val tessellator = Tessellator.getInstance()
@@ -598,45 +427,24 @@ object RenderUtils : MinecraftInstance() {
     }
 
     // rTL = radius top left, rTR = radius top right, rBR = radius bottom right, rBL = radius bottom left
-    fun customRounded(
-        paramXStart: Float,
-        paramYStart: Float,
-        paramXEnd: Float,
-        paramYEnd: Float,
-        rTL: Float,
-        rTR: Float,
-        rBR: Float,
-        rBL: Float,
-        color: Int
-    ) {
-        var paramXStart = paramXStart
-        var paramYStart = paramYStart
-        var paramXEnd = paramXEnd
-        var paramYEnd = paramYEnd
+    fun customRounded(paramXStart: Double,paramYStart: Double,paramXEnd: Double,paramYEnd: Double,rTL: Double,rTR: Double,rBR: Double,rBL: Double,color: Int) {
+        val (xStart, xEnd) = if (paramXStart > paramXEnd) paramXEnd to paramXStart else paramXStart to paramXEnd
+        val (yStart, yEnd) = if (paramYStart > paramYEnd) paramYEnd to paramYStart else paramYStart to paramYEnd
+
         val alpha = (color shr 24 and 0xFF) / 255.0f
         val red = (color shr 16 and 0xFF) / 255.0f
         val green = (color shr 8 and 0xFF) / 255.0f
         val blue = (color and 0xFF) / 255.0f
-        var z = 0f
-        if (paramXStart > paramXEnd) {
-            z = paramXStart
-            paramXStart = paramXEnd
-            paramXEnd = z
-        }
-        if (paramYStart > paramYEnd) {
-            z = paramYStart
-            paramYStart = paramYEnd
-            paramYEnd = z
-        }
-        val xTL = (paramXStart + rTL).toDouble()
-        val yTL = (paramYStart + rTL).toDouble()
-        val xTR = (paramXEnd - rTR).toDouble()
-        val yTR = (paramYStart + rTR).toDouble()
-        val xBR = (paramXEnd - rBR).toDouble()
-        val yBR = (paramYEnd - rBR).toDouble()
-        val xBL = (paramXStart + rBL).toDouble()
-        val yBL = (paramYEnd - rBL).toDouble()
-        glPushMatrix()
+
+        val xTL = xStart + rTL
+        val yTL = yStart + rTL
+        val xTR = xEnd - rTR
+        val yTR = yStart + rTR
+        val xBR = xEnd - rBR
+        val yBR = yEnd - rBR
+        val xBL = xStart + rBL
+        val yBL = yEnd - rBL
+
         glEnable(GL_BLEND)
         glDisable(GL_TEXTURE_2D)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -644,35 +452,30 @@ object RenderUtils : MinecraftInstance() {
         glLineWidth(1f)
         glColor4f(red, green, blue, alpha)
         glBegin(GL_POLYGON)
-        val degree = Math.PI / 180
-        if (rBR <= 0) glVertex2d(xBR, yBR) else {
-            var i = 0.0
-            while (i <= 90) {
-                glVertex2d(xBR + sin(i * degree) * rBR, yBR + cos(i * degree) * rBR)
-                i += 1.0
-            }
-        }
-        if (rTR <= 0) glVertex2d(xTR, yTR) else {
-            var i = 90.0
-            while (i <= 180) {
-                glVertex2d(xTR + sin(i * degree) * rTR, yTR + cos(i * degree) * rTR)
-                i += 1.0
-            }
-        }
-        if (rTL <= 0) glVertex2d(xTL, yTL) else {
-            var i = 180.0
-            while (i <= 270) {
-                glVertex2d(xTL + sin(i * degree) * rTL, yTL + cos(i * degree) * rTL)
-                i += 1.0
-            }
-        }
-        if (rBL <= 0) glVertex2d(xBL, yBL) else {
-            var i = 270.0
-            while (i <= 360) {
-                glVertex2d(xBL + sin(i * degree) * rBL, yBL + cos(i * degree) * rBL)
-                i += 1.0
-            }
-        }
+        val degree = PI / 180
+
+
+
+        if (rBR <= 0)
+            glVertex2d(xBR, yBR)
+        else for (i in 0.0..90.0 step 1.0)
+            glVertex2d(xBR + sin(i * degree) * rBR, yBR + cos(i * degree) * rBR)
+
+        if (rTR <= 0)
+            glVertex2d(xTR, yTR)
+        else for (i in 90.0..180.0 step 1.0)
+            glVertex2d(xTR + sin(i * degree) * rTR, yTR + cos(i * degree) * rTR)
+
+        if (rTL <= 0)
+            glVertex2d(xTL, yTL)
+        else for (i in 180.0..270.0 step 1.0)
+            glVertex2d(xTL + sin(i * degree) * rTL, yTL + cos(i * degree) * rTL)
+
+        if (rBL <= 0)
+            glVertex2d(xBL, yBL)
+        else for (i in 270.0..360.0 step 1.0)
+            glVertex2d(xBL + sin(i * degree) * rBL, yBL + cos(i * degree) * rBL)
+
         glEnd()
         glEnable(GL_TEXTURE_2D)
         glDisable(GL_BLEND)
@@ -680,64 +483,45 @@ object RenderUtils : MinecraftInstance() {
         glPopMatrix()
     }
 
-    fun fastRoundedRect(paramXStart: Float, paramYStart: Float, paramXEnd: Float, paramYEnd: Float, radius: Float) {
-        var paramXStart = paramXStart
-        var paramYStart = paramYStart
-        var paramXEnd = paramXEnd
-        var paramYEnd = paramYEnd
-        var z: Float
-        if (paramXStart > paramXEnd) {
-            z = paramXStart
-            paramXStart = paramXEnd
-            paramXEnd = z
-        }
-        if (paramYStart > paramYEnd) {
-            z = paramYStart
-            paramYStart = paramYEnd
-            paramYEnd = z
-        }
-        val x1 = (paramXStart + radius).toDouble()
-        val y1 = (paramYStart + radius).toDouble()
-        val x2 = (paramXEnd - radius).toDouble()
-        val y2 = (paramYEnd - radius).toDouble()
+    fun fastRoundedRect(paramXStart: Number, paramYStart: Number, paramXEnd: Number, paramYEnd: Number, radius: Number) {
+        fastRoundedRect(paramXStart.toDouble(), paramYStart.toDouble(), paramXEnd.toDouble(), paramYEnd.toDouble(), radius.toDouble())
+    }
+
+    fun fastRoundedRect(paramXStart: Double, paramYStart: Double, paramXEnd: Double, paramYEnd: Double, radius: Double) {
+        val (xStart, xEnd) = if (paramXStart > paramXEnd) paramXEnd to paramXStart else paramXStart to paramXEnd
+        val (yStart, yEnd) = if (paramYStart > paramYEnd) paramYEnd to paramYStart else paramYStart to paramYEnd
+
+        val x1 = xStart + radius
+        val y1 = yStart + radius
+        val x2 = xEnd - radius
+        val y2 = yEnd - radius
+
         glEnable(GL_LINE_SMOOTH)
         glLineWidth(1f)
         glBegin(GL_POLYGON)
         val degree = Math.PI / 180
-        run {
-            var i = 0.0
-            while (i <= 90) {
-                glVertex2d(x2 + sin(i * degree) * radius, y2 + cos(i * degree) * radius)
-                i += 1.0
-            }
-        }
-        run {
-            var i = 90.0
-            while (i <= 180) {
-                glVertex2d(x2 + sin(i * degree) * radius, y1 + cos(i * degree) * radius)
-                i += 1.0
-            }
-        }
-        run {
-            var i = 180.0
-            while (i <= 270) {
-                glVertex2d(x1 + sin(i * degree) * radius, y1 + cos(i * degree) * radius)
-                i += 1.0
-            }
-        }
-        var i = 270.0
-        while (i <= 360) {
+
+        for (i in 0.0..90.0 step 1.0)
+            glVertex2d(x2 + sin(i * degree) * radius, y2 + cos(i * degree) * radius)
+
+        for (i in 90.0..180.0 step 1.0)
+            glVertex2d(x2 + sin(i * degree) * radius, y1 + cos(i * degree) * radius)
+
+        for (i in 180.0..270.0 step 1.0)
+            glVertex2d(x1 + sin(i * degree) * radius, y1 + cos(i * degree) * radius)
+
+        for (i in 270.0..360.0 step 1.0)
             glVertex2d(x1 + sin(i * degree) * radius, y2 + cos(i * degree) * radius)
-            i += 1.0
-        }
+
+
         glEnd()
         glDisable(GL_LINE_SMOOTH)
     }
 
-    fun drawTriAngle(cx: Float, cy: Float, r: Float, n: Float, color: Color, polygon: Boolean) {
-        var cx = cx
-        var cy = cy
-        var r = r
+    fun drawTriangle(paramX: Float, paramY: Float, radius: Float, n: Float, color: Color, polygon: Boolean) {
+        var cx = paramX
+        var cy = paramY
+        var r = radius
         cx *= 2.0.toFloat()
         cy *= 2.0.toFloat()
         val b = 6.2831852 / n
@@ -1147,21 +931,10 @@ object RenderUtils : MinecraftInstance() {
         glPopMatrix()
     }
 
-    fun drawRect(left: Double, top: Double, right: Double, bottom: Double, color: Int) {
-        var left = left
-        var top = top
-        var right = right
-        var bottom = bottom
-        if (left < right) {
-            val i = left
-            left = right
-            right = i
-        }
-        if (top < bottom) {
-            val j = top
-            top = bottom
-            bottom = j
-        }
+    fun drawRect(pLeft: Double, pTop: Double, pRight: Double, pBottom: Double, color: Int) {
+        val (left, right) = if (pLeft > pRight) pRight to pLeft else pLeft to pRight
+        val (top, bottom) = if (pTop > pBottom) pBottom to pTop else pTop to pBottom
+
         val f3 = (color shr 24 and 255).toFloat() / 255.0f
         val f = (color shr 16 and 255).toFloat() / 255.0f
         val f1 = (color shr 8 and 255).toFloat() / 255.0f
@@ -1498,27 +1271,28 @@ object RenderUtils : MinecraftInstance() {
     }
 
     fun drawExhiEnchants(stack: ItemStack, x: Float, y: Float) {
-        var y = y
+        var yHeight = y
         RenderHelper.disableStandardItemLighting()
         GlStateManager.disableDepth()
         disableBlend()
         GlStateManager.resetColor()
         val darkBorder = -0x1000000
+
         if (stack.item is ItemArmor) {
             val prot = EnchantmentHelper.getEnchantmentLevel(Enchantment.protection.effectId, stack)
             val unb = EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack)
             val thorn = EnchantmentHelper.getEnchantmentLevel(Enchantment.thorns.effectId, stack)
             if (prot > 0) {
-                drawExhiOutlined(prot.toString(), drawExhiOutlined("P", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(prot), getMainColor(prot), true)
-                y += 4f
+                drawExhiOutlined(prot.toString(), drawExhiOutlined("P", x, yHeight, 0.35f, darkBorder, -1, true), yHeight, 0.35f, getBorderColor(prot), getMainColor(prot), true)
+                yHeight += 4f
             }
             if (unb > 0) {
-                drawExhiOutlined(unb.toString(), drawExhiOutlined("U", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(unb), getMainColor(unb), true)
-                y += 4f
+                drawExhiOutlined(unb.toString(), drawExhiOutlined("U", x, yHeight, 0.35f, darkBorder, -1, true), yHeight, 0.35f, getBorderColor(unb), getMainColor(unb), true)
+                yHeight += 4f
             }
             if (thorn > 0) {
-                drawExhiOutlined(thorn.toString(), drawExhiOutlined("T", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(thorn), getMainColor(thorn), true)
-                y += 4f
+                drawExhiOutlined(thorn.toString(), drawExhiOutlined("T", x, yHeight, 0.35f, darkBorder, -1, true), yHeight, 0.35f, getBorderColor(thorn), getMainColor(thorn), true)
+                yHeight += 4f
             }
         }
         if (stack.item is ItemBow) {
@@ -1527,20 +1301,20 @@ object RenderUtils : MinecraftInstance() {
             val flame = EnchantmentHelper.getEnchantmentLevel(Enchantment.flame.effectId, stack)
             val unb = EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack)
             if (power > 0) {
-                drawExhiOutlined(power.toString(), drawExhiOutlined("Pow", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(power), getMainColor(power), true)
-                y += 4f
+                drawExhiOutlined(power.toString(), drawExhiOutlined("Pow", x, yHeight, 0.35f, darkBorder, -1, true), yHeight, 0.35f, getBorderColor(power), getMainColor(power), true)
+                yHeight += 4f
             }
             if (punch > 0) {
-                drawExhiOutlined(punch.toString(), drawExhiOutlined("Pun", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(punch), getMainColor(punch), true)
-                y += 4f
+                drawExhiOutlined(punch.toString(), drawExhiOutlined("Pun", x, yHeight, 0.35f, darkBorder, -1, true), yHeight, 0.35f, getBorderColor(punch), getMainColor(punch), true)
+                yHeight += 4f
             }
             if (flame > 0) {
-                drawExhiOutlined(flame.toString(), drawExhiOutlined("F", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(flame), getMainColor(flame), true)
-                y += 4f
+                drawExhiOutlined(flame.toString(), drawExhiOutlined("F", x, yHeight, 0.35f, darkBorder, -1, true), yHeight, 0.35f, getBorderColor(flame), getMainColor(flame), true)
+                yHeight += 4f
             }
             if (unb > 0) {
-                drawExhiOutlined(unb.toString(), drawExhiOutlined("U", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(unb), getMainColor(unb), true)
-                y += 4f
+                drawExhiOutlined(unb.toString(), drawExhiOutlined("U", x, yHeight, 0.35f, darkBorder, -1, true), yHeight, 0.35f, getBorderColor(unb), getMainColor(unb), true)
+                yHeight += 4f
             }
         }
         if (stack.item is ItemSword) {
@@ -1549,20 +1323,20 @@ object RenderUtils : MinecraftInstance() {
             val fire = EnchantmentHelper.getEnchantmentLevel(Enchantment.fireAspect.effectId, stack)
             val unb = EnchantmentHelper.getEnchantmentLevel(Enchantment.unbreaking.effectId, stack)
             if (sharp > 0) {
-                drawExhiOutlined(sharp.toString(), drawExhiOutlined("S", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(sharp), getMainColor(sharp), true)
-                y += 4f
+                drawExhiOutlined(sharp.toString(), drawExhiOutlined("S", x, yHeight, 0.35f, darkBorder, -1, true), yHeight, 0.35f, getBorderColor(sharp), getMainColor(sharp), true)
+                yHeight += 4f
             }
             if (kb > 0) {
-                drawExhiOutlined(kb.toString(), drawExhiOutlined("K", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(kb), getMainColor(kb), true)
-                y += 4f
+                drawExhiOutlined(kb.toString(), drawExhiOutlined("K", x, yHeight, 0.35f, darkBorder, -1, true), yHeight, 0.35f, getBorderColor(kb), getMainColor(kb), true)
+                yHeight += 4f
             }
             if (fire > 0) {
-                drawExhiOutlined(fire.toString(), drawExhiOutlined("F", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(fire), getMainColor(fire), true)
-                y += 4f
+                drawExhiOutlined(fire.toString(), drawExhiOutlined("F", x, yHeight, 0.35f, darkBorder, -1, true), yHeight, 0.35f, getBorderColor(fire), getMainColor(fire), true)
+                yHeight += 4f
             }
             if (unb > 0) {
-                drawExhiOutlined(unb.toString(), drawExhiOutlined("U", x, y, 0.35f, darkBorder, -1, true), y, 0.35f, getBorderColor(unb), getMainColor(unb), true)
-                y += 4f
+                drawExhiOutlined(unb.toString(), drawExhiOutlined("U", x, yHeight, 0.35f, darkBorder, -1, true), yHeight, 0.35f, getBorderColor(unb), getMainColor(unb), true)
+                yHeight += 4f
             }
         }
         GlStateManager.enableDepth()
@@ -1749,63 +1523,45 @@ object RenderUtils : MinecraftInstance() {
             ((y2 - y) * factor).toInt()
         )
     }
-    fun otherDrawOutlinedBoundingBox(yaw: Float, x: Double, y: Double, z: Double, width: Double, height: Double) {
-        val width = width * 1.5
-        var yaw = (MathHelper.wrapAngleTo180_float(yaw) + 45.0).toFloat()
+    fun otherDrawOutlinedBoundingBox(pYaw: Float, x: Double, y: Double, z: Double, pWidth: Double, height: Double) {
+        val width = pWidth * 1.5
+        var yaw = MathUtils.wrapAngleTo180(pYaw) + 45f
 
-        var yaw2: Float
-        var yaw3: Float
-        var yaw4: Float
-
-        var yaw1: Float = if (yaw < 0.0) {
-            360.0F - abs(yaw)
+        val yawRender1 = if (yaw < 0.0) {
+            MathUtils.toRadians(abs(yaw) - 360f)
         } else {
-            yaw
+            MathUtils.toRadians(yaw)
         }
-        yaw1 *= -1.0F
-        yaw1 = (yaw1 * 0.017453292519943295).toFloat()
         yaw += 90.0F
 
-        if (yaw < 0.0) {
-            yaw2 = 0.0F
-            yaw2 += 360.0F - abs(yaw)
+        val yawRender2 = if (yaw < 0.0) {
+            MathUtils.toRadians(abs(yaw) - 360f)
         } else {
-            yaw2 = yaw
+            MathUtils.toRadians(yaw)
         }
-        yaw2 *= -1.0F
-        yaw2 = (yaw2 * 0.017453292519943295).toFloat()
-
         yaw += 90.0F
 
-        if (yaw < 0.0) {
-            yaw3 = 0.0F
-            yaw3 += 360.0F - abs(yaw)
+        val yawRender3 = if (yaw < 0.0) {
+            MathUtils.toRadians(abs(yaw) - 360f)
         } else {
-            yaw3 = yaw
+            MathUtils.toRadians(yaw)
         }
-
-        yaw3 *= -1.0F
-        yaw3 = (yaw3 * 0.017453292519943295).toFloat()
-
         yaw += 90.0F
 
-        if (yaw < 0.0) {
-            yaw4 = 0.0F
-            yaw4 += 360.0F - abs(yaw)
+        val yawRender4 = if (yaw < 0.0) {
+            MathUtils.toRadians(abs(yaw) - 360f)
         } else {
-            yaw4 = yaw
+            MathUtils.toRadians(yaw)
         }
-        yaw4 *= -1.0F
-        yaw4 = (yaw4 * 0.017453292519943295).toFloat()
 
-        val x1 = (sin(yaw1) * width + x).toFloat()
-        val z1 = (cos(yaw1) * width + z).toFloat()
-        val x2 = (sin(yaw2) * width + x).toFloat()
-        val z2 = (cos(yaw2) * width + z).toFloat()
-        val x3 = (sin(yaw3) * width + x).toFloat()
-        val z3 = (cos(yaw3) * width + z).toFloat()
-        val x4 = (sin(yaw4) * width + x).toFloat()
-        val z4 = (cos(yaw4) * width + z).toFloat()
+        val x1 = (sin(yawRender1) * width + x).toFloat()
+        val z1 = (cos(yawRender1) * width + z).toFloat()
+        val x2 = (sin(yawRender2) * width + x).toFloat()
+        val z2 = (cos(yawRender2) * width + z).toFloat()
+        val x3 = (sin(yawRender3) * width + x).toFloat()
+        val z3 = (cos(yawRender3) * width + z).toFloat()
+        val x4 = (sin(yawRender4) * width + x).toFloat()
+        val z4 = (cos(yawRender4) * width + z).toFloat()
         val y2 = (y + height).toFloat()
 
         val tessellator = Tessellator.getInstance()
@@ -1830,101 +1586,6 @@ object RenderUtils : MinecraftInstance() {
         worldrenderer.pos(x4.toDouble(), y2.toDouble(), z4.toDouble()).endVertex()
         worldrenderer.pos(x1.toDouble(), y2.toDouble(), z1.toDouble()).endVertex()
         worldrenderer.pos(x1.toDouble(), y, z1.toDouble()).endVertex()
-        tessellator.draw()
-    }
-    fun otherDrawBoundingBox(yaw: Float, x: Double, y: Double, z: Double, width: Double, height: Double) {
-        val width = width * 1.5
-        var yaw = MathHelper.wrapAngleTo180_float(yaw) + 45.0f
-        var yaw1: Float
-        var yaw2: Float
-        var yaw3: Float
-        var yaw4: Float
-
-        if (yaw < 0.0f) {
-            yaw1 = 0.0f
-            yaw1 += 360.0f - abs(yaw)
-        } else {
-            yaw1 = yaw
-        }
-
-        yaw1 *= -1.0f
-        yaw1 = (yaw1 * (PI / 180.0)).toFloat()
-
-        yaw += 90.0f
-
-        if (yaw < 0.0f) {
-            yaw2 = 0.0f
-            yaw2 += 360.0f - abs(yaw)
-        } else {
-            yaw2 = yaw
-        }
-
-        yaw2 *= -1.0f
-        yaw2 = (yaw2 * (PI / 180.0)).toFloat()
-
-        yaw += 90.0f
-
-        if (yaw < 0.0f) {
-            yaw3 = 0.0f
-            yaw3 += 360.0f - abs(yaw)
-        } else {
-            yaw3 = yaw
-        }
-
-        yaw3 *= -1.0f
-        yaw3 = (yaw3 * (PI / 180.0)).toFloat()
-
-        yaw += 90.0f
-
-        if (yaw < 0.0f) {
-            yaw4 = 0.0f
-            yaw4 += 360.0f - abs(yaw)
-        } else {
-            yaw4 = yaw
-        }
-
-        yaw4 *= -1.0f
-        yaw4 = (yaw4 * (PI / 180.0)).toFloat()
-
-        val x1 = (sin(yaw1) * width + x).toFloat()
-        val z1 = (cos(yaw1) * width + z).toFloat()
-        val x2 = (sin(yaw2) * width + x).toFloat()
-        val z2 = (cos(yaw2) * width + z).toFloat()
-        val x3 = (sin(yaw3) * width + x).toFloat()
-        val z3 = (cos(yaw3) * width + z).toFloat()
-        val x4 = (sin(yaw4) * width + x).toFloat()
-        val z4 = (cos(yaw4) * width + z).toFloat()
-
-        val y1 = y.toFloat()
-        val y2 = (y + height).toFloat()
-
-        val tessellator = Tessellator.getInstance()
-        val worldRenderer = tessellator.worldRenderer
-        worldRenderer.begin(GL_QUADS, DefaultVertexFormats.POSITION)
-        worldRenderer.pos(x1.toDouble(), y1.toDouble(), z1.toDouble()).endVertex()
-        worldRenderer.pos(x1.toDouble(), y2.toDouble(), z1.toDouble()).endVertex()
-        worldRenderer.pos(x2.toDouble(), y2.toDouble(), z2.toDouble()).endVertex()
-        worldRenderer.pos(x2.toDouble(), y1.toDouble(), z2.toDouble()).endVertex()
-        worldRenderer.pos(x2.toDouble(), y1.toDouble(), z2.toDouble()).endVertex()
-        worldRenderer.pos(x2.toDouble(), y2.toDouble(), z2.toDouble()).endVertex()
-        worldRenderer.pos(x3.toDouble(), y2.toDouble(), z3.toDouble()).endVertex()
-        worldRenderer.pos(x3.toDouble(), y1.toDouble(), z3.toDouble()).endVertex()
-        worldRenderer.pos(x3.toDouble(), y1.toDouble(), z3.toDouble()).endVertex()
-        worldRenderer.pos(x3.toDouble(), y2.toDouble(), z3.toDouble()).endVertex()
-        worldRenderer.pos(x4.toDouble(), y2.toDouble(), z4.toDouble()).endVertex()
-        worldRenderer.pos(x4.toDouble(), y1.toDouble(), z4.toDouble()).endVertex()
-        worldRenderer.pos(x4.toDouble(), y1.toDouble(), z4.toDouble()).endVertex()
-        worldRenderer.pos(x4.toDouble(), y2.toDouble(), z4.toDouble()).endVertex()
-        worldRenderer.pos(x1.toDouble(), y2.toDouble(), z1.toDouble()).endVertex()
-        worldRenderer.pos(x1.toDouble(), y1.toDouble(), z1.toDouble()).endVertex()
-        worldRenderer.pos(x1.toDouble(), y1.toDouble(), z1.toDouble()).endVertex()
-        worldRenderer.pos(x2.toDouble(), y1.toDouble(), z2.toDouble()).endVertex()
-        worldRenderer.pos(x3.toDouble(), y1.toDouble(), z3.toDouble()).endVertex()
-        worldRenderer.pos(x4.toDouble(), y1.toDouble(), z4.toDouble()).endVertex()
-        worldRenderer.pos(x1.toDouble(), y2.toDouble(), z1.toDouble()).endVertex()
-        worldRenderer.pos(x2.toDouble(), y2.toDouble(), z2.toDouble()).endVertex()
-        worldRenderer.pos(x3.toDouble(), y2.toDouble(), z3.toDouble()).endVertex()
-        worldRenderer.pos(x4.toDouble(), y2.toDouble(), z4.toDouble()).endVertex()
         tessellator.draw()
     }
 
@@ -2016,19 +1677,19 @@ object RenderUtils : MinecraftInstance() {
     }
 
     fun drawRoundedGradientOutlineCorner(
-        x: Float,
-        y: Float,
-        x1: Float,
-        y1: Float,
+        px: Float,
+        py: Float,
+        px1: Float,
+        py1: Float,
         width: Float,
         radius: Float,
         color: Int,
         color2: Int
     ) {
-        var x = x
-        var y = y
-        var x1 = x1
-        var y1 = y1
+        var x = px
+        var y = py
+        var x1 = px1
+        var y1 = py1
         setColour(-1)
         glEnable(GL_BLEND)
         glDisable(GL_TEXTURE_2D)
