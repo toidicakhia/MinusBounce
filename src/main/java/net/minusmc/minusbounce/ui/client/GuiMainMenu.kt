@@ -8,6 +8,7 @@ package net.minusmc.minusbounce.ui.client
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.*
 import net.minecraft.client.renderer.GlStateManager
+import net.minecraft.client.renderer.entity.Render
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.client.GuiModList
 import net.minusmc.minusbounce.MinusBounce
@@ -25,12 +26,9 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
     private val logoAnimation = EaseInOutTimer()
 
     override fun initGui() {
-        buttonList.add(MainButton(0, width / 2 - 120, height / 2 - 25, "Singleplayer"))
-        buttonList.add(MainButton(1, width / 2 + 10, height / 2 - 25, "Multiplayer"))
-        buttonList.add(MainButton(2, width / 2 - 120, height / 2 + 10, "Alt manager"))
-        buttonList.add(MainButton(3, width / 2 + 10, height / 2 + 10, "Settings"))
-        buttonList.add(MainButton(4, width / 2 - 120, height / 2 + 45, "Client settings"))
-        buttonList.add(MainButton(5, width / 2 + 10, height / 2 + 45, "Quit"))
+        buttonList.add(MainButton(0, 20, 80, "Singleplayer", ResourceLocation("minusbounce/menu/singleplayer.png")))
+        buttonList.add(MainButton(1, 20, 140, "Multiplayer", ResourceLocation("minusbounce/menu/multiplayer.png")))
+        buttonList.add(MainButton(3, 20, 200, "Settings", ResourceLocation("minusbounce/menu/settings.png")))
 
         super.initGui()
     }
@@ -38,13 +36,13 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
         drawBackground(0)
         logoAnimation.update()
         val easeProgress = EaseUtils.easeOutBack(logoAnimation.progress.toDouble())
-        val deltaX = easeProgress * 45
-        val deltaXText = easeProgress * 60
-        val patternLogoBox = Rectagle(width / 2 - 78, height / 2 - 110, width / 2 - 18, height / 2 - 30)
+        val deltaX = easeProgress * 36
+        val deltaXText = easeProgress * 72
+        val patternLogoBox = Rectagle(0, 0, 90, 50)
 
-        drawLogoText("Minus", width / 2 - 65f + deltaXText.toFloat(), height / 2 - 100f, patternLogoBox)
-        drawLogoText("Bounce", width / 2 - 65f + deltaXText.toFloat(), height / 2 - 80f + mc.fontRendererObj.FONT_HEIGHT, patternLogoBox)
-        RenderUtils.drawImage(ResourceLocation("minusbounce/big.png"), width / 2 - 28 - deltaX.toInt(), height / 2 - 100, 56, 56)
+        drawLogoText("Minus", 25f + deltaXText.toFloat(), 15f, patternLogoBox)
+        drawLogoText("Bounce", 25f + deltaXText.toFloat(), 30f + mc.fontRendererObj.FONT_HEIGHT, patternLogoBox)
+        RenderUtils.drawImage(ResourceLocation("minusbounce/big.png"), 77 - deltaX.toInt(), 15, 45, 45)
         
         Gui.drawRect(0, 0, 0, 0, Integer.MIN_VALUE)
         Fonts.fontLexend40.drawString("Version: ${MinusBounce.CLIENT_VERSION}", 3F, (height - mc.fontRendererObj.FONT_HEIGHT * 2 - 4).toFloat(), Color.WHITE.rgb, true)
@@ -71,31 +69,26 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
         var currentX = x
         val currentY = y
         for (char in text) {
-            val charWidth = Fonts.fontSatoshiBold95.getCharWidth(char)
+            val charWidth = Fonts.fontSatoshiBold80.getCharWidth(char)
 
             if (!box.isMouseHover(currentX, currentY))
-                Fonts.fontSatoshiBold95.drawString(char.toString(), currentX, currentY, Color.WHITE.rgb, true)
+                Fonts.fontSatoshiBold80.drawString(char.toString(), currentX, currentY, Color.WHITE.rgb, true)
             
             currentX += charWidth
         }
     }
 }
 
-class MainButton(buttonId: Int, x: Int, y: Int, buttonText: String): GuiButton(buttonId, x, y, buttonText) {
-    init {
-        width = 110
-        height = 25
-    }
+class MainButton(buttonId: Int, x: Int, y: Int, buttonText: String, val width: Int, val height: Int, private val image: ResourceLocation): GuiButton(buttonId, x, y, buttonText) {
+    constructor(buttonId: Int, x: Int, y: Int, buttonText: String, image: ResourceLocation): this(buttonId, x, y, buttonText, 180, 50, image)
 
     override fun drawButton(mc: Minecraft?, mouseX: Int, mouseY: Int) {
         val currentHover = mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height
-        
-        if (currentHover)
-            RenderUtils.drawRoundedGradientRectCorner(xPosition, yPosition, xPosition + width, yPosition + height, 4f, Color(85, 121, 175, 180).rgb, Color(0, 0, 58, 180).rgb)
-        else
-            RenderUtils.drawRoundedGradientRectCorner(xPosition, yPosition, xPosition + width, yPosition + height, 4f, Color(0, 0, 58, 180).rgb, Color(85, 121, 175, 180).rgb)
+
+        RenderUtils.drawRoundedRect(xPosition, yPosition, xPosition + width, yPosition + height, 4f, Color(29, 78, 216).rgb)
+        RenderUtils.drawImage(image,xPosition + 10, yPosition + 10, height - 20, height - 20)
 
         GlStateManager.resetColor()
-        Fonts.fontLexend50.drawCenteredString(displayString, xPosition + width / 2f, yPosition + (height - Fonts.font50.FONT_HEIGHT) / 2f + 2, Color.WHITE.rgb, false)
+        Fonts.fontLexend50.drawString(displayString, xPosition + height.toFloat(), yPosition + (height - Fonts.font50.FONT_HEIGHT) / 2f + 2, Color.WHITE.rgb, false)
     }
 }
