@@ -25,9 +25,12 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
     private val logoAnimation = EaseInOutTimer()
 
     override fun initGui() {
-        buttonList.add(MainButton(0, width / 2 - 55, height / 2 - 25, "Singleplayer"))
-        buttonList.add(MainButton(1, width / 2 - 55, height / 2 + 10, "Multiplayer"))
-        buttonList.add(MainButton(2, width / 2 - 55, height / 2 + 45, "Alt manager"))
+        buttonList.add(MainButton(0, width / 2 - 120, height / 2 - 25, "Singleplayer"))
+        buttonList.add(MainButton(1, width / 2 + 10, height / 2 - 25, "Multiplayer"))
+        buttonList.add(MainButton(2, width / 2 - 120, height / 2 + 10, "Alt manager"))
+        buttonList.add(MainButton(3, width / 2 + 10, height / 2 + 10, "Settings"))
+        buttonList.add(MainButton(4, width / 2 - 120, height / 2 + 45, "Client settings"))
+        buttonList.add(MainButton(5, width / 2 + 10, height / 2 + 45, "Quit"))
 
         super.initGui()
     }
@@ -35,12 +38,12 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
         drawBackground(0)
         logoAnimation.update()
         val easeProgress = EaseUtils.easeOutBack(logoAnimation.progress.toDouble())
-        val deltaX = easeProgress * 40
-        val deltaXText = easeProgress * 50
-        val patternLogoBox = Rectagle(width / 2 - 78, height / 2 - 110, width / 2 - 28, height / 2 - 30)
+        val deltaX = easeProgress * 45
+        val deltaXText = easeProgress * 60
+        val patternLogoBox = Rectagle(width / 2 - 78, height / 2 - 110, width / 2 - 18, height / 2 - 30)
 
-        drawLogoText("Minus", width / 2 - 75f + deltaXText.toFloat(), height / 2 - 100f, patternLogoBox)
-        drawLogoText("Bounce", width / 2 - 75f + deltaXText.toFloat(), height / 2 - 80f + mc.fontRendererObj.FONT_HEIGHT, patternLogoBox)
+        drawLogoText("Minus", width / 2 - 65f + deltaXText.toFloat(), height / 2 - 100f, patternLogoBox)
+        drawLogoText("Bounce", width / 2 - 65f + deltaXText.toFloat(), height / 2 - 80f + mc.fontRendererObj.FONT_HEIGHT, patternLogoBox)
         RenderUtils.drawImage(ResourceLocation("minusbounce/big.png"), width / 2 - 28 - deltaX.toInt(), height / 2 - 100, 56, 56)
         
         Gui.drawRect(0, 0, 0, 0, Integer.MIN_VALUE)
@@ -56,10 +59,9 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
             0 -> mc.displayGuiScreen(GuiSelectWorld(this))
             1 -> mc.displayGuiScreen(GuiMultiplayer(this))
             2 -> mc.displayGuiScreen(GuiAltManager(this))
-            3 -> mc.displayGuiScreen(GuiModList(this))
-            4 -> mc.displayGuiScreen(GuiOptions(this, mc.gameSettings))
+            3 -> mc.displayGuiScreen(GuiOptions(this, mc.gameSettings))
+            4 -> mc.displayGuiScreen(GuiBackground(this))
             5 -> mc.shutdown()
-            6 -> mc.displayGuiScreen(GuiBackground(this))
         }
     }
 
@@ -86,8 +88,14 @@ class MainButton(buttonId: Int, x: Int, y: Int, buttonText: String): GuiButton(b
     }
 
     override fun drawButton(mc: Minecraft?, mouseX: Int, mouseY: Int) {
-        ShaderUtils.drawRoundedRect(xPosition.toFloat(), yPosition.toFloat(), (xPosition + width).toFloat(), (yPosition + height).toFloat(), 4f, Color.WHITE.rgb)
+        val currentHover = mouseX >= xPosition && mouseY >= yPosition && mouseX < xPosition + width && mouseY < yPosition + height
+        
+        if (currentHover)
+            RenderUtils.drawRoundedGradientRectCorner(xPosition, yPosition, xPosition + width, yPosition + height, 4f, Color(85, 121, 175, 180).rgb, Color(0, 0, 58, 180).rgb)
+        else
+            RenderUtils.drawRoundedGradientRectCorner(xPosition, yPosition, xPosition + width, yPosition + height, 4f, Color(0, 0, 58, 180).rgb, Color(85, 121, 175, 180).rgb)
+
         GlStateManager.resetColor()
-        Fonts.font50.drawCenteredString(displayString, xPosition + width / 2f, yPosition + (height - Fonts.font50.FONT_HEIGHT) / 2f + 2, Color(54, 69, 79, 255).rgb, false)
+        Fonts.fontLexend50.drawCenteredString(displayString, xPosition + width / 2f, yPosition + (height - Fonts.font50.FONT_HEIGHT) / 2f + 2, Color.WHITE.rgb, false)
     }
 }

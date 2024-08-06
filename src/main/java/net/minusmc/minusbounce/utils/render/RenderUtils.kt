@@ -491,6 +491,11 @@ object RenderUtils : MinecraftInstance() {
     }
 
     @JvmOverloads
+    fun drawRoundedRectWithWidthHeight(x: Float, y: Float, width: Float, height: Float, radius: Float, color: Int, popPush: Boolean = true) {
+        drawRoundedRect(x, y, x + width, y + height, radius, color, popPush)
+    }
+
+    @JvmOverloads
     fun drawRoundedRect(
         paramXStart: Float,
         paramYStart: Float,
@@ -2006,6 +2011,10 @@ object RenderUtils : MinecraftInstance() {
         setColour(-1)
     }
 
+    fun drawRoundedGradientOutlineCorner(x: Number, y: Number, x1: Number, y1: Number, width: Float, radius: Float, color: Int, color2: Int) {
+        drawRoundedGradientOutlineCorner(x.toFloat(), y.toFloat(), x1.toFloat(), y1.toFloat(), width, radius, color, color2)
+    }
+
     fun drawRoundedGradientOutlineCorner(
         x: Float,
         y: Float,
@@ -2195,6 +2204,10 @@ object RenderUtils : MinecraftInstance() {
         val green = ((1.0 - progress) * (color1 shr 8 and 0xFF) + progress * (color2 shr 8 and 0xFF)).toInt()
         val blue = ((1.0 - progress) * (color1 and 0xFF) + progress * (color2 and 0xFF)).toInt()
         return alpha shl 24 or (red shl 16) or (green shl 8) or blue
+    }
+
+    fun drawRoundedGradientRectCorner(x: Number, y: Number, x1: Number, y1: Number, radius: Float, color: Int, color2: Int) {
+        drawRoundedGradientRectCorner(x.toFloat(), y.toFloat(), x1.toFloat(), y1.toFloat(), radius, color, color2)
     }
 
     fun drawRoundedGradientRectCorner(
