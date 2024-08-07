@@ -43,7 +43,7 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
         drawLogoText("Minus", 25f + deltaXText.toFloat(), 15f, patternLogoBox)
         drawLogoText("Bounce", 25f + deltaXText.toFloat(), 30f + mc.fontRendererObj.FONT_HEIGHT, patternLogoBox)
         RenderUtils.drawImage(ResourceLocation("minusbounce/big.png"), 77 - deltaX.toInt(), 15, 45, 45)
-        
+        PƠ
         Gui.drawRect(0, 0, 0, 0, Integer.MIN_VALUE)
         Fonts.fontLexend40.drawString("Version: ${MinusBounce.CLIENT_VERSION}", 3F, (height - mc.fontRendererObj.FONT_HEIGHT * 2 - 4).toFloat(), Color.WHITE.rgb, true)
         Fonts.fontLexend40.drawString("Made by ${MinusBounce.CLIENT_CREATOR}", 3F, (height - mc.fontRendererObj.FONT_HEIGHT - 2).toFloat(), Color.WHITE.rgb, true)
@@ -57,9 +57,10 @@ class GuiMainMenu : GuiScreen(), GuiYesNoCallback {
             0 -> mc.displayGuiScreen(GuiSelectWorld(this))
             1 -> mc.displayGuiScreen(GuiMultiplayer(this))
             2 -> mc.displayGuiScreen(GuiAltManager(this))
-            3 -> mc.displayGuiScreen(GuiOptions(this, mc.gameSettings))
-            4 -> mc.displayGuiScreen(GuiBackground(this))
+            3 -> mc.displayGuiScreen(GuiModList(this))
+            4 -> mc.displayGuiScreen(GuiOptions(this, mc.gameSettings))
             5 -> mc.shutdown()
+            6 -> mc.displayGuiScreen(GuiBackground(this))
         }
     }
 

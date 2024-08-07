@@ -32,7 +32,7 @@ object MovementUtils : MinecraftInstance() {
 
     fun boost(speed: Float, yaw: Float, forward: Float, strafe: Float) {
         if (!isMoving) return
-        val f = getDirectionToRadian(yaw, strafe, forward)
+        val f = getDirectionToRadian(yaw, forward, strafe)
         mc.thePlayer.motionX += -sin(f) * speed
         mc.thePlayer.motionZ += cos(f) * speed
     }
