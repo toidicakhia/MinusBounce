@@ -33,13 +33,16 @@ object MathUtils {
      */
     fun toRadians(deg: Double): Double = deg / 180.0 * PI
     fun toRadians(deg: Float): Float = deg / 180f * PI.toFloat()
-
+    fun toRadiansFloat(rad: Int): Float = toRadians(rad.toFloat())
+    fun toRadiansDouble(rad: Int): Double = toRadians(rad.toDouble())
 
     /**
      * Wrapper to convert radians to degrees
      */
     fun toDegrees(rad: Double): Double = rad * 180.0 / PI
     fun toDegrees(rad: Float): Float = rad * 180f / PI.toFloat()
+
+
 
     /**
      * Wrapper to check mouseX and mouseY in rect
@@ -74,4 +77,7 @@ object MathUtils {
 
     fun interpolate(current: Double, old: Double, scale: Double) = old + (current - old) * scale
 
+    fun lerp(x: Float, y: Float, multiplier: Float) = x + (y - x) * multiplier
+
+    fun lerp(x: Double, y: Double, multiplier: Double) = x + (y - x) * multiplier
 }

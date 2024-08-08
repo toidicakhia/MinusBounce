@@ -15,6 +15,7 @@ import net.minusmc.minusbounce.features.module.modules.player.Blink
 import net.minusmc.minusbounce.utils.Constants
 import net.minusmc.minusbounce.utils.render.ColorUtils
 import net.minusmc.minusbounce.utils.render.RenderUtils
+import net.minusmc.minusbounce.utils.render.GLUtils
 import net.minusmc.minusbounce.utils.PacketUtils
 import net.minusmc.minusbounce.utils.timer.MSTimer
 import net.minusmc.minusbounce.utils.misc.RandomUtils
@@ -196,12 +197,12 @@ class Backtrack : Module() {
             val z = realZ - mc.renderManager.renderPosZ
 
             GlStateManager.pushMatrix()
-            RenderUtils.start3D()
-            RenderUtils.color(color)
+            GLUtils.start3D()
+            GLUtils.color(color)
             RenderUtils.renderHitbox(AxisAlignedBB(x - target.width / 2, y, z - target.width / 2, x + target.width / 2, y + target.height, z + target.width / 2), GL11.GL_QUADS)
-            RenderUtils.color(color)
+            GLUtils.color(color)
             RenderUtils.renderHitbox(AxisAlignedBB(x - target.width / 2, y, z - target.width / 2, x + target.width / 2, y + target.height, z + target.width / 2), GL11.GL_LINE_LOOP)
-            RenderUtils.stop3D()
+            GLUtils.stop3D()
             GlStateManager.popMatrix()
         }
     }

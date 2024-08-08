@@ -9,8 +9,6 @@ import net.minecraft.client.gui.Gui
 import net.minecraft.client.gui.Gui.drawModalRectWithCustomSizedTexture
 import net.minecraft.client.gui.ScaledResolution
 import net.minecraft.client.renderer.GlStateManager
-import net.minecraft.client.renderer.GlStateManager.disableBlend
-import net.minecraft.client.renderer.GlStateManager.enableTexture2D
 import net.minecraft.client.renderer.OpenGlHelper
 import net.minecraft.client.renderer.RenderHelper
 import net.minecraft.client.renderer.Tessellator
@@ -42,19 +40,15 @@ import kotlin.math.*
 
 
 object RenderUtils : MinecraftInstance() {
-    private val glCapMap: MutableMap<Int, Boolean> = HashMap()
-    
-    private val DISPLAY_LISTS_2D = IntArray(4)
-    
+    private val DISPLAY_LISTS_2D = (0..3).map {glGenLists(1)}.toTypedArray()
     private const val ANIMATION_DURATION = 500
-
     private var startTime = 0L
     var deltaTime = 0
 
+    private val frustrum = Frustum()
+    private var zLevel = 0f
+
     init {
-        for (i in DISPLAY_LISTS_2D.indices) {
-            DISPLAY_LISTS_2D[i] = glGenLists(1)
-        }
         glNewList(DISPLAY_LISTS_2D[0], GL_COMPILE)
         quickDrawRect(-7f, 2f, -4f, 3f)
         quickDrawRect(4f, 2f, 7f, 3f)
@@ -81,29 +75,6 @@ object RenderUtils : MinecraftInstance() {
         glEndList()
     }
 
-    fun drawFilledCircleNoGL(x: Int, y: Int, r: Double, c: Int, quality: Int) {
-        val f = (c shr 24 and 0xff) / 255f
-        val f1 = (c shr 16 and 0xff) / 255f
-        val f2 = (c shr 8 and 0xff) / 255f
-        val f3 = (c and 0xff) / 255f
-        glColor4f(f1, f2, f3, f)
-        glBegin(GL_TRIANGLE_FAN)
-        for (i in 0..360 / quality) {
-            val x2 = sin(i * quality * Math.PI / 180) * r
-            val y2 = cos(i * quality * Math.PI / 180) * r
-            glVertex2d(x + x2, y + y2)
-        }
-        glEnd()
-    }
-
-    private fun quickPolygonCircle(x: Float, y: Float, xRadius: Float, yRadius: Float, start: Int, end: Int) {
-        var i = end
-        while (i >= start) {
-            glVertex2d(x + sin(i * Math.PI / 180.0) * xRadius, y + cos(i * Math.PI / 180.0) * yRadius)
-            i -= 4
-        }
-    }
-
     fun drawRoundedCornerRect(x: Float, y: Float, x1: Float, y1: Float, radius: Float, color: Int) {
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -114,7 +85,7 @@ object RenderUtils : MinecraftInstance() {
         drawRoundedCornerRect(x, y, x1, y1, radius)
         glEnable(GL_TEXTURE_2D)
         glDisable(GL_BLEND)
-        setGlState(GL_CULL_FACE, hasCull)
+        GLUtils.setGlState(GL_CULL_FACE, hasCull)
     }
 
     fun drawRoundedCornerRect(x: Float, y: Float, x1: Float, y1: Float, radius: Float) {
@@ -127,18 +98,6 @@ object RenderUtils : MinecraftInstance() {
         quickPolygonCircle(x + xRadius, y1 - yRadius, xRadius, yRadius, 270, 360)
         glEnd()
     }
-
-    fun color(color: Int) = color(color, ((color shr 24 and 0xFF) / 255).toFloat())
-
-    fun color(color: Int, alpha: Float) {
-        val r = (color shr 16 and 0xFF) / 255.0f
-        val g = (color shr 8 and 0xFF) / 255.0f
-        val b = (color and 0xFF) / 255.0f
-        GlStateManager.color(r, g, b, alpha)
-    }
-
-    private val frustrum = Frustum()
-    private var zLevel = 0f
 
     /**
      * Draws a textured rectangle at the stored z-value. Args: x, y, u, v, width, height
@@ -158,8 +117,8 @@ object RenderUtils : MinecraftInstance() {
         worldrenderer.pos(cx.toDouble(), (cy + dirY).toDouble(), 0.0).endVertex()
         worldrenderer.pos((cx + dirX).toDouble(), cy.toDouble(), 0.0).endVertex()
         tessellator.draw()
-        enableTexture2D()
-        disableBlend()
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
         GlStateManager.color(1f, 1f, 1f, 1f)
     }
 
@@ -181,54 +140,6 @@ object RenderUtils : MinecraftInstance() {
         tessellator.draw()
     }
 
-    fun drawGradientSidewaysH(left: Double, top: Double, right: Double, bottom: Double, col1: Int, col2: Int) {
-        glEnable(GL_BLEND)
-        glDisable(GL_TEXTURE_2D)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glEnable(GL_LINE_SMOOTH)
-        glShadeModel(GL_SMOOTH)
-        quickDrawGradientSidewaysH(left, top, right, bottom, col1, col2)
-        glEnable(GL_TEXTURE_2D)
-        glDisable(GL_BLEND)
-        glDisable(GL_LINE_SMOOTH)
-        glShadeModel(GL_FLAT)
-    }
-
-    fun quickDrawGradientSidewaysH(left: Double, top: Double, right: Double, bottom: Double, col1: Int, col2: Int) {
-        glBegin(GL_QUADS)
-        glColor(col1)
-        glVertex2d(left, top)
-        glVertex2d(left, bottom)
-        glColor(col2)
-        glVertex2d(right, bottom)
-        glVertex2d(right, top)
-        glEnd()
-    }
-
-    fun drawGradientSidewaysV(left: Double, top: Double, right: Double, bottom: Double, col1: Int, col2: Int) {
-        glEnable(GL_BLEND)
-        glDisable(GL_TEXTURE_2D)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glEnable(GL_LINE_SMOOTH)
-        glShadeModel(GL_SMOOTH)
-        quickDrawGradientSidewaysV(left, top, right, bottom, col1, col2)
-        glEnable(GL_TEXTURE_2D)
-        glDisable(GL_BLEND)
-        glDisable(GL_LINE_SMOOTH)
-        glShadeModel(GL_FLAT)
-    }
-
-    fun quickDrawGradientSidewaysV(left: Double, top: Double, right: Double, bottom: Double, col1: Int, col2: Int) {
-        glBegin(GL_QUADS)
-        glColor(col1)
-        glVertex2d(right, top)
-        glVertex2d(left, top)
-        glColor(col2)
-        glVertex2d(left, bottom) // TODO: Fix this, this may have been a mistake
-        glVertex2d(right, bottom)
-        glEnd()
-    }
-
     fun drawHead(skin: ResourceLocation, x: Int, y: Int, width: Int, height: Int) {
         glDisable(GL_DEPTH_TEST)
         glEnable(GL_BLEND)
@@ -248,23 +159,6 @@ object RenderUtils : MinecraftInstance() {
         val current = mc.renderViewEntity
         frustrum.setPosition(current.posX, current.posY, current.posZ)
         return frustrum.isBoundingBoxInFrustum(bb)
-    }
-
-    fun startSmooth() {
-        glEnable(2848)
-        glEnable(2881)
-        glEnable(2832)
-        glEnable(3042)
-        glBlendFunc(770, 771)
-        glHint(3154, 4354)
-        glHint(3155, 4354)
-        glHint(3153, 4354)
-    }
-
-    fun endSmooth() {
-        glDisable(2848)
-        glDisable(2881)
-        glEnable(2832)
     }
 
     fun drawExhiRect(x: Float, y: Float, x2: Float, y2: Float) {
@@ -323,8 +217,8 @@ object RenderUtils : MinecraftInstance() {
             worldrenderer.pos(x1 + sin(i * degree) * radius, y2 + cos(i * degree) * radius, 0.0).endVertex()
 
         tessellator.draw()
-        enableTexture2D()
-        disableBlend()
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
     }
 
     fun newDrawRect(left: Float, top: Float, right: Float, bottom: Float, color: Int) {
@@ -351,8 +245,8 @@ object RenderUtils : MinecraftInstance() {
         worldrenderer.pos(right, top, 0.0).endVertex()
         worldrenderer.pos(left, top, 0.0).endVertex()
         tessellator.draw()
-        enableTexture2D()
-        disableBlend()
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
     }
 
     @JvmOverloads
@@ -533,7 +427,7 @@ object RenderUtils : MinecraftInstance() {
         val tessellator = Tessellator.getInstance()
         val worldrenderer = tessellator.worldRenderer
         glLineWidth(1f)
-        enableGlCap(GL_LINE_SMOOTH)
+        GLUtils.enableGlCap(GL_LINE_SMOOTH)
         GlStateManager.enableBlend()
         GlStateManager.disableTexture2D()
         GlStateManager.tryBlendFuncSeparate(770, 771, 1, 0)
@@ -550,40 +444,10 @@ object RenderUtils : MinecraftInstance() {
             ii++
         }
         tessellator.draw()
-        enableTexture2D()
-        disableBlend()
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
         GlStateManager.scale(2f, 2f, 2f)
         GlStateManager.color(1f, 1f, 1f, 1f)
-    }
-
-    fun drawGradientSideways(left: Double, top: Double, right: Double, bottom: Double, col1: Int, col2: Int) {
-        val f = (col1 shr 24 and 0xFF) / 255.0f
-        val f2 = (col1 shr 16 and 0xFF) / 255.0f
-        val f3 = (col1 shr 8 and 0xFF) / 255.0f
-        val f4 = (col1 and 0xFF) / 255.0f
-        val f5 = (col2 shr 24 and 0xFF) / 255.0f
-        val f6 = (col2 shr 16 and 0xFF) / 255.0f
-        val f7 = (col2 shr 8 and 0xFF) / 255.0f
-        val f8 = (col2 and 0xFF) / 255.0f
-        glEnable(3042)
-        glDisable(3553)
-        glBlendFunc(770, 771)
-        glEnable(2848)
-        glShadeModel(7425)
-        glPushMatrix()
-        glBegin(7)
-        glColor4f(f2, f3, f4, f)
-        glVertex2d(left, top)
-        glVertex2d(left, bottom)
-        glColor4f(f6, f7, f8, f5)
-        glVertex2d(right, bottom)
-        glVertex2d(right, top)
-        glEnd()
-        glPopMatrix()
-        glEnable(3553)
-        glDisable(3042)
-        glDisable(2848)
-        glShadeModel(7424)
     }
 
     fun drawGradientRect(left: Int, top: Int, right: Int, bottom: Int, startColor: Int, endColor: Int) {
@@ -610,9 +474,9 @@ object RenderUtils : MinecraftInstance() {
         worldrenderer.pos(right.toDouble(), bottom.toDouble(), zLevel.toDouble()).color(f5, f6, f7, f4).endVertex()
         tessellator.draw()
         GlStateManager.shadeModel(7424)
-        disableBlend()
+        GlStateManager.disableBlend()
         GlStateManager.enableAlpha()
-        enableTexture2D()
+        GlStateManager.enableTexture2D()
         GlStateManager.popMatrix()
     }
 
@@ -664,20 +528,20 @@ object RenderUtils : MinecraftInstance() {
                 .offset(-posX, -posY, -posZ)
         }
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        enableGlCap(GL_BLEND)
-        disableGlCap(GL_TEXTURE_2D, GL_DEPTH_TEST)
+        GLUtils.enableGlCap(GL_BLEND)
+        GLUtils.disableGlCap(GL_TEXTURE_2D, GL_DEPTH_TEST)
         glDepthMask(false)
         glColor(color.red, color.green, color.blue, if (color.alpha != 255) color.alpha else if (outline) 26 else 35)
         drawFilledBox(axisAlignedBB)
         if (outline) {
             glLineWidth(1f)
-            enableGlCap(GL_LINE_SMOOTH)
+            GLUtils.enableGlCap(GL_LINE_SMOOTH)
             glColor(color)
             drawSelectionBoundingBox(axisAlignedBB)
         }
         GlStateManager.resetColor()
         glDepthMask(true)
-        resetCaps()
+        GLUtils.resetCaps()
     }
 
     fun drawShadow(x: Float, y: Float, width: Float, height: Float) {
@@ -738,8 +602,8 @@ object RenderUtils : MinecraftInstance() {
         val renderManager = mc.renderManager
         val timer = mc.timer
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        enableGlCap(GL_BLEND)
-        disableGlCap(GL_TEXTURE_2D, GL_DEPTH_TEST)
+        GLUtils.enableGlCap(GL_BLEND)
+        GLUtils.disableGlCap(GL_TEXTURE_2D, GL_DEPTH_TEST)
         glDepthMask(false)
         val x = (entity.lastTickPosX + (entity.posX - entity.lastTickPosX) * timer.renderPartialTicks
                 - renderManager.renderPosX)
@@ -758,7 +622,7 @@ object RenderUtils : MinecraftInstance() {
         )
         if (outline) {
             glLineWidth(1f)
-            enableGlCap(GL_LINE_SMOOTH)
+            GLUtils.enableGlCap(GL_LINE_SMOOTH)
             glColor(color.red, color.green, color.blue, 95)
             drawSelectionBoundingBox(axisAlignedBB)
         }
@@ -766,7 +630,7 @@ object RenderUtils : MinecraftInstance() {
         drawFilledBox(axisAlignedBB)
         GlStateManager.resetColor()
         glDepthMask(true)
-        resetCaps()
+        GLUtils.resetCaps()
     }
 
     fun drawAxisAlignedBB(axisAlignedBB: AxisAlignedBB, color: Color) {
@@ -951,8 +815,8 @@ object RenderUtils : MinecraftInstance() {
         worldrenderer.pos(right, top, 0.0).endVertex()
         worldrenderer.pos(left, top, 0.0).endVertex()
         tessellator.draw()
-        enableTexture2D()
-        disableBlend()
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
     }
 
     /**
@@ -1023,154 +887,6 @@ object RenderUtils : MinecraftInstance() {
         glVertex2d(x.toDouble(), y2.toDouble())
         glVertex2d(x2.toDouble(), y2.toDouble())
         glEnd()
-    }
-
-    fun drawLoadingCircle(x: Float, y: Float) {
-        for (i in 0..3) {
-            val rot = (System.nanoTime() / 5000000 * i % 360).toInt()
-            drawCircle(x, y, (i * 10).toFloat(), rot - 180, rot)
-        }
-    }
-
-    fun drawCircle(x: Float, y: Float, radius: Float, lineWidth: Float, start: Int, end: Int, color: Color) {
-        glColor(color)
-        glEnable(GL_BLEND)
-        glDisable(GL_TEXTURE_2D)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        GlStateManager.enableBlend()
-        GlStateManager.disableTexture2D()
-        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
-        glColor(color)
-        glEnable(GL_LINE_SMOOTH)
-        glLineWidth(lineWidth)
-        glBegin(GL_LINE_STRIP)
-        var i = end.toFloat()
-        while (i >= start) {
-            glVertex2f(
-                (x + cos(i * Math.PI / 180) * (radius * 1.001f)).toFloat(),
-                (y + sin(i * Math.PI / 180) * (radius * 1.001f)).toFloat()
-            )
-            i -= 360 / 90.0f
-        }
-        glEnd()
-        glDisable(GL_LINE_SMOOTH)
-        enableTexture2D()
-        disableBlend()
-    }
-
-    fun drawCircle(x: Float, y: Float, radius: Float, lineWidth: Float, start: Int, end: Int) {
-        GlStateManager.enableBlend()
-        GlStateManager.disableTexture2D()
-        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
-        glColor(Color.WHITE)
-        glEnable(GL_LINE_SMOOTH)
-        glLineWidth(lineWidth)
-        glBegin(GL_LINE_STRIP)
-        var i = end.toFloat()
-        while (i >= start) {
-            glVertex2f(
-                (x + cos(i * Math.PI / 180) * (radius * 1.001f)).toFloat(),
-                (y + sin(i * Math.PI / 180) * (radius * 1.001f)).toFloat()
-            )
-            i -= 360 / 90.0f
-        }
-        glEnd()
-        glDisable(GL_LINE_SMOOTH)
-        enableTexture2D()
-        disableBlend()
-    }
-
-    fun drawCircle(x: Float, y: Float, radius: Float, start: Int, end: Int) {
-        GlStateManager.enableBlend()
-        GlStateManager.disableTexture2D()
-        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
-        glColor(Color.WHITE)
-        glEnable(GL_LINE_SMOOTH)
-        glLineWidth(2f)
-        glBegin(GL_LINE_STRIP)
-        var i = end.toFloat()
-        while (i >= start) {
-            glVertex2f(
-                (x + cos(i * Math.PI / 180) * (radius * 1.001f)).toFloat(),
-                (y + sin(i * Math.PI / 180) * (radius * 1.001f)).toFloat()
-            )
-            i -= 360 / 90.0f
-        }
-        glEnd()
-        glDisable(GL_LINE_SMOOTH)
-        enableTexture2D()
-        disableBlend()
-    }
-
-    fun drawGradientCircle(x: Float, y: Float, radius: Float, start: Int, end: Int, color1: Color, color2: Color) {
-        GlStateManager.enableBlend()
-        GlStateManager.disableTexture2D()
-        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
-        glEnable(GL_LINE_SMOOTH)
-        glLineWidth(2f)
-        glBegin(GL_LINE_STRIP)
-        var i = end.toFloat()
-        while (i >= start) {
-            val c = ColorUtils.getGradientOffset(color1, color2, 1.0, (abs(System.currentTimeMillis() / 360.0 + (i * 34 / 360) * 56 / 100) / 10).toInt()).rgb
-            val f2 = (c shr 24 and 255).toFloat() / 255.0f
-            val f22 = (c shr 16 and 255).toFloat() / 255.0f
-            val f3 = (c shr 8 and 255).toFloat() / 255.0f
-            val f4 = (c and 255).toFloat() / 255.0f
-            GlStateManager.color(f22, f3, f4, f2)
-            glVertex2f(
-                (x + cos(i * Math.PI / 180) * (radius * 1.001f)).toFloat(),
-                (y + sin(i * Math.PI / 180) * (radius * 1.001f)).toFloat()
-            )
-            i -= 360f / 90.0f
-        }
-        glEnd()
-        glDisable(GL_LINE_SMOOTH)
-        enableTexture2D()
-        disableBlend()
-    }
-
-    fun drawFilledCircle(xx: Int, yy: Int, radius: Float, color: Color) {
-        val sections = 50
-        val dAngle = 2 * Math.PI / sections
-        var x: Float
-        var y: Float
-        glPushAttrib(GL_ENABLE_BIT)
-        glEnable(GL_BLEND)
-        glDisable(GL_TEXTURE_2D)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glEnable(GL_LINE_SMOOTH)
-        glBegin(GL_TRIANGLE_FAN)
-        for (i in 0 until sections) {
-            x = (radius * sin(i * dAngle)).toFloat()
-            y = (radius * cos(i * dAngle)).toFloat()
-            glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
-            glVertex2f(xx + x, yy + y)
-        }
-        GlStateManager.color(0f, 0f, 0f)
-        glEnd()
-        glPopAttrib()
-    }
-
-    fun drawFilledCircle(xx: Float, yy: Float, radius: Float, color: Color) {
-        val sections = 50
-        val dAngle = 2 * Math.PI / sections
-        var x: Float
-        var y: Float
-        glPushAttrib(GL_ENABLE_BIT)
-        glEnable(GL_BLEND)
-        glDisable(GL_TEXTURE_2D)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glEnable(GL_LINE_SMOOTH)
-        glBegin(GL_TRIANGLE_FAN)
-        for (i in 0 until sections) {
-            x = (radius * sin(i * dAngle)).toFloat()
-            y = (radius * cos(i * dAngle)).toFloat()
-            glColor4f(color.red / 255f, color.green / 255f, color.blue / 255f, color.alpha / 255f)
-            glVertex2f(xx + x, yy + y)
-        }
-        GlStateManager.color(0f, 0f, 0f)
-        glEnd()
-        glPopAttrib()
     }
 
     fun drawImage(image: ResourceLocation?, x: Int, y: Int, width: Int, height: Int) {
@@ -1274,7 +990,7 @@ object RenderUtils : MinecraftInstance() {
         var yHeight = y
         RenderHelper.disableStandardItemLighting()
         GlStateManager.disableDepth()
-        disableBlend()
+        GlStateManager.disableBlend()
         GlStateManager.resetColor()
         val darkBorder = -0x1000000
 
@@ -1456,14 +1172,14 @@ object RenderUtils : MinecraftInstance() {
         glRotatef(-mc.renderManager.playerViewY, 0f, 1f, 0f)
         glRotatef(mc.renderManager.playerViewX, 1f, 0f, 0f)
         glScalef(-0.05f, -0.05f, 0.05f)
-        setGlCap(GL_LIGHTING, false)
-        setGlCap(GL_DEPTH_TEST, false)
-        setGlCap(GL_BLEND, true)
+        GLUtils.setGlCap(GL_LIGHTING, false)
+        GLUtils.setGlCap(GL_DEPTH_TEST, false)
+        GLUtils.setGlCap(GL_BLEND, true)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
         val width = Fonts.font35.getStringWidth(string!!) / 2
         Gui.drawRect(-width - 1, -1, width + 1, Fonts.font35.FONT_HEIGHT, Int.MIN_VALUE)
         Fonts.font35.drawString(string, -width.toFloat(), 1.5f, Color.WHITE.rgb, true)
-        resetCaps()
+        GLUtils.resetCaps()
         glColor4f(1f, 1f, 1f, 1f)
         glPopMatrix()
     }
@@ -1949,56 +1665,6 @@ object RenderUtils : MinecraftInstance() {
         setColour(-1)
     }
 
-    /**
-     * GL CAP MANAGER
-     *
-     * TODO: Remove gl cap manager and replace by something better
-     */
-    fun resetCaps() {
-        glCapMap.forEach(this::setGlState)
-    }
-
-    fun enableGlCap(cap: Int) {
-        setGlCap(cap, true)
-    }
-
-    fun enableGlCap(vararg caps: Int) {
-        for (cap in caps) setGlCap(cap, true)
-    }
-
-    fun disableGlCap(cap: Int) {
-        setGlCap(cap, true)
-    }
-
-    fun disableGlCap(vararg caps: Int) {
-        for (cap in caps) setGlCap(cap, false)
-    }
-
-    fun setGlCap(cap: Int, state: Boolean) {
-        glCapMap[cap] = glGetBoolean(cap)
-        setGlState(cap, state)
-    }
-
-    fun setGlState(cap: Int, state: Boolean) {
-        if (state) glEnable(cap) else glDisable(cap)
-    }
-
-    fun stop3D() {
-        GlStateManager.enableCull()
-        glEnable(GL_TEXTURE_2D)
-        glEnable(GL_DEPTH_TEST)
-        glDepthMask(true)
-        glDisable(GL_BLEND)
-    }
-
-    fun start3D() {
-        glDisable(GL_TEXTURE_2D)
-        glDisable(GL_DEPTH_TEST)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        glDepthMask(false)
-        GlStateManager.disableCull()
-    }
-
     fun renderHitbox(bb: AxisAlignedBB, type: Int) {
         glBegin(type)
 
@@ -2048,6 +1714,201 @@ object RenderUtils : MinecraftInstance() {
         glVertex3d(bb.minX, bb.maxY, bb.maxZ)
 
         glEnd()
+    }
+
+    /**
+     * CIRCLE
+     */
+
+    fun drawFilledCircleNoGL(x: Int, y: Int, radius: Double, color: Color, quality: Int) {
+        val red = color.red / 255f
+        val green = color.green / 255f
+        val blue = color.blue / 255f
+        val alpha = color.alpha / 255f
+
+        glColor4f(red, green, blue, alpha)
+        glBegin(GL_TRIANGLE_FAN)
+
+        for (i in 0 until 360 / quality) {
+            val angle = MathUtils.toRadiansFloat(i * quality)
+
+            val x2 = sin(angle) * radius
+            val y2 = cos(angle) * radius
+            glVertex2d(x + x2, y + y2)
+        }
+        glEnd()
+    }
+
+    fun drawFilledCircleNoGL(x: Int, y: Int, radius: Double, color: Int, quality: Int) {
+        val alpha = color shr 24 and 0xFF
+        val red = color shr 16 and 0xFF
+        val green = color shr 8 and 0xFF
+        val blue = color and 0xFF
+
+        drawFilledCircleNoGL(x, y, radius, Color(red, green, blue, alpha), quality)
+    }
+
+    fun quickPolygonCircle(x: Float, y: Float, xRadius: Float, yRadius: Float, start: Int, end: Int) {
+        for (i in end until start step 4) {
+            val angle = MathUtils.toRadiansDouble(i)
+            glVertex2d(x + sin(angle) * xRadius, y + cos(angle) * yRadius)
+        }
+    }
+
+    fun drawLoadingCircle(x: Float, y: Float) {
+        for (i in 0..3) {
+            val rot = (System.nanoTime() / 5000000 * i % 360).toInt()
+            drawCircle(x, y, 10f * i, rot - 180, rot)
+        }
+    }
+
+    fun drawCircle(x: Float, y: Float, radius: Float, start: Int, end: Int) {
+        drawCircle(x, y, radius, 2f, start, end, Color.WHITE)
+    }
+
+    fun drawCircle(x: Float, y: Float, radius: Float, lineWidth: Float, start: Int, end: Int) {
+        drawCircle(x, y, radius, lineWidth, start, end, Color.WHITE)
+    }
+
+    fun drawCircle(x: Float, y: Float, radius: Float, lineWidth: Float, start: Int, end: Int, color: Color) {
+        glColor(color)
+        glEnable(GL_BLEND)
+        glDisable(GL_TEXTURE_2D)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        GlStateManager.enableBlend()
+        GlStateManager.disableTexture2D()
+        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
+        glColor(color)
+        glEnable(GL_LINE_SMOOTH)
+        glLineWidth(lineWidth)
+        glBegin(GL_LINE_STRIP)
+
+        for (i in end until start step 4) {
+            val angle = MathUtils.toRadiansFloat(i)
+            glVertex2f(x + cos(angle) * radius * 1.001f, y + sin(angle) * radius * 1.001f)
+        }
+
+        glEnd()
+        glDisable(GL_LINE_SMOOTH)
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
+    }
+
+    fun drawGradientCircle(x: Float, y: Float, radius: Float, start: Int, end: Int, startColor: Color, endColor: Color) {
+        GlStateManager.enableBlend()
+        GlStateManager.disableTexture2D()
+        GlStateManager.tryBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO)
+        glEnable(GL_LINE_SMOOTH)
+        glLineWidth(2f)
+        glBegin(GL_LINE_STRIP)
+
+        for (i in end until start step 4) {
+            val color = ColorUtils.getGradientOffset(startColor, endColor, 1.0, (abs(System.currentTimeMillis() / 360.0 + (i * 34 / 360) * 56 / 100) / 10).toInt()).rgb
+            GLUtils.color(color)
+
+            val angle = MathUtils.toRadiansFloat(i)
+            glVertex2f(x + cos(angle) * radius * 1.001f, y + sin(angle) * radius * 1.001f)
+
+        }
+        glEnd()
+        glDisable(GL_LINE_SMOOTH)
+        GlStateManager.enableTexture2D()
+        GlStateManager.disableBlend()
+    }
+
+    fun drawFilledCircle(x: Number, y: Number, radius: Float, color: Color) {
+        drawFilledCircle(x.toFloat(), y.toFloat(), radius, color)
+    }
+
+    fun drawFilledCircle(x: Float, y: Float, radius: Float, color: Color) {
+        val angleUnit = PI.toFloat() / 25 // 2 * PI / 50
+        glPushAttrib(GL_ENABLE_BIT)
+        glEnable(GL_BLEND)
+        glDisable(GL_TEXTURE_2D)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnable(GL_LINE_SMOOTH)
+        glBegin(GL_TRIANGLE_FAN)
+        for (i in 0 until 50) {
+            GLUtils.color(color)
+            glVertex2f(x + sin(i * angleUnit) * radius, y + cos(i * angleUnit) * radius)
+        }
+        GlStateManager.color(0f, 0f, 0f)
+        glEnd()
+        glPopAttrib()
+    }
+
+    /**
+     * Gradient sideways
+     */
+
+    fun drawGradientSidewaysHorizontal(left: Double, top: Double, right: Double, bottom: Double, color1: Int, color2: Int) {
+        glEnable(GL_BLEND)
+        glDisable(GL_TEXTURE_2D)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnable(GL_LINE_SMOOTH)
+        glShadeModel(GL_SMOOTH)
+        quickDrawGradientSidewaysHorizontal(left, top, right, bottom, color1, color2)
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_BLEND)
+        glDisable(GL_LINE_SMOOTH)
+        glShadeModel(GL_FLAT)
+    }
+
+    fun quickDrawGradientSidewaysHorizontal(left: Double, top: Double, right: Double, bottom: Double, color1: Int, color2: Int) {
+        glBegin(GL_QUADS)
+        glColor(color1)
+        glVertex2d(left, top)
+        glVertex2d(left, bottom)
+        glColor(color2)
+        glVertex2d(right, bottom)
+        glVertex2d(right, top)
+        glEnd()
+    }
+
+    fun drawGradientSidewaysVertical(left: Double, top: Double, right: Double, bottom: Double, color1: Int, color2: Int) {
+        glEnable(GL_BLEND)
+        glDisable(GL_TEXTURE_2D)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glEnable(GL_LINE_SMOOTH)
+        glShadeModel(GL_SMOOTH)
+        quickDrawGradientSidewaysVertical(left, top, right, bottom, color1, color2)
+        glEnable(GL_TEXTURE_2D)
+        glDisable(GL_BLEND)
+        glDisable(GL_LINE_SMOOTH)
+        glShadeModel(GL_FLAT)
+    }
+
+    fun quickDrawGradientSidewaysVertical(left: Double, top: Double, right: Double, bottom: Double, color1: Int, color2: Int) {
+        glBegin(GL_QUADS)
+        glColor(color1)
+        glVertex2d(right, top)
+        glVertex2d(left, top)
+        glColor(color2)
+        glVertex2d(left, bottom)
+        glVertex2d(right, bottom)
+        glEnd()
+    }
+
+    fun drawGradientSideways(left: Double, top: Double, right: Double, bottom: Double, color1: Int, color2: Int) {
+        glEnable(3042)
+        glDisable(3553)
+        glBlendFunc(770, 771)
+        glEnable(2848)
+        glShadeModel(7425)
+        glPushMatrix()
+        glBegin(7)
+        GLUtils.color(color1)
+        glVertex2d(left, top)
+        glVertex2d(left, bottom)
+        GLUtils.color(color2)
+        glVertex2d(right, bottom)
+        glVertex2d(right, top)
+        glEnd()
+        glPopMatrix()
+        glEnable(3553)
+        glDisable(3042)
+        glDisable(2848)
+        glShadeModel(7424)
     }
 
 }
