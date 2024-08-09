@@ -198,9 +198,9 @@ class Backtrack : Module() {
 
             GlStateManager.pushMatrix()
             GLUtils.start3D()
-            GLUtils.color(color)
+            GLUtils.glColor(color)
             RenderUtils.renderHitbox(AxisAlignedBB(x - target.width / 2, y, z - target.width / 2, x + target.width / 2, y + target.height, z + target.width / 2), GL11.GL_QUADS)
-            GLUtils.color(color)
+            GLUtils.glColor(color)
             RenderUtils.renderHitbox(AxisAlignedBB(x - target.width / 2, y, z - target.width / 2, x + target.width / 2, y + target.height, z + target.width / 2), GL11.GL_LINE_LOOP)
             GLUtils.stop3D()
             GlStateManager.popMatrix()

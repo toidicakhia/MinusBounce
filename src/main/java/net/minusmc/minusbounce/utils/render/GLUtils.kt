@@ -88,7 +88,7 @@ object GLUtils: MinecraftInstance() {
      * Extended "color" function of GLStateManager
      */
 
-    fun color(color: Color) {
+    fun glColor(color: Color) {
         val red = color.red / 255f
         val green = color.green / 255f
         val blue = color.blue / 255f
@@ -97,21 +97,25 @@ object GLUtils: MinecraftInstance() {
         GlStateManager.color(red, green, blue, alpha)
     }
 
-    fun color(color: Int) {
+    fun glColor(color: Int) {
         val alpha = color shr 24 and 0xFF
         val red = color shr 16 and 0xFF
         val green = color shr 8 and 0xFF
         val blue = color and 0xFF
 
-        color(Color(red, green, blue, alpha))
+        glColor(Color(red, green, blue, alpha))
     }
 
-    fun color(color: Int, alpha: Float) {
+    fun glColor(color: Int, alpha: Float) {
         val red = color shr 16 and 0xFF
         val green = color shr 8 and 0xFF
         val blue = color and 0xFF
 
-        color(Color(red, green, blue, (alpha * 255).toInt()))
+        glColor(Color(red, green, blue, (alpha * 255).toInt()))
+    }
+
+    fun glColor(red: Int, green: Int, blue: Int, alpha: Int) {
+        glColor(Color(red, green, blue, alpha))
     }
 
 }

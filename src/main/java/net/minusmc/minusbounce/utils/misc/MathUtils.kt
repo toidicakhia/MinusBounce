@@ -77,7 +77,5 @@ object MathUtils {
 
     fun interpolate(current: Double, old: Double, scale: Double) = old + (current - old) * scale
 
-    fun lerp(x: Float, y: Float, multiplier: Float) = x + (y - x) * multiplier
-
-    fun lerp(x: Double, y: Double, multiplier: Double) = x + (y - x) * multiplier
+    fun interpolate(current: Number, old: Number, scale: Number) = interpolate(current.toDouble(), old.toDouble(), scale.toDouble())
 }

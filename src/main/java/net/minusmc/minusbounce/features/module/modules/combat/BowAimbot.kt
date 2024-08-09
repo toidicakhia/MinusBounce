@@ -82,6 +82,6 @@ class BowAimbot : Module() {
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
         if (markValue.get())
-            RenderUtils.drawPlatform(target ?: return, Color(37, 126, 255, 70))
+            RenderUtils.drawPlatform(target ?: return, Color(37, 126, 255, 70), 0f)
     }
 }

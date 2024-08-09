@@ -134,13 +134,13 @@ class Projectiles : Module() {
         GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST)
         when (colorMode.get().lowercase()) {
             "custom" -> {
-                RenderUtils.glColor(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get(), 255))
+                GLUtils.glColor(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get(), 255))
             }
             "bowpower" -> {
-                interpolateHSB(Color.RED, Color.GREEN, (motionFactor / 30) * 10)?.let { RenderUtils.glColor(it) }
+                interpolateHSB(Color.RED, Color.GREEN, (motionFactor / 30) * 10)?.let { GLUtils.glColor(it) }
             }
             "rainbow" -> {
-                RenderUtils.glColor(ColorUtils.rainbow())
+                GLUtils.glColor(ColorUtils.rainbow())
             }
         }
         GL11.glLineWidth(2f)
@@ -236,7 +236,7 @@ class Projectiles : Module() {
 
             // Check if hitting an entity
             if (hitEntity)
-                RenderUtils.glColor(Color(255, 0, 0, 150))
+                GLUtils.glColor(Color(255, 0, 0, 150))
         }
 
         // Rendering hit cylinder
