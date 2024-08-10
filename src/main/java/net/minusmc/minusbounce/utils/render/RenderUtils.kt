@@ -1115,8 +1115,8 @@ object RenderUtils : MinecraftInstance() {
         glDepthMask(false)
 
         val x = MathUtils.interpolate(entity.posX, entity.lastTickPosX, mc.timer.renderPartialTicks) - mc.renderManager.renderPosX
-        val y = MathUtils.interpolate(entity.posY, entity.lastTickPosY, mc.timer.renderPartialTicks) - mc.renderManager.renderPosX
-        val z = MathUtils.interpolate(entity.posZ, entity.lastTickPosZ, mc.timer.renderPartialTicks) - mc.renderManager.renderPosX
+        val y = MathUtils.interpolate(entity.posY, entity.lastTickPosY, mc.timer.renderPartialTicks) - mc.renderManager.renderPosY
+        val z = MathUtils.interpolate(entity.posZ, entity.lastTickPosZ, mc.timer.renderPartialTicks) - mc.renderManager.renderPosZ
 
         val entityBox = entity.entityBoundingBox
         val axisAlignedBB = AxisAlignedBB(
@@ -1165,8 +1165,8 @@ object RenderUtils : MinecraftInstance() {
 
     fun drawPlatform(entity: Entity, color: Color, moveMarkY: Float) {
         val x = MathUtils.interpolate(entity.posX, entity.lastTickPosX, mc.timer.renderPartialTicks) - mc.renderManager.renderPosX
-        val y = MathUtils.interpolate(entity.posY, entity.lastTickPosY, mc.timer.renderPartialTicks) - mc.renderManager.renderPosX
-        val z = MathUtils.interpolate(entity.posZ, entity.lastTickPosZ, mc.timer.renderPartialTicks) - mc.renderManager.renderPosX
+        val y = MathUtils.interpolate(entity.posY, entity.lastTickPosY, mc.timer.renderPartialTicks) - mc.renderManager.renderPosY
+        val z = MathUtils.interpolate(entity.posZ, entity.lastTickPosZ, mc.timer.renderPartialTicks) - mc.renderManager.renderPosZ
 
         val axisAlignedBB = entity.entityBoundingBox
             .offset(-entity.posX, -entity.posY, -entity.posZ)

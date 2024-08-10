@@ -19,8 +19,8 @@ import net.minusmc.minusbounce.utils.ClientUtils
 import net.minusmc.minusbounce.utils.EntityUtils
 import net.minusmc.minusbounce.utils.render.BlendUtils
 import net.minusmc.minusbounce.utils.render.ColorUtils
-import net.minusmc.minusbounce.utils.render.RenderUtils.draw2D
 import net.minusmc.minusbounce.utils.render.RenderUtils.drawEntityBox
+import net.minusmc.minusbounce.utils.render.RenderUtils.draw2D
 import net.minusmc.minusbounce.utils.render.RenderUtils.isInViewFrustrum
 import net.minusmc.minusbounce.utils.render.WorldToScreen.getMatrix
 import net.minusmc.minusbounce.utils.render.WorldToScreen.worldToScreen
@@ -42,38 +42,12 @@ import kotlin.math.min
 @ModuleInfo(name = "ESP", description = "Allows you to see targets through walls.", category = ModuleCategory.RENDER)
 class ESP : Module() {
     private val decimalFormat = DecimalFormat("0.0")
-    val modeValue = ListValue(
-        "Mode",
-        arrayOf("Box", "OtherBox", "WireFrame", "2D", "Real2D", "Outline", "ShaderOutline", "ShaderGlow"),
-        "Box"
-    )
-    private val real2dcsgo = BoolValue("2D-CSGOStyle", true) { modeValue.get().equals("real2d", ignoreCase = true) }
-    private val real2dShowHealth = BoolValue("2D-ShowHealth", true) {
-        modeValue.get().equals("real2d", ignoreCase = true)
-    }
-    private val real2dShowHeldItem = BoolValue("2D-ShowHeldItem", true) {
-        modeValue.get().equals("real2d", ignoreCase = true)
-    }
-    private val real2dShowName = BoolValue("2D-ShowEntityName", true) {
-        modeValue.get().equals("real2d", ignoreCase = true)
-    }
-    private val real2dOutline = BoolValue("2D-Outline", true) {
-        modeValue.get().equals("real2d", ignoreCase = true)
-    }
-    val outlineWidth = FloatValue("Outline-Width", 3f, 0.5f, 5f) {
-        modeValue.get().equals("outline", ignoreCase = true)
-    }
-    val wireframeWidth = FloatValue("WireFrame-Width", 2f, 0.5f, 5f) {
-        modeValue.get().equals("wireframe", ignoreCase = true)
-    }
-    private val shaderOutlineRadius = FloatValue("ShaderOutline-Radius", 1.35f, 1f, 2f, "x") {
-        modeValue.get().equals("shaderoutline", ignoreCase = true)
-    }
-    private val shaderGlowRadius = FloatValue("ShaderGlow-Radius", 2.3f, 2f, 3f, "x") {
-        modeValue.get().equals("shaderglow", ignoreCase = true)
-    }
-    private val colorModeValue =
-        ListValue("Color", arrayOf("Custom", "Health", "Rainbow", "Sky", "LiquidSlowly", "Fade"), "Custom")
+    val modeValue = ListValue("Mode", arrayOf("Box", "OtherBox", "WireFrame", "2D", "Real2D", "Outline", "ShaderOutline", "ShaderGlow"), "Box")
+    val outlineWidth = FloatValue("Outline-Width", 3f, 0.5f, 5f) { modeValue.get().equals("outline", true) }
+    val wireframeWidth = FloatValue("WireFrame-Width", 2f, 0.5f, 5f) { modeValue.get().equals("wireframe", true) }
+    private val shaderOutlineRadius = FloatValue("ShaderOutline-Radius", 1.35f, 1f, 2f, "x") { modeValue.get().equals("shaderoutline", true) }
+    private val shaderGlowRadius = FloatValue("ShaderGlow-Radius", 2.3f, 2f, 3f, "x") { modeValue.get().equals("shaderglow", true) }
+    private val colorModeValue = ListValue("Color", arrayOf("Custom", "Health", "Rainbow", "Sky", "LiquidSlowly", "Fade"), "Custom")
     private val colorRedValue = IntegerValue("Red", 255, 0, 255)
     private val colorGreenValue = IntegerValue("Green", 255, 0, 255)
     private val colorBlueValue = IntegerValue("Blue", 255, 0, 255)
@@ -81,12 +55,17 @@ class ESP : Module() {
     private val brightnessValue = FloatValue("Brightness", 1f, 0f, 1f)
     private val mixerSecondsValue = IntegerValue("Seconds", 2, 1, 10)
     private val colorTeam = BoolValue("Team", false)
+
     @EventTarget
-    fun onRender3D(event: Render3DEvent?) {
+    fun onRender3D(event: Render3DEvent) {
+
+        // mode.onRender3D()
+
+
         val mode = modeValue.get()
-        val mvMatrix: Matrix4f = getMatrix(GL11.GL_MODELVIEW_MATRIX)
-        val projectionMatrix: Matrix4f = getMatrix(GL11.GL_PROJECTION_MATRIX)
-        val real2d = mode.equals("real2d", ignoreCase = true)
+        val mvMatrix = getMatrix(GL11.GL_MODELVIEW_MATRIX)
+        val projectionMatrix = getMatrix(GL11.GL_PROJECTION_MATRIX)
+        val real2d = mode.equals("real2d", true)
         if (real2d) {
             GL11.glPushAttrib(GL11.GL_ENABLE_BIT)
             GL11.glEnable(GL11.GL_BLEND)
@@ -106,187 +85,10 @@ class ESP : Module() {
             GL11.glLineWidth(1.0f)
         }
         for (entity in mc.theWorld.loadedEntityList) {
-            if (entity != null && entity !== mc.thePlayer && EntityUtils.isSelected(entity, true) && isInViewFrustrum(
-                    entity
-                )
-            ) {
-                val entityLiving = entity as EntityLivingBase
-                val color = getColor(entityLiving)
-                when (mode.lowercase(Locale.getDefault())) {
-                    "box", "otherbox" -> drawEntityBox(
-                        entity,
-                        color!!, !mode.equals("otherbox", ignoreCase = true)
-                    )
-
-                    "2d" -> {
-                        val renderManager = mc.renderManager
-                        val timer = mc.timer
-                        val posX =
-                            entityLiving.lastTickPosX + (entityLiving.posX - entityLiving.lastTickPosX) * timer.renderPartialTicks - renderManager.renderPosX
-                        val posY =
-                            entityLiving.lastTickPosY + (entityLiving.posY - entityLiving.lastTickPosY) * timer.renderPartialTicks - renderManager.renderPosY
-                        val posZ =
-                            entityLiving.lastTickPosZ + (entityLiving.posZ - entityLiving.lastTickPosZ) * timer.renderPartialTicks - renderManager.renderPosZ
-                        draw2D(entityLiving, posX, posY, posZ, color!!.rgb, Color.BLACK.rgb)
-                    }
-
-                    "real2d" -> {
-                        val renderManager = mc.renderManager
-                        val timer = mc.timer
-                        val bb = entityLiving.entityBoundingBox
-                            .offset(-entityLiving.posX, -entityLiving.posY, -entityLiving.posZ)
-                            .offset(
-                                entityLiving.lastTickPosX + (entityLiving.posX - entityLiving.lastTickPosX) * timer.renderPartialTicks,
-                                entityLiving.lastTickPosY + (entityLiving.posY - entityLiving.lastTickPosY) * timer.renderPartialTicks,
-                                entityLiving.lastTickPosZ + (entityLiving.posZ - entityLiving.lastTickPosZ) * timer.renderPartialTicks
-                            )
-                            .offset(-renderManager.renderPosX, -renderManager.renderPosY, -renderManager.renderPosZ)
-                        val boxVertices = arrayOf(
-                            doubleArrayOf(bb.minX, bb.minY, bb.minZ),
-                            doubleArrayOf(bb.minX, bb.maxY, bb.minZ),
-                            doubleArrayOf(bb.maxX, bb.maxY, bb.minZ),
-                            doubleArrayOf(bb.maxX, bb.minY, bb.minZ),
-                            doubleArrayOf(bb.minX, bb.minY, bb.maxZ),
-                            doubleArrayOf(bb.minX, bb.maxY, bb.maxZ),
-                            doubleArrayOf(bb.maxX, bb.maxY, bb.maxZ),
-                            doubleArrayOf(bb.maxX, bb.minY, bb.maxZ)
-                        )
-                        var minX = mc.displayWidth.toFloat()
-                        var minY = mc.displayHeight.toFloat()
-                        var maxX = 0f
-                        var maxY = 0f
-                        for (boxVertex in boxVertices) {
-                            val screenPos =
-                                worldToScreen(
-                                    Vector3f(
-                                        boxVertex[0].toFloat(),
-                                        boxVertex[1].toFloat(),
-                                        boxVertex[2].toFloat()
-                                    ), mvMatrix, projectionMatrix, mc.displayWidth, mc.displayHeight
-                                )
-                                    ?: continue
-                            minX = min(screenPos.x.toDouble(), minX.toDouble()).toFloat()
-                            minY = min(screenPos.y.toDouble(), minY.toDouble()).toFloat()
-                            maxX = max(screenPos.x.toDouble(), maxX.toDouble()).toFloat()
-                            maxY = max(screenPos.y.toDouble(), maxY.toDouble()).toFloat()
-                        }
-                        if (!(minX >= mc.displayWidth || minY >= mc.displayHeight || maxX <= 0 || maxY <= 0)) {
-                            if (real2dOutline.get()) {
-                                GL11.glLineWidth(2f)
-                                GL11.glColor4f(0f, 0f, 0f, 1.0f)
-                                if (real2dcsgo.get()) {
-                                    val distX = (maxX - minX) / 3f
-                                    val distY = (maxY - minY) / 3f
-                                    GL11.glBegin(GL11.GL_LINE_STRIP)
-                                    GL11.glVertex2f(minX, minY + distY)
-                                    GL11.glVertex2f(minX, minY)
-                                    GL11.glVertex2f(minX + distX, minY)
-                                    GL11.glEnd()
-                                    GL11.glBegin(GL11.GL_LINE_STRIP)
-                                    GL11.glVertex2f(minX, maxY - distY)
-                                    GL11.glVertex2f(minX, maxY)
-                                    GL11.glVertex2f(minX + distX, maxY)
-                                    GL11.glEnd()
-                                    GL11.glBegin(GL11.GL_LINE_STRIP)
-                                    GL11.glVertex2f(maxX - distX, minY)
-                                    GL11.glVertex2f(maxX, minY)
-                                    GL11.glVertex2f(maxX, minY + distY)
-                                    GL11.glEnd()
-                                    GL11.glBegin(GL11.GL_LINE_STRIP)
-                                    GL11.glVertex2f(maxX - distX, maxY)
-                                    GL11.glVertex2f(maxX, maxY)
-                                    GL11.glVertex2f(maxX, maxY - distY)
-                                    GL11.glEnd()
-                                } else {
-                                    GL11.glBegin(GL11.GL_LINE_LOOP)
-                                    GL11.glVertex2f(minX, minY)
-                                    GL11.glVertex2f(minX, maxY)
-                                    GL11.glVertex2f(maxX, maxY)
-                                    GL11.glVertex2f(maxX, minY)
-                                    GL11.glEnd()
-                                }
-                                GL11.glLineWidth(1.0f)
-                            }
-                            GL11.glColor4f(color!!.red / 255.0f, color.green / 255.0f, color.blue / 255.0f, 1.0f)
-                            if (real2dcsgo.get()) {
-                                val distX = (maxX - minX) / 3f
-                                val distY = (maxY - minY) / 3f
-                                GL11.glBegin(GL11.GL_LINE_STRIP)
-                                GL11.glVertex2f(minX, minY + distY)
-                                GL11.glVertex2f(minX, minY)
-                                GL11.glVertex2f(minX + distX, minY)
-                                GL11.glEnd()
-                                GL11.glBegin(GL11.GL_LINE_STRIP)
-                                GL11.glVertex2f(minX, maxY - distY)
-                                GL11.glVertex2f(minX, maxY)
-                                GL11.glVertex2f(minX + distX, maxY)
-                                GL11.glEnd()
-                                GL11.glBegin(GL11.GL_LINE_STRIP)
-                                GL11.glVertex2f(maxX - distX, minY)
-                                GL11.glVertex2f(maxX, minY)
-                                GL11.glVertex2f(maxX, minY + distY)
-                                GL11.glEnd()
-                                GL11.glBegin(GL11.GL_LINE_STRIP)
-                                GL11.glVertex2f(maxX - distX, maxY)
-                                GL11.glVertex2f(maxX, maxY)
-                                GL11.glVertex2f(maxX, maxY - distY)
-                                GL11.glEnd()
-                            } else {
-                                GL11.glBegin(GL11.GL_LINE_LOOP)
-                                GL11.glVertex2f(minX, minY)
-                                GL11.glVertex2f(minX, maxY)
-                                GL11.glVertex2f(maxX, maxY)
-                                GL11.glVertex2f(maxX, minY)
-                                GL11.glEnd()
-                            }
-                            if (real2dShowHealth.get()) {
-                                val barHeight = (maxY - minY) * (1 - entityLiving.health / entityLiving.maxHealth)
-                                GL11.glColor4f(0.1f, 1f, 0.1f, 1f)
-                                GL11.glBegin(GL11.GL_QUADS)
-                                GL11.glVertex2f(maxX + 2, minY + barHeight)
-                                GL11.glVertex2f(maxX + 2, maxY)
-                                GL11.glVertex2f(maxX + 4, maxY)
-                                GL11.glVertex2f(maxX + 4, minY + barHeight)
-                                GL11.glEnd()
-                                GL11.glColor4f(1f, 1f, 1f, 1f)
-                                GL11.glEnable(GL11.GL_TEXTURE_2D)
-                                GL11.glEnable(GL11.GL_DEPTH_TEST)
-                                mc.fontRendererObj.drawStringWithShadow(
-                                    decimalFormat.format(entityLiving.health.toDouble()) + " HP",
-                                    maxX + 4,
-                                    minY + barHeight,
-                                    -1
-                                )
-                                GL11.glDisable(GL11.GL_TEXTURE_2D)
-                                GL11.glDisable(GL11.GL_DEPTH_TEST)
-                                GlStateManager.resetColor()
-                            }
-                            if (real2dShowHeldItem.get() && entityLiving.heldItem != null && entityLiving.heldItem.item != null) {
-                                GL11.glEnable(GL11.GL_TEXTURE_2D)
-                                GL11.glEnable(GL11.GL_DEPTH_TEST)
-                                val stringWidth = mc.fontRendererObj.getStringWidth(entityLiving.heldItem.displayName)
-                                mc.fontRendererObj.drawStringWithShadow(
-                                    entityLiving.heldItem.displayName,
-                                    minX + (maxX - minX) / 2 - stringWidth / 2, maxY + 2, -1
-                                )
-                                GL11.glDisable(GL11.GL_TEXTURE_2D)
-                                GL11.glDisable(GL11.GL_DEPTH_TEST)
-                            }
-                            if (real2dShowName.get()) {
-                                GL11.glEnable(GL11.GL_TEXTURE_2D)
-                                GL11.glEnable(GL11.GL_DEPTH_TEST)
-                                val stringWidth =
-                                    mc.fontRendererObj.getStringWidth(entityLiving.displayName.formattedText)
-                                mc.fontRendererObj.drawStringWithShadow(
-                                    entityLiving.displayName.formattedText,
-                                    minX + (maxX - minX) / 2 - stringWidth / 2, minY - 12, -1
-                                )
-                                GL11.glDisable(GL11.GL_TEXTURE_2D)
-                                GL11.glDisable(GL11.GL_DEPTH_TEST)
-                            }
-                        }
-                    }
-                }
+            if (entity is EntityLivingBase && EntityUtils.isSelected(entity, true) && isInViewFrustrum(entity)) {
+                val color = getColor(entity)
+                
+                // mode.
             }
         }
         if (real2d) {
@@ -301,47 +103,41 @@ class ESP : Module() {
 
     @EventTarget
     fun onRender2D(event: Render2DEvent) {
-        val mode = modeValue.get().lowercase(Locale.getDefault())
-        val shader = (if (mode.equals(
-                "shaderoutline",
-                ignoreCase = true
-            )
-        ) OutlineShader.OUTLINE_SHADER else if (mode.equals(
-                "shaderglow",
-                ignoreCase = true
-            )
-        ) GlowShader.GLOW_SHADER else null)
-            ?: return
+        val shader = when (modeValue.get().lowercase()) {
+            "shaderoutline" -> OutlineShader.OUTLINE_SHADER
+            "shaderglow" -> GlowShader.GLOW_SHADER
+            else -> return
+        }
+
         shader.startDraw(event.partialTicks)
         renderNameTags = false
-        try {
-            for (entity in mc.theWorld.loadedEntityList) {
-                if (!EntityUtils.isSelected(entity, false)) continue
-                mc.renderManager.renderEntityStatic(entity, mc.timer.renderPartialTicks, true)
-            }
-        } catch (ex: Exception) {
-            ClientUtils.logger.error("An error occurred while rendering all entities for shader esp", ex)
+
+        for (entity in mc.theWorld.loadedEntityList) {
+            if (!EntityUtils.isSelected(entity, false))
+                continue
+            
+            mc.renderManager.renderEntityStatic(entity, mc.timer.renderPartialTicks, true)
         }
+
         renderNameTags = true
-        val radius = if (mode.equals(
-                "shaderoutline",
-                ignoreCase = true
-            )
-        ) shaderOutlineRadius.get() else if (mode.equals(
-                "shaderglow",
-                ignoreCase = true
-            )
-        ) shaderGlowRadius.get() else 1f
-        shader.stopDraw(getColor(null)!!, radius, 1f)
+
+        val radius = when (modeValue.get().lowercase()) {
+            "shaderoutline" -> shaderOutlineRadius.get()
+            "shaderglow" -> shaderGlowRadius.get()
+            else -> 1f
+        }
+
+        shader.stopDraw(getColor(null), radius, 1f)
     }
 
-    fun getColor(entity: Entity?): Color? {
+    fun getColor(entity: Entity?): Color {
         if (entity is EntityLivingBase) {
-            if (colorModeValue.get().equals("Health", ignoreCase = true)) return BlendUtils.getHealthColor(
-                entity.health,
-                entity.maxHealth
-            )
-            if (entity.hurtTime > 0) return Color.RED
+            if (colorModeValue.get().equals("health", true))
+                return BlendUtils.getHealthColor(entity.health, entity.maxHealth)
+
+            if (entity.hurtTime > 0)
+                return Color.RED
+
             if (colorTeam.get()) {
                 val chars = entity.displayName.formattedText.toCharArray()
                 var color = Int.MAX_VALUE
@@ -355,6 +151,7 @@ class ESP : Module() {
                 return Color(color)
             }
         }
+
         return when (colorModeValue.get()) {
             "Custom" -> Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get())
             "Rainbow" -> Color(
@@ -368,7 +165,7 @@ class ESP : Module() {
             "LiquidSlowly" -> ColorUtils.liquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get())
             "Sky" -> Color(ColorUtils.skyRainbow(0, saturationValue.get(), brightnessValue.get()))
             "Fade" -> ColorUtils.fade(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get()), 0, 100)
-            else -> Color.white
+            else -> Color.WHITE
         }
     }
 
