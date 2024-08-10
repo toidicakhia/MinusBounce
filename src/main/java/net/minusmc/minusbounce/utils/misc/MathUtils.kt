@@ -77,5 +77,7 @@ object MathUtils {
 
     fun interpolate(current: Double, old: Double, scale: Double) = old + (current - old) * scale
 
+    fun interpolate(current: Int, old: Int, scale: Double): Int = interpolate(current, old, scale).toInt()
+
     fun interpolate(current: Number, old: Number, scale: Number) = interpolate(current.toDouble(), old.toDouble(), scale.toDouble())
 }

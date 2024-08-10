@@ -115,10 +115,10 @@ class AltManagerButton(buttonId: Int, x: Int, y: Int): GuiButton(buttonId, x, y,
         RenderUtils.drawImage(image, xPosition + 6, yPosition + 6, height - 12, height - 12)
 
         GlStateManager.resetColor()
-        Fonts.fontLexend50.drawString(mc.session.username, xPosition + 5f + height.toFloat(), yPosition + 12f, Color.WHITE.rgb, false)
+        Fonts.fontLexend50.drawString(mc.session.username, xPosition + 5f + height.toFloat(), yPosition + 7f, Color.WHITE.rgb, false)
         val stringValidAccount = if (isValidTokenOffline(mc.session.token)) "Premium" else "Cracked"
-        Fonts.fontLexend35.drawString(stringValidAccount, xPosition + 5f + height.toFloat(), yPosition + 30f, Color.WHITE.rgb, false)
+        Fonts.fontLexend35.drawString(stringValidAccount, xPosition + 5f + height.toFloat(), yPosition + 25f, Color.WHITE.rgb, false)
 
-        RenderUtils.drawImage(editImage, xPosition + width - 29, yPosition + 17, 16, 16)
+        RenderUtils.drawImage(editImage, xPosition + width - 29, yPosition + 12, 16, 16)
     }
 }

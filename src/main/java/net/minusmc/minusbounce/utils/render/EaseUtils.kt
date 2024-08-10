@@ -81,7 +81,7 @@ object EaseUtils {
     fun easeInBack(x: Double) = 2.70158 * x * x * x - 1.70158 * x * x
 
     @JvmStatic
-    fun easeOutBack(x: Double) = 3.70158 * (x - 1).pow(3) + 1.70158 * (x - 1).pow(2)
+    fun easeOutBack(x: Double) = 1 + 2.70158 * (x - 1).pow(3) + 1.70158 * (x - 1).pow(2)
 
     @JvmStatic
     fun easeInOutBack(x: Double) = if (x < 0.5) ((2 * x).pow(2) * (7.189819 * x - 2.5949095)) / 2

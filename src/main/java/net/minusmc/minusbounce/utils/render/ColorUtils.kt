@@ -5,6 +5,7 @@
  */
 package net.minusmc.minusbounce.utils.render
 
+import net.minusmc.minusbounce.utils.misc.MathUtils
 import net.minecraft.util.ChatAllowedCharacters
 import org.lwjgl.opengl.GL11.glColor4f
 import java.awt.Color
@@ -18,44 +19,29 @@ object ColorUtils {
     private val COLOR_PATTERN = Pattern.compile("(?i)§[0-9A-FK-OR]")
 
     @JvmField
-    val hexColors = IntArray(16)
+    val hexColors = (0..15).map {
+            val baseColor = (it shr 3 and 1) * 85
 
-    init {
-        repeat(16) { i ->
-            val baseColor = (i shr 3 and 1) * 85
+            val red = (it shr 2 and 1) * 170 + baseColor + if (it == 6) 85 else 0
+            val green = (it shr 1 and 1) * 170 + baseColor
+            val blue = (it and 1) * 170 + baseColor
 
-            val red = (i shr 2 and 1) * 170 + baseColor + if (i == 6) 85 else 0
-            val green = (i shr 1 and 1) * 170 + baseColor
-            val blue = (i and 1) * 170 + baseColor
-
-            hexColors[i] = red and 255 shl 16 or (green and 255 shl 8) or (blue and 255)
-        }
-    }
+            (red and 255 shl 16) or (green and 255 shl 8) or (blue and 255)
+        }.toTypedArray()
 
     @JvmStatic
     fun stripColor(input: String?): String? {
         return COLOR_PATTERN.matcher(input ?: return null).replaceAll("")
     }
 
-    fun interpolate(oldValue: Double, newValue: Double, interpolationValue: Double): Double {
-        return oldValue + (newValue - oldValue) * interpolationValue
-    }
-
     @JvmStatic
-    fun interpolateInt(oldValue: Int, newValue: Int, interpolationValue: Double): Int {
-        return interpolate(oldValue.toDouble(), newValue.toDouble(), interpolationValue.toFloat().toDouble()).toInt()
-    }
-
-    @JvmStatic
-    fun interpolateColorC(color1: Color, color2: Color, amount: Float): Color {
-        var amount = amount
-        amount = Math.min(1f, Math.max(0f, amount))
+    fun interpolateColorC(color1: Color, color2: Color, pAmount: Float): Color {
+        val amount = pAmount.coerceIn(0f, 1f)
         return Color(
-                interpolateInt(color1.red, color2.red, amount.toDouble()),
-                interpolateInt(color1.green, color2.green, amount.toDouble()),
-                interpolateInt(color1.blue, color2.blue, amount.toDouble()),
-                interpolateInt(color1.alpha, color2.alpha, amount.toDouble()
-                )
+            MathUtils.interpolate(color1.red, color2.red, amount.toDouble()),
+            MathUtils.interpolate(color1.green, color2.green, amount.toDouble()),
+            MathUtils.interpolate(color1.blue, color2.blue, amount.toDouble()),
+            MathUtils.interpolate(color1.alpha, color2.alpha, amount.toDouble())
         )
     }
 
@@ -93,28 +79,23 @@ object ColorUtils {
         return Color(currentColor.red / 255F * 1F, currentColor.green / 255f * 1F, currentColor.blue / 255F * 1F, currentColor.alpha / 255F)
     }
 
-    // TODO: Use kotlin optional argument feature
+    @JvmStatic
+    fun rainbow(offset: Long) = rainbow(offset, 1f)
 
     @JvmStatic
-    fun rainbow(offset: Long): Color {
-        val currentColor = Color(Color.HSBtoRGB((System.nanoTime() + offset) / 10000000000F % 1, 1F, 1F))
-        return Color(currentColor.red / 255F * 1F, currentColor.green / 255F * 1F, currentColor.blue / 255F * 1F,
-            currentColor.alpha / 255F)
-    }
+    fun rainbow(alpha: Int): Color = rainbow(alpha / 255)
 
     @JvmStatic
     fun rainbow(alpha: Float) = rainbow(400000L, alpha)
-
-    @JvmStatic
-    fun rainbow(alpha: Int) = rainbow(400000L, alpha / 255)
 
     @JvmStatic
     fun rainbow(offset: Long, alpha: Int) = rainbow(offset, alpha.toFloat() / 255)
 
     @JvmStatic
     fun rainbow(offset: Long, alpha: Float): Color {
-        val currentColor = Color(Color.HSBtoRGB((System.nanoTime() + offset) / 10000000000F % 1, 1F, 1F))
-        return Color(currentColor.red / 255F * 1F, currentColor.green / 255f * 1F, currentColor.blue / 255F * 1F, alpha)
+        val hue = ((System.nanoTime() + offset) / 10_000_000_000F) % 1
+        val currentColor = Color(Color.HSBtoRGB(hue, 1F, 1F))
+        return Color(currentColor.red / 255F, currentColor.green / 255F, currentColor.blue / 255F, alpha)
     }
 
     @JvmStatic
@@ -140,53 +121,32 @@ object ColorUtils {
     }
 
     @JvmStatic
-    fun setColour(colour: Int) {
-        val a = (colour shr 24 and 0xFF) / 255.0f
-        val r = (colour shr 16 and 0xFF) / 255.0f
-        val g = (colour shr 8 and 0xFF) / 255.0f
-        val b = (colour and 0xFF) / 255.0f
-        glColor4f(r, g, b, a)
-    }
-    @JvmStatic
-    fun getColor(n: Int): String? {
-        if (n != 1) {
-            if (n == 2) {
-                return "\u00a7a"
-            }
-            if (n == 3) {
-                return "\u00a73"
-            }
-            if (n == 4) {
-                return "\u00a74"
-            }
-            if (n >= 5) {
-                return "\u00a7e"
-            }
-        }
-        return "\u00a7f"
+    fun getColor(n: Int) = when (n) {
+        2 -> "\u00a7a"
+        3 -> "\u00a73"
+        4 -> "\u00a74"
+        5 -> "\u00a7e"
+        else -> "\u00a7f"
     }
 
     @JvmStatic
-    fun hoverColor(color: Color?, hover: Int): Color {
-        val r = color!!.red - (hover * 2)
-        val g = color.green - (hover * 2)
-        val b = color.blue - (hover * 2)
-        return Color(max(r.toDouble(), 0.0).toInt(), max(g.toDouble(), 0.0).toInt(), max(b.toDouble(), 0.0).toInt(), color.alpha)
+    fun hoverColor(color: Color, hover: Int): Color {
+        val red = max(color.red - hover * 2, 0)
+        val green = max(color.green - hover * 2, 0)
+        val blue = max(color.blue - hover * 2, 0)
+        return Color(red, green, blue, color.alpha)
     }
 
     @JvmStatic
-    fun reAlpha(color: Color, alpha: Int): Color = Color(color.red, color.green, color.blue, alpha.coerceIn(0, 255))
+    fun reAlpha(color: Color, alpha: Int) = Color(color.red, color.green, color.blue, alpha.coerceIn(0, 255))
 
     @JvmStatic
-    fun reAlpha(color: Color, alpha: Float): Color = Color(color.red / 255F, color.green / 255F, color.blue / 255F, alpha.coerceIn(0F, 1F))
+    fun reAlpha(color: Color, alpha: Float) = Color(color.red / 255F, color.green / 255F, color.blue / 255F, alpha.coerceIn(0F, 1F))
 
     @JvmStatic
-    fun getOppositeColor(color: Color): Color = Color(255 - color.red, 255 - color.green, 255 - color.blue, color.alpha)
+    fun getOppositeColor(color: Color) = Color(255 - color.red, 255 - color.green, 255 - color.blue, color.alpha)
 
-    @JvmStatic
-    fun modifyAlpha(col: Color?, alpha: Int) = Color(col!!.red, col.green, col.blue, alpha)
-
-    fun colorCode(code: String, alpha: Int = 255): Color = when (code.lowercase()) {
+    fun colorCode(code: String, alpha: Int = 255) = when (code.lowercase()) {
         "0" -> Color(0, 0, 0, alpha)
         "1" -> Color(0, 0, 170, alpha)
         "2" -> Color(0, 170, 0, alpha)

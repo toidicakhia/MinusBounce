@@ -527,7 +527,7 @@ object RenderUtils : MinecraftInstance() {
 
         GLUtils.glColor(color4)
 
-        for (i in 0..90 step 3) {
+        for (i in 90..180 step 3) {
             val angle = MathUtils.toRadiansDouble(i)
             glVertex2d(drawnX2 - radius + sin(angle) * radius, drawnY + radius + cos(angle) * radius)
         }
@@ -604,7 +604,7 @@ object RenderUtils : MinecraftInstance() {
 
         GLUtils.glColor(color4)
 
-        for (i in 0..90 step 3) {
+        for (i in 90..180 step 3) {
             val angle = MathUtils.toRadiansDouble(i)
             glVertex2d(drawnX2 - radius + sin(angle) * radius, drawnY + radius + cos(angle) * radius)
         }
