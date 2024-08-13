@@ -444,10 +444,10 @@ class Text(x: Double = 10.0, y: Double = 10.0, scale: Float = 1F,
     }
 
     private fun getColor(z: Int): Int = when (rainbowList.get().lowercase()) {
-        "crainbow" -> ColorUtils.getRainbowOpaque(cRainbowSecValue.get(), saturationValue.get(), brightnessValue.get(), z)
-        "sky" -> ColorUtils.skyRainbow(z, saturationValue.get(), brightnessValue.get())
-        "fade" -> ColorUtils.fade(Color(redValue.get(), greenValue.get(), blueValue.get()), z, 100).rgb
-        "liquidslowly" -> ColorUtils.liquidSlowly(System.nanoTime(), z, saturationValue.get(), brightnessValue.get()).rgb
+        "crainbow" -> ColorUtils.getRainbowOpaque(cRainbowSecValue.get(), saturationValue.get(), brightnessValue.get(), z).rgb
+        "sky" -> ColorUtils.getSkyRainbowColor(z, saturationValue.get(), brightnessValue.get()).rgb
+        "fade" -> ColorUtils.getFadeColor(Color(redValue.get(), greenValue.get(), blueValue.get()), z, 100).rgb
+        "liquidslowly" -> ColorUtils.getLiquidSlowlyColor(z, saturationValue.get(), brightnessValue.get()).rgb
         else -> Color(redValue.get(), greenValue.get(), blueValue.get(), alphaValue.get()).rgb
     }
 

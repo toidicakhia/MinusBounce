@@ -16,7 +16,6 @@ import net.minusmc.minusbounce.features.module.Module
 import net.minusmc.minusbounce.features.module.ModuleCategory
 import net.minusmc.minusbounce.features.module.ModuleInfo
 import net.minusmc.minusbounce.features.module.modules.combat.KillAura
-import net.minusmc.minusbounce.ui.font.GameFontRenderer.Companion.getColorIndex
 import net.minusmc.minusbounce.utils.render.AnimationUtils
 import net.minusmc.minusbounce.utils.render.BlendUtils
 import net.minusmc.minusbounce.utils.render.ColorUtils
@@ -180,7 +179,7 @@ class TargetMark : Module() {
                 var color = Int.MAX_VALUE
                 for (i in chars.indices) {
                     if (chars[i] != '§' || i + 1 >= chars.size) continue
-                    val index = getColorIndex(chars[i + 1])
+                    val index = ColorUtils.getColorIndex(chars[i + 1])
                     if (index < 0 || index > 15) continue
                     color = ColorUtils.hexColors[index]
                     break
@@ -189,18 +188,11 @@ class TargetMark : Module() {
             }
         }
         return when (colorModeValue.get()) {
-            "Custom" -> Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get())
-            "Rainbow" -> Color(
-                ColorUtils.getRainbowOpaque(
-                    mixerSecondsValue.get(),
-                    saturationValue.get(),
-                    brightnessValue.get(),
-                    0
-                )
-            )
-            "Sky" -> Color(ColorUtils.skyRainbow(0, saturationValue.get(), brightnessValue.get()))
-            "LiquidSlowly" -> ColorUtils.liquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get())
-            else -> ColorUtils.fade(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get()), 0, 100)
+            "rainbow" -> ColorUtils.getRainbowOpaque(mixerSecondsValue.get(), saturationValue.get(), brightnessValue.get(), 0)
+            "liquidslowly" -> ColorUtils.getLiquidSlowlyColor(0, saturationValue.get(), brightnessValue.get())
+            "sky" -> ColorUtils.getSkyRainbowColor(0, saturationValue.get(), brightnessValue.get())
+            "fade" -> ColorUtils.getFadeColor(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get()), 0, 100)
+            else -> Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get())
         }
     }
 

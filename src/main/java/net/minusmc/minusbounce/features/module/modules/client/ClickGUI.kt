@@ -45,13 +45,12 @@ object ClickGUI: Module() {
     val animationValue = ListValue("Animation", arrayOf("Slide", "Zoom", "ZoomBounce", "None"), "None")
     val animSpeedValue = FloatValue("AnimSpeed", 1F, 0.01F, 5F, "x")
 
-    val accentColor: Color?
+    val accentColor: Color
         get() = when (colorModeValue.get().lowercase()) {
-            "custom" -> Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get())
-            "rainbow" -> Color(ColorUtils.getRainbowOpaque(mixerSecondsValue.get(), saturationValue.get(), brightnessValue.get(), 0))
-            "sky" -> Color(ColorUtils.skyRainbow(0, saturationValue.get(), brightnessValue.get()))
-            "fade" -> ColorUtils.fade(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get()), 0, 100)
-            else -> null
+            "rainbow" -> ColorUtils.getRainbowOpaque(mixerSecondsValue.get(), saturationValue.get(), brightnessValue.get(), 0)
+            "sky" -> ColorUtils.getSkyRainbowColor(0, saturationValue.get(), brightnessValue.get())
+            "fade" -> ColorUtils.getFadeColor(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get()), 0, 100)
+            else -> Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get())
         }
 
     override fun onEnable() {

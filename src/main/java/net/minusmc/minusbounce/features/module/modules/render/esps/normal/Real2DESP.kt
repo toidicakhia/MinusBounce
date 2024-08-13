@@ -1,13 +1,19 @@
 package net.minusmc.minusbounce.features.module.modules.render.esps.normal
 
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.EntityLivingBase
 import net.minusmc.minusbounce.features.module.modules.render.esps.ESPMode
 import net.minusmc.minusbounce.utils.render.RenderUtils
 import net.minusmc.minusbounce.utils.render.GLUtils
+import net.minusmc.minusbounce.utils.render.WorldToScreen
 import net.minusmc.minusbounce.utils.misc.MathUtils
+import net.minusmc.minusbounce.value.BoolValue
 
+import org.lwjgl.util.vector.Vector3f
+import kotlin.math.*
 import org.lwjgl.opengl.GL11
 import java.awt.Color
+import java.text.DecimalFormat
 
 class Real2DESP: ESPMode("Real2D") {
     private val real2dcsgo = BoolValue("CSGOStyle", true)
@@ -16,6 +22,42 @@ class Real2DESP: ESPMode("Real2D") {
     private val real2dShowName = BoolValue("ShowEntityName", true)
     private val real2dOutline = BoolValue("Outline", true)
     
+    private val decimalFormat = DecimalFormat("0.0")
+    private var mvMatrix = WorldToScreen.getMatrix(GL11.GL_MODELVIEW_MATRIX)
+    private var projectionMatrix = WorldToScreen.getMatrix(GL11.GL_PROJECTION_MATRIX)
+
+
+    override fun onPreRender3D() {
+        mvMatrix = WorldToScreen.getMatrix(GL11.GL_MODELVIEW_MATRIX)
+        projectionMatrix = WorldToScreen.getMatrix(GL11.GL_PROJECTION_MATRIX)
+
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT)
+        GL11.glEnable(GL11.GL_BLEND)
+        GL11.glDisable(GL11.GL_TEXTURE_2D)
+        GL11.glDisable(GL11.GL_DEPTH_TEST)
+        GL11.glMatrixMode(GL11.GL_PROJECTION)
+        GL11.glPushMatrix()
+        GL11.glLoadIdentity()
+        GL11.glOrtho(0.0, mc.displayWidth.toDouble(), mc.displayHeight.toDouble(), 0.0, -1.0, 1.0)
+        GL11.glMatrixMode(GL11.GL_MODELVIEW)
+        GL11.glPushMatrix()
+        GL11.glLoadIdentity()
+        GL11.glDisable(GL11.GL_DEPTH_TEST)
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+        GlStateManager.enableTexture2D()
+        GlStateManager.depthMask(true)
+        GL11.glLineWidth(1.0f)
+    }
+
+    override fun onPostRender3D() {
+        GL11.glEnable(GL11.GL_DEPTH_TEST)
+        GL11.glMatrixMode(GL11.GL_PROJECTION)
+        GL11.glPopMatrix()
+        GL11.glMatrixMode(GL11.GL_MODELVIEW)
+        GL11.glPopMatrix()
+        GL11.glPopAttrib()
+    }
+
 	override fun onEntityRender(entity: EntityLivingBase, color: Color) {
         val posX = MathUtils.interpolate(entity.posX, entity.lastTickPosX, mc.timer.renderPartialTicks)
         val posY = MathUtils.interpolate(entity.posY, entity.lastTickPosY, mc.timer.renderPartialTicks)
@@ -24,17 +66,17 @@ class Real2DESP: ESPMode("Real2D") {
         val bb = entity.entityBoundingBox
             .offset(-entity.posX, -entity.posY, -entity.posZ)
             .offset(posX, posY, posZ)
-            .offset(-renderManager.renderPosX, -renderManager.renderPosY, -renderManager.renderPosZ)
+            .offset(-mc.renderManager.renderPosX, -mc.renderManager.renderPosY, -mc.renderManager.renderPosZ)
         
         val boxVertices = arrayOf(
-            Vector3f(bb.minX, bb.minY, bb.minZ),
-            Vector3f(bb.minX, bb.maxY, bb.minZ),
-            Vector3f(bb.maxX, bb.maxY, bb.minZ),
-            Vector3f(bb.maxX, bb.minY, bb.minZ),
-            Vector3f(bb.minX, bb.minY, bb.maxZ),
-            Vector3f(bb.minX, bb.maxY, bb.maxZ),
-            Vector3f(bb.maxX, bb.maxY, bb.maxZ),
-            Vector3f(bb.maxX, bb.minY, bb.maxZ)
+            Vector3f(bb.minX.toFloat(), bb.minY.toFloat(), bb.minZ.toFloat()),
+            Vector3f(bb.minX.toFloat(), bb.maxY.toFloat(), bb.minZ.toFloat()),
+            Vector3f(bb.maxX.toFloat(), bb.maxY.toFloat(), bb.minZ.toFloat()),
+            Vector3f(bb.maxX.toFloat(), bb.minY.toFloat(), bb.minZ.toFloat()),
+            Vector3f(bb.minX.toFloat(), bb.minY.toFloat(), bb.maxZ.toFloat()),
+            Vector3f(bb.minX.toFloat(), bb.maxY.toFloat(), bb.maxZ.toFloat()),
+            Vector3f(bb.maxX.toFloat(), bb.maxY.toFloat(), bb.maxZ.toFloat()),
+            Vector3f(bb.maxX.toFloat(), bb.minY.toFloat(), bb.maxZ.toFloat())
         )
 
         var minX = mc.displayWidth.toFloat()
@@ -42,7 +84,7 @@ class Real2DESP: ESPMode("Real2D") {
         var maxX = 0f
         var maxY = 0f
         for (boxVertex in boxVertices) {
-            val screenPos = worldToScreen(boxVertex, mvMatrix, projectionMatrix, mc.displayWidth, mc.displayHeight) ?: continue
+            val screenPos = WorldToScreen.worldToScreen(boxVertex, mvMatrix, projectionMatrix, mc.displayWidth, mc.displayHeight) ?: continue
             
             minX = min(screenPos.x, minX)
             minY = min(screenPos.y, minY)

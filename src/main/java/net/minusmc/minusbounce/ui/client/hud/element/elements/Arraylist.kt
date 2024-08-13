@@ -464,10 +464,10 @@ class Arraylist(x: Double = 1.0, y: Double = 2.0, scale: Float = 1F,
 
     private fun getColor(module: Module, index: Int, customColor: Color): Int = when(colorModeValue.get().lowercase()) {
         "random" -> Color.getHSBColor(module.hue, saturationValue.get(), brightnessValue.get()).rgb
-        "sky" -> ColorUtils.skyRainbow(counter * (skyDistanceValue.get() * 50), saturationValue.get(), brightnessValue.get())
-        "crainbow" -> ColorUtils.getRainbowOpaque(cRainbowSecValue.get(), saturationValue.get(), brightnessValue.get(), counter * (50 * cRainbowDistValue.get()))
-        "liquidslowly" -> ColorUtils.fade(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get(), colorAlphaValue.get()), index * fadeDistanceValue.get(), 100).rgb
-        "fade" -> ColorUtils.liquidSlowly(System.nanoTime(), index * liquidSlowlyDistanceValue.get(), saturationValue.get(), brightnessValue.get()).rgb
+        "sky" -> ColorUtils.getSkyRainbowColor(counter * (skyDistanceValue.get() * 50), saturationValue.get(), brightnessValue.get()).rgb
+        "crainbow" -> ColorUtils.getRainbowOpaque(cRainbowSecValue.get(), saturationValue.get(), brightnessValue.get(), counter * (50 * cRainbowDistValue.get())).rgb
+        "liquidslowly" -> ColorUtils.getFadeColor(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get(), colorAlphaValue.get()), index * fadeDistanceValue.get(), 100).rgb
+        "fade" -> ColorUtils.getLiquidSlowlyColor(index * liquidSlowlyDistanceValue.get(), saturationValue.get(), brightnessValue.get()).rgb
         else -> customColor.rgb
     }
 }
