@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack
 import net.minecraft.potion.Potion
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.MathHelper
-import net.minusmc.minusbounce.event.Render2DEvent
+import net.minusmc.minusbounce.event.*
 import net.minusmc.minusbounce.features.module.modules.render.esps.ESPMode
 import net.minusmc.minusbounce.utils.EntityUtils
 import net.minusmc.minusbounce.utils.item.ItemUtils
@@ -70,6 +70,8 @@ class Advanced2DESP: ESPMode("Advanced2D") {
     private var scaleFactor = 0
     private var scaledResolution = ScaledResolution(mc)
 
+    private val entities = mutableListOf<EntityLivingBase>()
+
     override fun onRender2D(event: Render2DEvent, color: Color) {
         GL11.glPushMatrix()
         scaledResolution = ScaledResolution(mc)
@@ -79,10 +81,13 @@ class Advanced2DESP: ESPMode("Advanced2D") {
 
         val partialTicks = event.partialTicks
 
+        entities.clear()
+
         for (entity in mc.theWorld.loadedEntityList) {
             val isEntitySelected = EntityUtils.isSelected(entity, true) || (localPlayer.get() && entity is EntityPlayerSP && mc.gameSettings.thirdPersonView != 0)
 
             if (entity is EntityLivingBase && isEntitySelected && RenderUtils.isInViewFrustrum(entity)) {
+                entities.add(entity) 
                 val entityColor = esp.getEntityColor(entity)
                 renderEntity(entity, partialTicks, entityColor)
             }
@@ -263,6 +268,11 @@ class Advanced2DESP: ESPMode("Advanced2D") {
             
             drawScaledCenteredString(itemName, posX + deltaX / 2f, endPosY + 1f, fontScaleValue.get().toDouble(), -1)
         }
+    }
+
+    override fun onRenderNameTags(event: RenderNameTagsEvent) {
+        if (event.entity in entities)
+            event.isCancelled = true
     }
 
     private fun isHovering(minX: Double, maxX: Double, minY: Double, maxY: Double, sc: ScaledResolution): Boolean {

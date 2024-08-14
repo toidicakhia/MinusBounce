@@ -52,8 +52,6 @@ class ESP : Module() {
     private val mixerSecondsValue = IntegerValue("Seconds", 2, 1, 10)
     private val colorTeam = BoolValue("Team", false)
 
-    var renderNameTags = true
-
     override fun onInitialize() {
         modes.map { mode -> mode.values.forEach { value -> value.name = "${mode.modeName}-${value.name}" } }
     }
@@ -94,8 +92,13 @@ class ESP : Module() {
         mc.gameSettings.gammaSetting = gamma
     }
 
+    @EventTarget
+    fun onRenderNameTags(event: RenderNameTagsEvent) {
+        mode.onRenderNameTags(event)
+    }
+
     val colorByMode: Color
-        get() = when (colorModeValue.get()) {
+        get() = when (colorModeValue.get().lowercase()) {
             "rainbow" -> ColorUtils.getRainbowOpaque(mixerSecondsValue.get(), saturationValue.get(), brightnessValue.get(), 0)
             "liquidslowly" -> ColorUtils.getLiquidSlowlyColor(0, saturationValue.get(), brightnessValue.get())
             "sky" -> ColorUtils.getSkyRainbowColor(0, saturationValue.get(), brightnessValue.get())

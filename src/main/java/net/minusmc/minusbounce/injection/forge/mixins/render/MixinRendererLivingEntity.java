@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.entity.RendererLivingEntity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minusmc.minusbounce.MinusBounce;
 import net.minusmc.minusbounce.event.RenderModelEvent;
+import net.minusmc.minusbounce.event.RenderNameTagsEvent;
 import net.minusmc.minusbounce.features.module.modules.render.*;
 import net.minusmc.minusbounce.utils.ClientUtils;
 import net.minusmc.minusbounce.utils.EntityUtils;
@@ -45,13 +46,10 @@ public abstract class MixinRendererLivingEntity extends MixinRender {
 
     @Inject(method = "canRenderName(Lnet/minecraft/entity/EntityLivingBase;)Z", at = @At("HEAD"), cancellable = true)
     private <T extends EntityLivingBase> void canRenderName(T entity, CallbackInfoReturnable<Boolean> callbackInfoReturnable) {
-        final NoRender noRender = MinusBounce.moduleManager.getModule(NoRender.class);
-        final ESP esp = MinusBounce.moduleManager.getModule(ESP.class);
-        final NameTags nameTags = MinusBounce.moduleManager.getModule(NameTags.class);
+        final RenderNameTagsEvent event = new RenderNameTagsEvent(entity);
+        MinusBounce.eventManager.callEvent(event);
 
-        if (!esp.getRenderNameTags()
-            || (nameTags.getState() && ((nameTags.getLocalValue().get() && entity == Minecraft.getMinecraft().thePlayer && (!nameTags.getNfpValue().get() || Minecraft.getMinecraft().gameSettings.thirdPersonView != 0)) || EntityUtils.INSTANCE.isSelected(entity, false)))
-            || (noRender.getState() && noRender.getNameTagsValue().get()))
+        if (event.isCancelled())
             callbackInfoReturnable.setReturnValue(false);
     }
 

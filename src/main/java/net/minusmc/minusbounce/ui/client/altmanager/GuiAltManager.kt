@@ -81,9 +81,7 @@ class GuiAltManager(private val prevGui: GuiScreen) : GuiScreen() {
         buttonList.add(GuiButton(6, 5, startPositionY + 24 * 4, 90, 20, "Direct Login"))
         buttonList.add(GuiButton(10, 5, startPositionY + 24 * 5, 90, 20, "Session Login"))
         buttonList.add(GuiButton(88, 5, startPositionY + 24 * 6, 90, 20, "Change Name"))
-
-        if (activeGenerators.getOrDefault("thealtening", true))
-            buttonList.add(GuiButton(9, 5, startPositionY + 24 * 7, 90, 20, "TheAltening"))
+        buttonList.add(GuiButton(9, 5, startPositionY + 24 * 7, 90, 20, "TheAltening"))
     }
 
     override fun drawScreen(mouseX: Int, mouseY: Int, partialTicks: Float) {
@@ -433,27 +431,7 @@ class GuiAltManager(private val prevGui: GuiScreen) : GuiScreen() {
     companion object {
 
         val altService = AltService()
-        private val activeGenerators = mutableMapOf<String, Boolean>()
-
-        fun loadActiveGenerators() {
-            try {
-                // Read versions json from cloud
-                val jsonElement = JsonParser().parse(get(MinusBounce.CLIENT_CLOUD + "/generators.json"))
-
-                // Check json is valid object
-                if (jsonElement.isJsonObject) {
-                    // Get json object of element
-                    val jsonObject = jsonElement.asJsonObject
-                    jsonObject.entrySet().forEach(Consumer { (key, value): Map.Entry<String, JsonElement> ->
-                        activeGenerators[key] = value.asBoolean
-                    })
-                }
-            } catch (throwable: Throwable) {
-                // Print throwable to console
-                ClientUtils.logger.error("Failed to load enabled generators.", throwable)
-            }
-        }
-
+        
         fun login(minecraftAccount: MinecraftAccount, success: () -> Unit, error: (Exception) -> Unit, done: () -> Unit) = thread(name = "LoginTask") {
             if (altService.currentService != AltService.EnumAltService.MOJANG) {
                 try {

@@ -14,6 +14,8 @@ import kotlin.random.Random
 object RandomUtils {
     fun nextBoolean(): Boolean = Random.nextBoolean()
 
+    fun nextInt(endExclusive: Int) = nextInt(0, endExclusive)
+
     fun nextInt(startInclusive: Int, endExclusive: Int): Int {
         return if (endExclusive - startInclusive <= 0) startInclusive 
             else startInclusive + Random.nextInt(endExclusive - startInclusive)

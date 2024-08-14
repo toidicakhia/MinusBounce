@@ -9,8 +9,7 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.item.EntityArmorStand
 import net.minecraft.entity.item.EntityItem
 import net.minecraft.entity.player.EntityPlayer
-import net.minusmc.minusbounce.event.EventTarget
-import net.minusmc.minusbounce.event.PostMotionEvent
+import net.minusmc.minusbounce.event.*
 import net.minusmc.minusbounce.features.module.Module
 import net.minusmc.minusbounce.features.module.ModuleCategory
 import net.minusmc.minusbounce.features.module.ModuleInfo
@@ -21,9 +20,8 @@ import net.minusmc.minusbounce.value.FloatValue
 
 @ModuleInfo(name = "NoRender", spacedName = "No Render", description = "Increase FPS by decreasing or stop rendering visible entities.", category = ModuleCategory.RENDER)
 class NoRender : Module() {
-
     private val allValue = BoolValue("All", true)
-	val nameTagsValue = BoolValue("NameTags", true)
+	private val nameTagsValue = BoolValue("NameTags", true)
     private val itemsValue = BoolValue("Items", true) { !allValue.get() }
     private val playersValue = BoolValue("Players", true) { !allValue.get() }
     private val mobsValue = BoolValue("Mobs", true) { !allValue.get() }
@@ -31,6 +29,14 @@ class NoRender : Module() {
     private val armorStandValue = BoolValue("ArmorStand", true) { !allValue.get() }
     private val autoResetValue = BoolValue("AutoReset", true)
     private val maxRenderRange = FloatValue("MaxRenderRange", 4F, 0F, 16F, "m")
+
+    @EventTarget
+    fun onRenderNameTags(event: RenderNameTagsEvent) {
+        if (nameTagsValue.get()) {
+            event.isCancelled = true
+            event.stopRunEvent = true
+        }
+    }
 
     @EventTarget
     fun onPostMotion(event: PostMotionEvent) {

@@ -21,6 +21,7 @@ abstract class ESPMode(val modeName: String): MinecraftInstance() {
 	open fun onDisable() {}
 	open fun onPreRender3D() {}
 	open fun onPostRender3D() {}
+	open fun onRenderNameTags(event: RenderNameTagsEvent) {}
 	open fun onRender2D(event: Render2DEvent, color: Color) {}
 	open fun onEntityRender(entity: EntityLivingBase, color: Color) {}
 	open fun onRenderModel(event: RenderModelEvent, color: Color) {}

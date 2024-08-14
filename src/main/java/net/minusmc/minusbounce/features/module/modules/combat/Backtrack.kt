@@ -22,6 +22,7 @@ import net.minusmc.minusbounce.utils.misc.RandomUtils
 import net.minusmc.minusbounce.utils.EntityUtils
 import net.minusmc.minusbounce.value.*
 import org.lwjgl.opengl.GL11
+import java.awt.Color
 
 
 @ModuleInfo(name = "Backtrack", spacedName = "Back track", description = "Let you attack in their previous position", category = ModuleCategory.COMBAT)
@@ -191,7 +192,7 @@ class Backtrack : Module() {
             render = false
 
         if (target != mc.thePlayer && !target.isInvisible && render) {
-            val color = ColorUtils.getColor(210.0F, 0.7F, 0.75F)
+            val color = Color(0, 0, 255)
             val x = realX - mc.renderManager.renderPosX
             val y = realY - mc.renderManager.renderPosY
             val z = realZ - mc.renderManager.renderPosZ

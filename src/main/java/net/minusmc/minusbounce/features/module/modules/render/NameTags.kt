@@ -11,8 +11,7 @@ import net.minecraft.entity.player.EntityPlayer
 import net.minecraft.potion.Potion
 import net.minecraft.potion.PotionEffect
 import net.minecraft.util.ResourceLocation
-import net.minusmc.minusbounce.event.EventTarget
-import net.minusmc.minusbounce.event.Render3DEvent
+import net.minusmc.minusbounce.event.*
 import net.minusmc.minusbounce.features.module.Module
 import net.minusmc.minusbounce.features.module.ModuleCategory
 import net.minusmc.minusbounce.features.module.ModuleInfo
@@ -56,6 +55,7 @@ class NameTags : Module() {
     private val scaleValue = FloatValue("Scale", 1F, 1F, 4F, "x")
 
     private val inventoryBackground = ResourceLocation("textures/gui/container/inventory.png")
+    private val entities = mutableListOf<EntityLivingBase>()
 
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
@@ -72,11 +72,18 @@ class NameTags : Module() {
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+        entities.clear()
+
         for (entity in mc.theWorld.loadedEntityList) {
+            if (entity !is EntityLivingBase)
+                continue
+
             if (!EntityUtils.isSelected(entity, true) && (!localValue.get() || entity != mc.thePlayer || (nfpValue.get() && mc.gameSettings.thirdPersonView == 0)))
                 continue
 
-            renderNameTag(entity as EntityLivingBase,
+            entities.add(entity)
+
+            renderNameTag(entity,
                     if (clearNamesValue.get())
                         ColorUtils.stripColor(entity.getDisplayName().unformattedText) ?: continue
                     else
@@ -218,5 +225,11 @@ class NameTags : Module() {
 
         // Pop
         glPopMatrix()
+    }
+
+    @EventTarget
+    fun onRenderNameTags(event: RenderNameTagsEvent) {
+        if (event.entity in entities)
+            event.isCancelled = true
     }
 }

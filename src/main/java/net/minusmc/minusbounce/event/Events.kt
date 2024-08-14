@@ -141,10 +141,16 @@ class PushOutEvent: CancellableEvent()
  * Called when screen is going to be rendered
  */
 class Render2DEvent(val partialTicks: Float) : Event()
+
 /**
  * Called when rendering model
  */
 class RenderModelEvent(val modelBase: ModelBase, val entity: EntityLivingBase, val x: Float, val y: Float, val z: Float, val yaw: Float, val pitch: Float, val partialTicks: Float): Event()
+
+/**
+ * Called when name tags will be rendered
+ */
+class RenderNameTagsEvent(val entity: Entity?): CancellableEvent()
 
 /**
  * Called when the screen changes

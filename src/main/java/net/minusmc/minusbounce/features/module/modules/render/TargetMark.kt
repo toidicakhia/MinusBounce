@@ -187,7 +187,7 @@ class TargetMark : Module() {
                 return Color(color)
             }
         }
-        return when (colorModeValue.get()) {
+        return when (colorModeValue.get().lowercase()) {
             "rainbow" -> ColorUtils.getRainbowOpaque(mixerSecondsValue.get(), saturationValue.get(), brightnessValue.get(), 0)
             "liquidslowly" -> ColorUtils.getLiquidSlowlyColor(0, saturationValue.get(), brightnessValue.get())
             "sky" -> ColorUtils.getSkyRainbowColor(0, saturationValue.get(), brightnessValue.get())

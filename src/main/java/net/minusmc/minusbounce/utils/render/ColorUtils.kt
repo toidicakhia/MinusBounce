@@ -8,6 +8,7 @@ package net.minusmc.minusbounce.utils.render
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minusmc.minusbounce.utils.misc.MathUtils
+import net.minusmc.minusbounce.utils.misc.RandomUtils
 import net.minecraft.util.ChatAllowedCharacters
 import org.lwjgl.opengl.GL11.glColor4f
 import java.awt.Color
@@ -16,20 +17,18 @@ import java.util.regex.Pattern
 import kotlin.math.*
 
 object ColorUtils {
-
-    private val startTime = System.currentTimeMillis()
     private val COLOR_PATTERN = Pattern.compile("(?i)§[0-9A-FK-OR]")
 
     @JvmField
     val hexColors = (0..15).map {
-            val baseColor = (it shr 3 and 1) * 85
+        val baseColor = (it shr 3 and 1) * 85
 
-            val red = (it shr 2 and 1) * 170 + baseColor + if (it == 6) 85 else 0
-            val green = (it shr 1 and 1) * 170 + baseColor
-            val blue = (it and 1) * 170 + baseColor
+        val red = (it shr 2 and 1) * 170 + baseColor + if (it == 6) 85 else 0
+        val green = (it shr 1 and 1) * 170 + baseColor
+        val blue = (it and 1) * 170 + baseColor
 
-            (red and 255 shl 16) or (green and 255 shl 8) or (blue and 255)
-        }.toTypedArray()
+        (red and 255 shl 16) or (green and 255 shl 8) or (blue and 255)
+    }.toTypedArray()
 
     @JvmStatic
     fun stripColor(input: String?): String? {
@@ -67,17 +66,12 @@ object ColorUtils {
 
         for (c in text.toCharArray()) {
             if (ChatAllowedCharacters.isAllowedCharacter(c)) {
-                val index = Random().nextInt(allowedCharacters.length)
+                val index = RandomUtils.nextInt(allowedCharacters.length)
                 stringBuilder.append(allowedCharacters.toCharArray()[index])
             }
         }
 
         return stringBuilder.toString()
-    }
-
-    fun getColor(hueoffset: Float, saturation: Float, brightness: Float): Int {
-        val hue = System.currentTimeMillis() % 4500 / 4500f
-        return Color.HSBtoRGB(hue - hueoffset / 54, saturation, brightness)
     }
 
     @JvmStatic
@@ -160,6 +154,11 @@ object ColorUtils {
         return alpha shl 24 or (red shl 16) or (green shl 8) or blue
     }
 
+    fun getHSBColor(hueoffset: Float, saturation: Float, brightness: Float): Int {
+        val hue = System.currentTimeMillis() % 4500 / 4500f
+        return Color.HSBtoRGB(hue - hueoffset / 54, saturation, brightness)
+    }
+
     /**
      * Color styles
      */
@@ -203,8 +202,8 @@ object ColorUtils {
     }
 
     fun getSkyRainbowColor(hue: Int, saturation: Float, brightness: Float): Color {
-        var v1 = (System.currentTimeMillis() + hue * 109) / 5.0
-        return Color.getHSBColor(if ((360.0.also { v1 %= it } / 360.0).toFloat().toDouble() < 0.5) -(v1 / 360.0).toFloat() else (v1 / 360.0).toFloat(), saturation, brightness)
+        val v1 = (System.currentTimeMillis() + hue * 109) / 5f % 360f / 360f
+        return Color.getHSBColor(if (v1 < 0.5f) -v1 else v1, saturation, brightness)
     }
 
     fun getRainbowOpaque(seconds: Int, saturation: Float, brightness: Float, index: Int): Color {

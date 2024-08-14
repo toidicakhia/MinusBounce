@@ -122,9 +122,6 @@ object MinusBounce {
         hud = createDefault()
         fileManager.loadConfig(fileManager.hudConfig)
 
-        // Load generators
-        GuiAltManager.loadActiveGenerators()
-
         ClassUtils.classCache.clear()
 
         ClientUtils.logger.info("Finished loading $CLIENT_NAME in ${System.currentTimeMillis() - lastTick}ms.")
