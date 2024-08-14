@@ -216,7 +216,7 @@ class Advanced2DESP: ESPMode("Advanced2D") {
 
         when (armorBarMode.get().lowercase()) {
             "items" -> for (index in 4 downTo 1) {
-                val armorStack = entity.getEquipmentInSlot(index)
+                val armorStack = entity.getEquipmentInSlot(index) ?: continue
                 val theHeight = deltaY / 4.0 + 0.25
                 val durabilityProgress = MathHelper.clamp_double(ItemUtils.getItemDurability(armorStack) / armorStack.maxDamage.toDouble(), 0.0, 1.0)
 

@@ -11,9 +11,8 @@ import org.apache.commons.io.IOUtils
 import org.lwjgl.opengl.*
 
 abstract class Shader(fragmentShader: String) : MinecraftInstance() {
-    private val uniformsMap = hashMapOf<String, Int>()
+    private val uniformsMap = mutableMapOf<String, Int>()
     private var programId = 0
-    private var setupShader = false
 
     init {
         try {
@@ -31,25 +30,28 @@ abstract class Shader(fragmentShader: String) : MinecraftInstance() {
         val fragmentShaderID = createShader(IOUtils.toString(fragmentStream), ARBFragmentShader.GL_FRAGMENT_SHADER_ARB)
         IOUtils.closeQuietly(fragmentStream)
 
-        if (vertexShaderID != 0 && fragmentShaderID == 0) {
-            programId = ARBShaderObjects.glCreateProgramObjectARB()
-            if (programId != 0) {
-                ARBShaderObjects.glAttachObjectARB(programId, vertexShaderID)
-                ARBShaderObjects.glAttachObjectARB(programId, fragmentShaderID)
-                ARBShaderObjects.glLinkProgramARB(programId)
-                ARBShaderObjects.glValidateProgramARB(programId)
-                ClientUtils.logger.info("[Shader] Successfully loaded: $fragmentShader")
-            }
-        }
+        if (vertexShaderID == 0 || fragmentShaderID == 0)
+            return
+
+        programId = ARBShaderObjects.glCreateProgramObjectARB()
+
+        if (programId == 0)
+            return
+
+        ARBShaderObjects.glAttachObjectARB(programId, vertexShaderID)
+        ARBShaderObjects.glAttachObjectARB(programId, fragmentShaderID)
+        ARBShaderObjects.glLinkProgramARB(programId)
+        ARBShaderObjects.glValidateProgramARB(programId)
+        ClientUtils.logger.info("[Shader] Successfully loaded: $fragmentShader")
     }
 
     open fun startShader() {
         GL11.glPushMatrix()
         GL20.glUseProgram(programId)
-        if (!setupShader) {
-            setupShader = true
+
+        if (uniformsMap.isEmpty())
             setupUniforms()
-        }
+
         updateUniforms()
     }
 
@@ -60,6 +62,7 @@ abstract class Shader(fragmentShader: String) : MinecraftInstance() {
 
     abstract fun setupUniforms()
     abstract fun updateUniforms()
+    
     private fun createShader(shaderSource: String, shaderType: Int): Int {
         var shader = 0
         return try {

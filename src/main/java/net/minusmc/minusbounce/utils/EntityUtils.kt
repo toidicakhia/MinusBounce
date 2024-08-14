@@ -62,7 +62,7 @@ object EntityUtils : MinecraftInstance() {
                 return false
 
             if (!canAttackCheck)
-                return false
+                return true
 
             if (entity.deathTime > 1)
                 return false

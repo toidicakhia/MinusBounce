@@ -25,15 +25,20 @@ abstract class FramebufferShader(fragmentShader: String) : Shader(fragmentShader
     protected var quality = 1f
     private var entityShadows = false
 
+    companion object {
+        private var framebuffer: Framebuffer? = null
+    }
+
     fun startDraw(partialTicks: Float) {
         GlStateManager.enableAlpha()
         GlStateManager.pushMatrix()
         GlStateManager.pushAttrib()
 
-        val framebuffer = setupFrameBuffer(framebuffer)
-        Companion.framebuffer = framebuffer
-        framebuffer.framebufferClear()
-        framebuffer.bindFramebuffer(true)
+        framebuffer = setupFrameBuffer(framebuffer)
+        framebuffer?.let {
+            it.framebufferClear()
+            it.bindFramebuffer(true)
+        }
 
         entityShadows = mc.gameSettings.entityShadows
         mc.gameSettings.entityShadows = false
@@ -55,7 +60,7 @@ abstract class FramebufferShader(fragmentShader: String) : Shader(fragmentShader
         RenderHelper.disableStandardItemLighting()
         startShader()
         mc.entityRenderer.setupOverlayRendering()
-        drawFramebuffer(framebuffer)
+        drawFramebuffer(Companion.framebuffer)
         stopShader()
         mc.entityRenderer.disableLightmap()
         GlStateManager.popMatrix()
@@ -79,21 +84,20 @@ abstract class FramebufferShader(fragmentShader: String) : Shader(fragmentShader
         framebuffer ?: return
 
         val scaledResolution = ScaledResolution(mc)
+        val scaledWidth = scaledResolution.scaledWidth.toDouble()
+        val scaledHeight = scaledResolution.scaledHeight.toDouble()
+
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, framebuffer.framebufferTexture)
         GL11.glBegin(GL11.GL_QUADS)
         GL11.glTexCoord2d(0.0, 1.0)
         GL11.glVertex2d(0.0, 0.0)
         GL11.glTexCoord2d(0.0, 0.0)
-        GL11.glVertex2d(0.0, scaledResolution.scaledHeight.toDouble())
+        GL11.glVertex2d(0.0, scaledHeight)
         GL11.glTexCoord2d(1.0, 0.0)
-        GL11.glVertex2d(scaledResolution.scaledWidth.toDouble(), scaledResolution.scaledHeight.toDouble())
+        GL11.glVertex2d(scaledWidth, scaledHeight)
         GL11.glTexCoord2d(1.0, 1.0)
-        GL11.glVertex2d(scaledResolution.scaledWidth.toDouble(), 0.0)
+        GL11.glVertex2d(scaledWidth, 0.0)
         GL11.glEnd()
         GL20.glUseProgram(0)
-    }
-
-    companion object {
-        private var framebuffer: Framebuffer? = null
     }
 }

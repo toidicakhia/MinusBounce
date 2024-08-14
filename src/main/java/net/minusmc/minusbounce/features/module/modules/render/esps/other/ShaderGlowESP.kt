@@ -11,15 +11,15 @@ class ShaderGlowESP: ESPMode("ShaderGlow") {
 	private val shaderGlowRadius = FloatValue("Radius", 2.3f, 2f, 3f, "x")
     
 	override fun onRender2D(event: Render2DEvent, color: Color) {
-        GlowShader.GLOW_SHADER.startDraw(event.partialTicks)
+        GlowShader.startDraw(event.partialTicks)
         esp.renderNameTags = false
 
         for (entity in mc.theWorld.loadedEntityList) {
-            if (EntityUtils.isSelected(entity, false))
+            if (EntityUtils.isSelected(entity, true))
                 mc.renderManager.renderEntityStatic(entity, mc.timer.renderPartialTicks, true)
         }
 
         esp.renderNameTags = true
-        GlowShader.GLOW_SHADER.stopDraw(color, shaderGlowRadius.get(), 1f)
+        GlowShader.stopDraw(color, shaderGlowRadius.get(), 1f)
 	}
 }
