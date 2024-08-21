@@ -114,6 +114,10 @@ object GLUtils: MinecraftInstance() {
         glColor(Color(red, green, blue, (alpha * 255).toInt()))
     }
 
+    fun glColor(color: Color, alpha: Float) {
+        glColor(color.rgb, alpha)
+    }
+
     fun glColor(red: Int, green: Int, blue: Int, alpha: Int) {
         glColor(Color(red, green, blue, alpha))
     }

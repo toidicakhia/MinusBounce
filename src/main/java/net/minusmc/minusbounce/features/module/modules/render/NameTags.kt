@@ -42,8 +42,8 @@ class NameTags : Module() {
     private val fontValue = FontValue("Font", Fonts.font40)
     private val fontShadowValue = BoolValue("Shadow", true)
     private val borderValue = BoolValue("Border", true)
-    val localValue = BoolValue("LocalPlayer", true)
-    val nfpValue = BoolValue("NoFirstPerson", true) { localValue.get() }
+    private val localValue = BoolValue("LocalPlayer", true)
+    private val nfpValue = BoolValue("NoFirstPerson", true) { localValue.get() }
     private val backgroundColorRedValue = IntegerValue("Background-R", 0, 0, 255)
     private val backgroundColorGreenValue = IntegerValue("Background-G", 0, 0, 255)
     private val backgroundColorBlueValue = IntegerValue("Background-B", 0, 0, 255)

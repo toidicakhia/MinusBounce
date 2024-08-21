@@ -2,6 +2,7 @@ package net.minusmc.minusbounce.features.module.modules.render.esps.normal
 
 import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.EntityLivingBase
+import net.minusmc.minusbounce.event.RenderNameTagsEvent
 import net.minusmc.minusbounce.features.module.modules.render.esps.ESPMode
 import net.minusmc.minusbounce.utils.render.RenderUtils
 import net.minusmc.minusbounce.utils.render.GLUtils
@@ -26,6 +27,7 @@ class Real2DESP: ESPMode("Real2D") {
     private var mvMatrix = WorldToScreen.getMatrix(GL11.GL_MODELVIEW_MATRIX)
     private var projectionMatrix = WorldToScreen.getMatrix(GL11.GL_PROJECTION_MATRIX)
 
+    private val entities = mutableListOf<EntityLivingBase>()
 
     override fun onPreRender3D() {
         mvMatrix = WorldToScreen.getMatrix(GL11.GL_MODELVIEW_MATRIX)
@@ -47,6 +49,8 @@ class Real2DESP: ESPMode("Real2D") {
         GlStateManager.enableTexture2D()
         GlStateManager.depthMask(true)
         GL11.glLineWidth(1.0f)
+
+        entities.clear()
     }
 
     override fun onPostRender3D() {
@@ -197,6 +201,8 @@ class Real2DESP: ESPMode("Real2D") {
         }
 
         if (real2dShowName.get()) {
+            entities.add(entity)
+
             GL11.glEnable(GL11.GL_TEXTURE_2D)
             GL11.glEnable(GL11.GL_DEPTH_TEST)
             val stringWidth = mc.fontRendererObj.getStringWidth(entity.displayName.formattedText)
@@ -204,5 +210,10 @@ class Real2DESP: ESPMode("Real2D") {
             GL11.glDisable(GL11.GL_TEXTURE_2D)
             GL11.glDisable(GL11.GL_DEPTH_TEST)
         }
+    }
+
+    override fun onRenderNameTags(event: RenderNameTagsEvent) {
+        if (event.entity in entities)
+            event.isCancelled = true
     }
 }

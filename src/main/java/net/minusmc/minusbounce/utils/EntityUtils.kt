@@ -35,7 +35,7 @@ object EntityUtils : MinecraftInstance() {
     private val targetsModule: Target
         get() = MinusBounce.moduleManager[Target::class.java]!!
 
-    fun isSelected(entity: Entity, canAttackCheck: Boolean): Boolean {
+    fun isSelected(entity: Entity?, canAttackCheck: Boolean): Boolean {
         if (entity is EntityLivingBase) {
             if (entity is EntityArmorStand)
                 return false

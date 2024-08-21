@@ -64,8 +64,8 @@ class SuperheroFX: Module() {
 
 }
 class FXParticle(val posX: Double, val posY: Double, val posZ: Double, private val animHDir: Double, private val animVDir: Double): MinecraftInstance() {
-    private val messageString: String = listOf("kaboom", "bam", "zap", "smash", "fatality", "kapow", "wham").random()
-    private val color: Color = listOf(Color.BLUE, Color.CYAN, Color.GREEN, Color.MAGENTA, Color.ORANGE, Color.PINK, Color.RED, Color.YELLOW).random()
+    private val messageString = listOf("kaboom", "bam", "zap", "smash", "fatality", "kapow", "wham").random()
+    private val color = listOf(Color.BLUE, Color.CYAN, Color.GREEN, Color.MAGENTA, Color.ORANGE, Color.PINK, Color.RED, Color.YELLOW).random()
 
     private val fadeTimer = MSTimer()
     private val stringLength = Fonts.fontBangers.getStringWidth(messageString).toDouble()

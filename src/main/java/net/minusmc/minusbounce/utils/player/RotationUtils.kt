@@ -392,9 +392,13 @@ object RotationUtils : MinecraftInstance(), Listenable {
 
         val dist = sqrt(x * x + z * z)
 
-        return Rotation(
-            MathUtils.toDegrees(atan2(z, x)) - 90.0f,
-            -MathUtils.toDegrees(atan2(y, dist))
-        )
+        return Rotation(MathUtils.toDegrees(atan2(z, x)) - 90.0f, -MathUtils.toDegrees(atan2(y, dist)))
+    }
+
+    fun getRotations(eX: Double, eZ: Double, x: Double, z: Double): Double {
+        val xDiff = eX - x
+        val zDiff = eZ - z
+        val yaw = -(atan2(xDiff, zDiff) * 57.29577951308232)
+        return yaw
     }
 }

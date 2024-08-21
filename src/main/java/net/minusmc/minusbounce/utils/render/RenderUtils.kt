@@ -27,7 +27,6 @@ import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
 import net.minusmc.minusbounce.MinusBounce
-import net.minusmc.minusbounce.features.module.modules.render.TargetMark
 import net.minusmc.minusbounce.ui.font.Fonts
 import net.minusmc.minusbounce.utils.MinecraftInstance
 import net.minusmc.minusbounce.utils.block.BlockUtils
@@ -783,6 +782,19 @@ object RenderUtils : MinecraftInstance() {
         glDisable(GL_LINE_SMOOTH)
         GlStateManager.enableTexture2D()
         GlStateManager.disableBlend()
+    }
+
+    fun draw3DCircle(x: Double, y: Double, z: Double, width: Float, radius: Double, color: Color) {
+        glLineWidth(width)
+        glBegin(GL_LINE_LOOP)
+        GLUtils.glColor(color)
+
+        for (i in 0..360) {
+            val angle = MathUtils.toRadiansDouble(i)
+            glVertex3d(x - sin(angle) * radius, y, z + cos(angle) * radius)
+        }
+
+        glEnd()
     }
 
     fun drawGradientCircle(x: Float, y: Float, radius: Float, start: Int, end: Int, startColor: Color, endColor: Color) {
