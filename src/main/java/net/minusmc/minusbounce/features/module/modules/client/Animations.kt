@@ -15,6 +15,8 @@ import net.minusmc.minusbounce.value.ListValue
 
 @ModuleInfo(name = "Animations", description = "Render items, animations.", category = ModuleCategory.CLIENT)
 object Animations : Module() {
+    val sword = ListValue("Sword", arrayOf("1.7", "Normal", "Smooth", "Sigma"), "Smooth")
+
     // item general scale
     val Scale = FloatValue("Scale", 0.4f, 0f, 4f)
 

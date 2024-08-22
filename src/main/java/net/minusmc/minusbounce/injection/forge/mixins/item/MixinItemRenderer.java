@@ -136,15 +136,15 @@ public abstract class MixinItemRenderer {
             final KillAura killAura = MinusBounce.moduleManager.getModule(KillAura.class);
             final Animations animMod = MinusBounce.moduleManager.getModule(Animations.class);
             boolean canBlockEverything = animMod.getState() && killAura.getTarget() != null
-                            && (itemToRender.getItem() instanceof ItemBucketMilk || itemToRender.getItem() instanceof ItemFood 
-                                || itemToRender.getItem() instanceof ItemPotion || itemToRender.getItem() instanceof ItemAxe || itemToRender.getItem().equals(Items.stick));
+                    && (itemToRender.getItem() instanceof ItemBucketMilk || itemToRender.getItem() instanceof ItemFood
+                    || itemToRender.getItem() instanceof ItemPotion || itemToRender.getItem() instanceof ItemAxe || itemToRender.getItem().equals(Items.stick));
 
             if (this.itemToRender.getItem() instanceof ItemMap) {
                 this.renderItemMap(abstractclientplayer, f2, f, f1);
-            } else if (abstractclientplayer.getItemInUseCount() > 0 
-                        || (itemToRender.getItem() instanceof ItemSword && killAura.getBlockingStatus())
-                        || (itemToRender.getItem() instanceof ItemSword && animMod.getState() && animMod.getFakeBlocking().get() && killAura.getTarget() != null)
-                        || canBlockEverything) {
+            } else if (abstractclientplayer.getItemInUseCount() > 0
+                    || (itemToRender.getItem() instanceof ItemSword && killAura.getBlockingStatus())
+                    || (itemToRender.getItem() instanceof ItemSword && animMod.getState() && animMod.getFakeBlocking().get() && killAura.getTarget() != null)
+                    || canBlockEverything) {
 
                 EnumAction enumaction = (killAura.getBlockingStatus() || canBlockEverything) ? EnumAction.BLOCK : this.itemToRender.getItemUseAction();
 
@@ -162,13 +162,73 @@ public abstract class MixinItemRenderer {
                         break;
                     case BLOCK:
                         if (animMod.getState()) {
-                            GL11.glTranslated(Animations.INSTANCE.getBlockPosX().get().doubleValue(), Animations.INSTANCE.getBlockPosY().get().doubleValue(), Animations.INSTANCE.getBlockPosZ().get().doubleValue());                            
-                            float f8 = MathHelper.sin(MathHelper.sqrt_float(this.mc.thePlayer.getSwingProgress(partialTicks)) * 3.1415927F);
-                            this.func_178096_b(f, 0.0F);
-                            GL11.glTranslated(0.0D, 0.25D, 0.07D);
-                            GL11.glRotated((-f8 * 40.0F), (f8 / 2.0F), 0.0D, 9.0D);
-                            GL11.glRotated((-f8 * 50.0F), 0.800000011920929D, (f8 / 2.0F), 0.0D);
-                            this.func_178103_d(0.2F);
+                            GL11.glTranslated(Animations.INSTANCE.getBlockPosX().get().doubleValue(), Animations.INSTANCE.getBlockPosY().get().doubleValue(), Animations.INSTANCE.getBlockPosZ().get().doubleValue());
+                            final String z = Animations.INSTANCE.getSword().get();
+                            float var2 = 1.0f - (this.prevEquippedProgress + (this.equippedProgress - this.prevEquippedProgress) * partialTicks);
+                            float var4 = this.mc.thePlayer.getSwingProgress(partialTicks);
+                            switch (z) {
+                                case "Normal": {
+                                    this.transformFirstPersonItem(f + 0.1F, f1);
+                                    if (Animations.INSTANCE.getRotateItems().get())
+                                        rotateItemAnim();
+
+                                    this.doBlockTransformations();
+                                    GlStateManager.translate(-0.5F, 0.2F, 0.0F);
+                                    if (Animations.INSTANCE.getRotateItems().get())
+                                        rotateItemAnim();
+                                    break;
+                                }
+                                case "1.7": {
+                                    this.transformFirstPersonItem(f, f1);
+                                    GlStateManager.translate(0, 0.3, 0);
+                                    this.doBlockTransformations();
+                                    break;
+                                }
+                                case "Smooth": {
+                                    this.func_178096_b(0.0f, 0.95f);
+                                    GlStateManager.rotate(this.delay, 1.0F, 0.0F, 2.0F);
+                                    if (this.rotateTimer.hasTimePassed(1)) {
+                                        ++this.delay;
+                                        this.delay = this.delay + Animations.INSTANCE.getSpeedRotate().get();
+                                        this.rotateTimer.reset();
+                                    }
+                                    if (this.delay > 360.0F) {
+                                        this.delay = 0.0F;
+                                    }
+                                    if (Animations.INSTANCE.getRotateItems().get())
+                                        rotateItemAnim();
+
+                                    this.func_178103_d();
+                                    GlStateManager.rotate(this.delay, 0.0F, 1.0F, 0.0F);
+                                    if (Animations.INSTANCE.getRotateItems().get())
+                                        rotateItemAnim();
+                                    break;
+                                }
+                                case "Jello": {
+                                    this.func_178096_b(0, 0.0F);
+                                    this.func_178103_d();
+                                    int alpha = (int) Math.min(255, ((System.currentTimeMillis() % 255) > 255/2 ? (Math.abs(Math.abs(System.currentTimeMillis()) % 255 - 255)) : System.currentTimeMillis() % 255)*2);
+                                    float f5 = (f1 > 0.5 ? 1-f1 : f1);
+                                    GlStateManager.translate(0.3f, -0.0f, 0.40f);
+                                    GlStateManager.rotate(0.0f, 0.0f, 0.0f, 1.0f);
+                                    GlStateManager.translate(0, 0.5f, 0);
+
+                                    GlStateManager.rotate(90, 1.0f, 0.0f, -1.0f);
+                                    GlStateManager.translate(0.6f, 0.5f, 0);
+                                    GlStateManager.rotate(-90, 1.0f, 0.0f, -1.0f);
+
+
+                                    GlStateManager.rotate(-10, 1.0f, 0.0f, -1.0f);
+                                    GlStateManager.rotate((- f5) * 10.0f, 10.0f, 10.0f, -9.0f);
+                                    GlStateManager.rotate(10.0f, -1.0f, 0.0f, 0.0f);
+
+                                    GlStateManager.translate(0, 0, -0.5);
+                                    GlStateManager.rotate(mc.thePlayer.isSwingInProgress ? -alpha/5f : 1, 1.0f, -0.0f, 1.0f);
+                                    GlStateManager.translate(0, 0, 0.5);
+                                    break;
+                                }
+
+                            }
                         } else {
                             this.transformFirstPersonItem(f + 0.1F, f1);
                             this.doBlockTransformations();
