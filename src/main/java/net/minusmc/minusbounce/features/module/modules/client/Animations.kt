@@ -13,10 +13,49 @@ import net.minusmc.minusbounce.value.FloatValue
 import net.minusmc.minusbounce.value.IntegerValue
 import net.minusmc.minusbounce.value.ListValue
 
+
 @ModuleInfo(name = "Animations", description = "Render items, animations.", category = ModuleCategory.CLIENT)
 object Animations : Module() {
-    val sword = ListValue("Sword", arrayOf("1.7", "Normal", "Smooth", "Sigma"), "Smooth")
-
+    val Sword: ListValue = ListValue(
+        "Style", arrayOf(
+            "Normal",
+            "Slidedown",
+            "Slidedown2",
+            "Slide",
+            "Minecraft",
+            "Remix",
+            "Exhibition",
+            "Exhibition2",
+            "Avatar",
+            "Swang",
+            "Tap",
+            "Tap2",
+            "Poke",
+            "Push",
+            "Push2",
+            "Up",
+            "Shield",
+            "Akrien",
+            "VisionFX",
+            "Swong",
+            "Swank",
+            "SigmaOld",
+            "ETB",
+            "Rotate360",
+            "SmoothFloat",
+            "Strange",
+            "Reverse",
+            "Zoom",
+            "Move",
+            "Stab",
+            "Jello",
+            "1.7",
+            "Flux",
+            "Stella",
+            "Tifality",
+            "OldExhibition"
+        ), "Minecraft"
+    )
     // item general scale
     val Scale = FloatValue("Scale", 0.4f, 0f, 4f)
 
@@ -61,6 +100,11 @@ object Animations : Module() {
         !guiAnimations.get().equals("none", true)
     }
     val tabAnimations = ListValue("Tab-Animation", arrayOf("None", "Zoom", "Slide"), "Zoom")
+
+    // custom animation sword
+    val mcSwordPos: FloatValue = FloatValue("MCPosOffset", 0.45f, 0f, 0.5f) {
+        Sword.get().equals("minecraft", ignoreCase = true)
+    }
 
     val fakeBlocking = BoolValue("Fake-Blocking", true)
 
