@@ -30,6 +30,7 @@ class Backtrack : Module() {
     private val delayValue = IntRangeValue("Delay", 100, 200, 0, 1000)
     private val hitRange = FloatValue("Range", 3F, 0F, 10F)
     private val esp = BoolValue("ESP", true)
+    private val delayS12PacketValue = BoolValue("DelayS12Packet", false)
 
     private val packets = mutableListOf<Packet<*>>()
     private val timer = MSTimer()
@@ -82,10 +83,13 @@ class Backtrack : Module() {
             is S06PacketUpdateHealth -> if (packet.health <= 0)
                 canFlushPacket = true
 
-            is S08PacketPlayerPosLook, is S40PacketDisconnect, is S02PacketChat ->
+            is S08PacketPlayerPosLook, is S40PacketDisconnect ->
                 canFlushPacket = true
 
             is S13PacketDestroyEntities -> if (target != null && target.entityId in packet.entityIDs)
+                canFlushPacket = true
+
+            is S12PacketEntityVelocity -> if (!delayS12PacketValue.get())
                 canFlushPacket = true
 
             is S14PacketEntity -> {
@@ -132,9 +136,7 @@ class Backtrack : Module() {
             return
         }
 
-        if (EntityUtils.isSelected(entity, true)) 
-            target = entity
-        else target = null
+        target = if (EntityUtils.isSelected(entity, true)) entity else null
     }
 
     @EventTarget

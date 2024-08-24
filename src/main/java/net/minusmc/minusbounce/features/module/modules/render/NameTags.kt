@@ -61,14 +61,9 @@ class NameTags : Module() {
     fun onRender3D(event: Render3DEvent) {
         glPushAttrib(GL_ENABLE_BIT)
         glPushMatrix()
-
-        // Disable lightning and depth test
         glDisable(GL_LIGHTING)
         glDisable(GL_DEPTH_TEST)
-
         glEnable(GL_LINE_SMOOTH)
-
-        // Enable blend
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 

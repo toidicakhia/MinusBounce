@@ -23,6 +23,7 @@ import net.minecraft.item.ItemArmor
 import net.minecraft.item.ItemBow
 import net.minecraft.item.ItemStack
 import net.minecraft.item.ItemSword
+import net.minecraft.util.Vec3
 import net.minecraft.util.AxisAlignedBB
 import net.minecraft.util.BlockPos
 import net.minecraft.util.ResourceLocation
@@ -782,19 +783,6 @@ object RenderUtils : MinecraftInstance() {
         glDisable(GL_LINE_SMOOTH)
         GlStateManager.enableTexture2D()
         GlStateManager.disableBlend()
-    }
-
-    fun draw3DCircle(x: Double, y: Double, z: Double, width: Float, radius: Double, color: Color) {
-        glLineWidth(width)
-        glBegin(GL_LINE_LOOP)
-        GLUtils.glColor(color)
-
-        for (i in 0..360) {
-            val angle = MathUtils.toRadiansDouble(i)
-            glVertex3d(x - sin(angle) * radius, y, z + cos(angle) * radius)
-        }
-
-        glEnd()
     }
 
     fun drawGradientCircle(x: Float, y: Float, radius: Float, start: Int, end: Int, startColor: Color, endColor: Color) {
@@ -1595,5 +1583,26 @@ object RenderUtils : MinecraftInstance() {
             ((x2 - x) * factor).toInt(),
             ((y2 - y) * factor).toInt()
         )
+    }
+
+    fun drawTraces(entity: Entity, color: Color, drawHeight: Boolean) {
+        val x = MathUtils.interpolate(entity.posX, entity.lastTickPosX, mc.timer.renderPartialTicks) - mc.renderManager.renderPosX
+        val y = MathUtils.interpolate(entity.posY, entity.lastTickPosY, mc.timer.renderPartialTicks) - mc.renderManager.renderPosY
+        val z = MathUtils.interpolate(entity.posZ, entity.lastTickPosZ, mc.timer.renderPartialTicks) - mc.renderManager.renderPosZ
+        
+        val yaw = -MathUtils.toRadians(mc.thePlayer.rotationYaw)
+        val pitch = -MathUtils.toRadians(mc.thePlayer.rotationPitch)
+
+        val eyeVector = Vec3(0.0, 0.0, 1.0).rotatePitch(pitch).rotateYaw(yaw)
+        GLUtils.glColor(color)
+
+        glVertex3d(eyeVector.xCoord, mc.thePlayer.eyeHeight + eyeVector.yCoord, eyeVector.zCoord)
+        if (drawHeight) {
+            glVertex3d(x, y, z)
+            glVertex3d(x, y, z)
+            glVertex3d(x, y + entity.height, z)
+        } else
+            glVertex3d(x, y + entity.height / 2.0, z)
+        
     }
 }

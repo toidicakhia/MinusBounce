@@ -99,7 +99,7 @@ class FXParticle(val posX: Double, val posY: Double, val posZ: Double, private v
         GL11.glDepthMask(false)
         Fonts.fontBangers.drawString(messageString, 0.25F, 0.25F, Color(0F, 0F, 0F, alpha * 0.75F).rgb)
         Fonts.fontBangers.drawString(messageString, 0F, 0F, ColorUtils.reAlpha(color, alpha).rgb)
-        GL11.glColor4f(187.0f, 255.0f, 255.0f, 1.0f)
+        GL11.glColor4f(187f, 255f, 255f, 1f)
         GL11.glDepthMask(true)
         GlStateManager.doPolygonOffset(1.0f, 1500000.0f)
         GlStateManager.disablePolygonOffset()
