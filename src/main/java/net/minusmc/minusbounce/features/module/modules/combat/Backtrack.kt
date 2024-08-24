@@ -25,8 +25,8 @@ import org.lwjgl.opengl.GL11
 import java.awt.Color
 
 
-@ModuleInfo(name = "Backtrack", spacedName = "Back track", description = "Let you attack in their previous position", category = ModuleCategory.COMBAT)
-class Backtrack : Module() {
+@ModuleInfo(name = "BackTrack", spacedName = "Back track", description = "Let you attack in their previous position", category = ModuleCategory.COMBAT)
+class BackTrack : Module() {
     private val delayValue = IntRangeValue("Delay", 100, 200, 0, 1000)
     private val hitRange = FloatValue("Range", 3F, 0F, 10F)
     private val esp = BoolValue("ESP", true)
