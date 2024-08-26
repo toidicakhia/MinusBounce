@@ -12,13 +12,12 @@ import net.minecraft.client.renderer.entity.Render
 import net.minecraft.util.ResourceLocation
 import net.minecraftforge.fml.client.GuiModList
 import net.minusmc.minusbounce.MinusBounce
-import net.minusmc.minusbounce.plugin.PluginGuiManager
 import net.minusmc.minusbounce.ui.client.altmanager.GuiAltManager
 import net.minusmc.minusbounce.ui.font.Fonts
 import net.minusmc.minusbounce.ui.font.GameFontRenderer
 import net.minusmc.minusbounce.utils.render.*
 import net.minusmc.minusbounce.utils.timer.MSTimer
-import net.minusmc.minusbounce.utils.animation.EaseInOutTimer
+import net.minusmc.minusbounce.utils.timer.EaseInOutTimer
 import net.minusmc.minusbounce.utils.login.UserUtils.isValidTokenOffline
 import net.minusmc.minusbounce.utils.geometry.Rectagle
 import java.awt.Color

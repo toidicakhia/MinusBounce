@@ -306,7 +306,12 @@ object RotationUtils : MinecraftInstance(), Listenable {
      */
     fun getRotationDifference(entity: Entity): Double {
         val rotation = toRotation(getCenter(entity.entityBoundingBox), true)
-        return getRotationDifference(rotation, Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch))
+        return getRotationDifference(rotation, mc.thePlayer.rotation)
+    }
+
+    fun getRotationBackDifference(entity: Entity): Double {
+        val rotation = toRotation(getCenter(entity.entityBoundingBox), true)
+        return getRotationDifference(rotation, Rotation(mc.thePlayer.rotationYaw - 180, mc.thePlayer.rotationPitch))
     }
 
     /**
@@ -324,8 +329,8 @@ object RotationUtils : MinecraftInstance(), Listenable {
      * @param b rotation
      * @return difference between rotation
      */
-    fun getRotationDifference(a: Rotation, b: Rotation?): Double {
-        return hypot(getAngleDifference(a.yaw, b!!.yaw).toDouble(), (a.pitch - b.pitch).toDouble())
+    fun getRotationDifference(a: Rotation, b: Rotation): Double {
+        return hypot(getAngleDifference(a.yaw, b.yaw).toDouble(), (a.pitch - b.pitch).toDouble())
     }
 
     /**

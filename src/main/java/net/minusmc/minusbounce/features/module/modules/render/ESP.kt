@@ -60,7 +60,7 @@ class ESP : Module() {
     fun onRender3D(event: Render3DEvent) {
         mode.onPreRender3D()
         for (entity in mc.theWorld.loadedEntityList) {
-            if (entity is EntityLivingBase && EntityUtils.isSelected(entity, true) && isInViewFrustrum(entity)) {
+            if (entity is EntityLivingBase && EntityUtils.isSelected(entity, false) && isInViewFrustrum(entity)) {
                 val color = getEntityColor(entity)
                 mode.onEntityRender(entity, color)
             }
@@ -75,7 +75,7 @@ class ESP : Module() {
 
     @EventTarget
     fun onRenderModel(event: RenderModelEvent) {
-        if (!EntityUtils.isSelected(event.entity, true))
+        if (!EntityUtils.isSelected(event.entity, false))
             return
 
         val fancyGraphics = mc.gameSettings.fancyGraphics

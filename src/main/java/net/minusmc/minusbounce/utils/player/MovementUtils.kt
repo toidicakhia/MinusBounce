@@ -6,12 +6,12 @@
 package net.minusmc.minusbounce.utils.player
 
 import net.minecraft.potion.Potion
+import net.minecraft.util.Vec3
 import net.minecraft.util.MovementInput
 import net.minusmc.minusbounce.MinusBounce
 import net.minusmc.minusbounce.event.MoveEvent
 import net.minusmc.minusbounce.utils.Constants
 import net.minusmc.minusbounce.utils.misc.MathUtils
-import net.minusmc.minusbounce.utils.misc.MotionData
 import net.minusmc.minusbounce.utils.MinecraftInstance
 import net.minusmc.minusbounce.utils.player.PlayerUtils
 import kotlin.math.atan2
@@ -79,9 +79,9 @@ object MovementUtils : MinecraftInstance() {
 
     fun getDirectionToRadian(pYaw: Float, pForward: Float, pStrafe: Float, strafeUnitAngle: Float = 90f) = MathUtils.toRadians(getDirection(pYaw, pForward, pStrafe, strafeUnitAngle)).toDouble()
 
-    fun getDistanceMotion(speed: Float, pYaw: Float): MotionData {
+    fun getDistanceMotion(speed: Float, pYaw: Float): Vec3 {
         val yaw = getDirectionToRadian(pYaw)
-        return MotionData(-sin(yaw) * speed, cos(yaw) * speed)
+        return Vec3(-sin(yaw) * speed, 0.0, cos(yaw) * speed)
     }
 
     val jumpEffect: Int

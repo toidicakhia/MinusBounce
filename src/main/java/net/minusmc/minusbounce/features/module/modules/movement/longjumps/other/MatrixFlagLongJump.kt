@@ -104,9 +104,9 @@ class MatrixFlagLongJump : LongJumpMode("MatrixFlag") {
             packet.onGround = false
             val yaw = if (packet.rotating) packet.yaw else mc.thePlayer.rotationYaw
             val distanceMotion = MovementUtils.getDistanceMotion(matrixBoostValue.get(), yaw)
-            lastMotX = distanceMotion.motionX
+            lastMotX = distanceMotion.xCoord
             lastMotY = matrixHeightValue.get().toDouble()
-            lastMotZ = distanceMotion.motionZ
+            lastMotZ = distanceMotion.zCoord
             packet.x += lastMotX
             packet.y += lastMotY
             packet.z += lastMotZ

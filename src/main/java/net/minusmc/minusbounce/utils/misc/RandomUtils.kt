@@ -26,6 +26,8 @@ object RandomUtils {
             else startInclusive + Random.nextDouble(endInclusive - startInclusive)
     }
 
+    fun nextDouble() = nextDouble(0.0, 1.0)
+
     fun nextFloat(startInclusive: Float, endInclusive: Float): Float {
         return nextDouble(startInclusive.toDouble(), endInclusive.toDouble()).toFloat()
     }

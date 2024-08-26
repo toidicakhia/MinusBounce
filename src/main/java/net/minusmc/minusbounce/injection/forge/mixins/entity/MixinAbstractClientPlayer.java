@@ -7,7 +7,7 @@ package net.minusmc.minusbounce.injection.forge.mixins.entity;
 
 import net.minusmc.minusbounce.MinusBounce;
 import net.minusmc.minusbounce.features.module.modules.misc.NameProtect;
-import net.minusmc.minusbounce.features.module.modules.render.NoFOV;
+import net.minusmc.minusbounce.features.module.modules.client.NoFOV;
 import net.minusmc.minusbounce.features.module.modules.client.Cape;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
