@@ -13,70 +13,59 @@ import net.minusmc.minusbounce.event.Render3DEvent
 import net.minusmc.minusbounce.features.module.Module
 import net.minusmc.minusbounce.features.module.ModuleCategory
 import net.minusmc.minusbounce.features.module.ModuleInfo
-import net.minusmc.minusbounce.utils.particles.EvictingList
-import net.minusmc.minusbounce.utils.particles.Particle
-import net.minusmc.minusbounce.utils.particles.Vec3
-import net.minusmc.minusbounce.utils.render.RenderUtils
-import net.minusmc.minusbounce.utils.timer.ParticleTimer
+import net.minusmc.minusbounce.utils.render.Particle
+import net.minusmc.minusbounce.utils.render.ParticleUtils
+import net.minusmc.minusbounce.utils.timer.MSTimer
 import net.minusmc.minusbounce.value.BoolValue
 import net.minusmc.minusbounce.value.IntegerValue
 
 @ModuleInfo(name = "Particles", description = "Particles", category = ModuleCategory.RENDER)
 class Particles : Module() {
-    private val amount = IntegerValue("Amount", 10, 1, 20)
+    private val amountValue = IntegerValue("Amount", 10, 1, 20)
+    private val physicsValue = BoolValue("Physics", true)
 
-    private val physics = BoolValue("Physics", true)
-
-    private val particles: MutableList<Particle> = EvictingList(100)
-    private val timer: ParticleTimer = ParticleTimer()
+    private val particles = mutableListOf<Particle>()
     private var target: EntityLivingBase? = null
+    private val timer = MSTimer()
 
     @EventTarget
     fun onAttack(event: AttackEvent) {
-        if (event.targetEntity is EntityLivingBase) target = event.targetEntity
+        target = event.targetEntity as? EntityLivingBase
     }
 
     @EventTarget
-    fun onPostMotion(event: PostMotionEvent?) {
-        if (target != null && target!!.hurtTime >= 9 && mc.thePlayer.getDistance(
-                target!!.posX,
-                target!!.posY,
-                target!!.posZ
-            ) < 10
-        ) {
-            for (i in 0 until amount.get()) particles.add(
-                Particle(
-                    Vec3(
-                        target!!.posX + (Math.random() - 0.5) * 0.5,
-                        target!!.posY + Math.random() * 1 + 0.5,
-                        target!!.posZ + (Math.random() - 0.5) * 0.5
-                    )
-                )
-            )
+    fun onPostMotion(event: PostMotionEvent) {
+        val target = this.target ?: return
 
-            target = null
+        if (target.hurtTime >= 9 && mc.thePlayer.getDistance(target.posX, target.posY, target.posZ) < 10) {
+            repeat(amountValue.get()) {
+                if (particles.size > 100)
+                    particles.removeFirst()
+
+                particles.add(Particle(target.posX, target.posY, target.posZ))
+            }
+
+            this.target = null
         }
     }
 
     @EventTarget
-    fun onRender3D(event: Render3DEvent?) {
-        if (particles.isEmpty()) return
+    fun onRender3D(event: Render3DEvent) {
+        if (particles.isEmpty())
+            return
 
-        for (i in 0..(timer.elapsedTime / 1E+11).toInt()) {
-            if (physics.get()) particles.forEach(Particle::update)
-            else particles.forEach(Particle::updateWithoutPhysics)
+        for (i in 0..(timer.reachedTime / 1e11).toInt()) {
+            if (physicsValue.get())
+                particles.forEach(Particle::update)
+            else 
+                particles.forEach(Particle::updateWithoutPhysics)
         }
 
-        particles.removeIf { particle: Particle ->
-            mc.thePlayer.getDistanceSq(
-                particle.position.xCoord,
-                particle.position.yCoord,
-                particle.position.zCoord
-            ) > 50 * 10
+        particles.removeIf { 
+            mc.thePlayer.getDistanceSq(it.position.xCoord, it.position.yCoord, it.position.zCoord ) > 50
         }
 
         timer.reset()
-
-        RenderUtils.renderParticles(particles)
+        ParticleUtils.renderParticles(particles)
     }
 }

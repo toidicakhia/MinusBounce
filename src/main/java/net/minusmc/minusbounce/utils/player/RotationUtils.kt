@@ -306,7 +306,12 @@ object RotationUtils : MinecraftInstance(), Listenable {
      */
     fun getRotationDifference(entity: Entity): Double {
         val rotation = toRotation(getCenter(entity.entityBoundingBox), true)
-        return getRotationDifference(rotation, Rotation(mc.thePlayer.rotationYaw, mc.thePlayer.rotationPitch))
+        return getRotationDifference(rotation, mc.thePlayer.rotation)
+    }
+
+    fun getRotationBackDifference(entity: Entity): Double {
+        val rotation = toRotation(getCenter(entity.entityBoundingBox), true)
+        return getRotationDifference(rotation, Rotation(mc.thePlayer.rotationYaw - 180, mc.thePlayer.rotationPitch))
     }
 
     /**
@@ -324,8 +329,8 @@ object RotationUtils : MinecraftInstance(), Listenable {
      * @param b rotation
      * @return difference between rotation
      */
-    fun getRotationDifference(a: Rotation, b: Rotation?): Double {
-        return hypot(getAngleDifference(a.yaw, b!!.yaw).toDouble(), (a.pitch - b.pitch).toDouble())
+    fun getRotationDifference(a: Rotation, b: Rotation): Double {
+        return hypot(getAngleDifference(a.yaw, b.yaw).toDouble(), (a.pitch - b.pitch).toDouble())
     }
 
     /**
@@ -392,9 +397,13 @@ object RotationUtils : MinecraftInstance(), Listenable {
 
         val dist = sqrt(x * x + z * z)
 
-        return Rotation(
-            MathUtils.toDegrees(atan2(z, x)) - 90.0f,
-            -MathUtils.toDegrees(atan2(y, dist))
-        )
+        return Rotation(MathUtils.toDegrees(atan2(z, x)) - 90.0f, -MathUtils.toDegrees(atan2(y, dist)))
+    }
+
+    fun getRotations(eX: Double, eZ: Double, x: Double, z: Double): Double {
+        val xDiff = eX - x
+        val zDiff = eZ - z
+        val yaw = -(atan2(xDiff, zDiff) * 57.29577951308232)
+        return yaw
     }
 }

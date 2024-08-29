@@ -5,262 +5,209 @@
  */
 package net.minusmc.minusbounce.features.module.modules.render
 
+import net.minecraft.client.renderer.GlStateManager
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
 import net.minecraft.util.AxisAlignedBB
 import net.minusmc.minusbounce.MinusBounce
-import net.minusmc.minusbounce.event.EventTarget
-import net.minusmc.minusbounce.event.Render3DEvent
-import net.minusmc.minusbounce.event.TickEvent
+import net.minusmc.minusbounce.event.*
 import net.minusmc.minusbounce.features.module.Module
 import net.minusmc.minusbounce.features.module.ModuleCategory
 import net.minusmc.minusbounce.features.module.ModuleInfo
 import net.minusmc.minusbounce.features.module.modules.combat.KillAura
-import net.minusmc.minusbounce.ui.font.GameFontRenderer.Companion.getColorIndex
-import net.minusmc.minusbounce.utils.render.AnimationUtils
-import net.minusmc.minusbounce.utils.render.BlendUtils
-import net.minusmc.minusbounce.utils.render.ColorUtils
-import net.minusmc.minusbounce.utils.render.RenderUtils
+import net.minusmc.minusbounce.utils.render.*
+import net.minusmc.minusbounce.utils.EntityUtils
+import net.minusmc.minusbounce.utils.misc.MathUtils
 import net.minusmc.minusbounce.value.BoolValue
 import net.minusmc.minusbounce.value.FloatValue
 import net.minusmc.minusbounce.value.IntegerValue
 import net.minusmc.minusbounce.value.ListValue
 import org.lwjgl.opengl.GL11
 import java.awt.Color
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
+import kotlin.math.*
 
 @ModuleInfo(name = "TargetMark", spacedName = "Target Mark", description = "Displays your KillAura's target in 3D.", category = ModuleCategory.RENDER)
 class TargetMark : Module() {
-    val modeValue = ListValue("Mode", arrayOf("Default", "Box", "Jello"), "Default")
-    private val colorModeValue =
-        ListValue("Color", arrayOf("Custom", "Rainbow", "Sky", "Fade", "LiquidSlowly", "Health"), "Custom")
+    private val modeValue = ListValue("Mode", arrayOf("Default", "Box", "Jello", "Tracers"), "Default")
+    private val jelloAlphaValue = FloatValue("JelloEndAlphaPercent", 0.4f, 0f, 1f, "x") { modeValue.get().equals("jello", true) }
+    private val jelloWidthValue = FloatValue("JelloCircleWidth", 3f, 0.01f, 5f) { modeValue.get().equals("jello", true) }
+    private val jelloGradientHeightValue = FloatValue("JelloGradientHeight", 3f, 1f, 8f, "m") { modeValue.get().equals("jello", true) }
+    private val jelloFadeSpeedValue = FloatValue("JelloFadeSpeed", 0.1f, 0.01f, 0.5f, "x") { modeValue.get().equals("jello", true) }
+    private val moveMarkValue = FloatValue("MoveMarkY", 0.6f, 0f, 2f) { modeValue.get().equals("default", true) }
+    private val colorModeValue = ListValue("Color", arrayOf("Custom", "Rainbow", "Sky", "Fade", "LiquidSlowly", "Health"), "Custom")
     private val colorRedValue = IntegerValue("Red", 255, 0, 255)
     private val colorGreenValue = IntegerValue("Green", 255, 0, 255)
     private val colorBlueValue = IntegerValue("Blue", 255, 0, 255)
     private val colorAlphaValue = IntegerValue("Alpha", 255, 0, 255)
-    private val jelloAlphaValue = FloatValue("JelloEndAlphaPercent", 0.4f, 0f, 1f, "x") {
-        modeValue.get().equals("jello", true)
-    }
-    private val jelloWidthValue = FloatValue("JelloCircleWidth", 3f, 0.01f, 5f) {
-        modeValue.get().equals("jello", true)
-    }
-    private val jelloGradientHeightValue = FloatValue("JelloGradientHeight", 3f, 1f, 8f, "m") {
-        modeValue.get().equals("jello", true)
-    }
-    private val jelloFadeSpeedValue = FloatValue("JelloFadeSpeed", 0.1f, 0.01f, 0.5f, "x") {
-        modeValue.get().equals("jello", true)
-    }
     private val saturationValue = FloatValue("Saturation", 1f, 0f, 1f)
     private val brightnessValue = FloatValue("Brightness", 1f, 0f, 1f)
+    private val thicknessValue = FloatValue("Thickness", 1f, 0f, 5f)
     private val mixerSecondsValue = IntegerValue("Seconds", 2, 1, 10)
-    val moveMarkValue = FloatValue("MoveMarkY", 0.6f, 0f, 2f) {
-        modeValue.get().equals("default", true)
-    }
     private val colorTeam = BoolValue("Team", false)
-    private var entity: EntityLivingBase? = null
-    private var direction = 1.0
-    private var yPos = 0.0
+
+    private var target: EntityLivingBase? = null
+    private var direction = 1
+    private var currentPosY = 0.0
+    private var lastPosY = 0.0
+
     private var progress = 0.0
-    private var al = 0f
-    private var bb: AxisAlignedBB? = null
-    private var aura: KillAura? = null
+    private var alphaLevel = 0f
     private var lastMS = System.currentTimeMillis()
     private var lastDeltaMS = 0L
-    override fun onInitialize() {
-        aura = MinusBounce.moduleManager.getModule(KillAura::class.java)
-    }
 
     @EventTarget
-    fun onTick(event: TickEvent?) {
-        if (modeValue.get().equals("jello", true) && !aura!!.targetModeValue.get().equals("multi", true)) al = AnimationUtils.changer(
-            al,
-            if (currentTarget != null) jelloFadeSpeedValue.get() else -jelloFadeSpeedValue.get(),
-            0f,
-            colorAlphaValue.get() / 255.0f
-        )
+    fun onTick(event: TickEvent) {
+        if (modeValue.get().equals("jello", true))
+            alphaLevel = AnimationUtils.changer(alphaLevel, if (currentTarget != null) jelloFadeSpeedValue.get() else -jelloFadeSpeedValue.get(), 0f, colorAlphaValue.get() / 255f)
     }
 
     @EventTarget
     fun onRender3D(event: Render3DEvent?) {
-
-        if (modeValue.get().equals("jello", true) && !aura!!.targetModeValue.get()
-                .equals("multi", true)
-        ) {
-            val lastY = yPos
-            if (al > 0f) {
-                if (System.currentTimeMillis() - lastMS >= 1000L) {
-                    direction = -direction
-                    lastMS = System.currentTimeMillis()
-                }
-                val weird =
-                    if (direction > 0) System.currentTimeMillis() - lastMS else 1000L - (System.currentTimeMillis() - lastMS)
-                progress = weird.toDouble() / 1000.0
-                lastDeltaMS = System.currentTimeMillis() - lastMS
-            } else { // keep the progress
-                lastMS = System.currentTimeMillis() - lastDeltaMS
+        when (modeValue.get().lowercase()) {
+            "jello" -> drawJelloMode()
+            "tracers" -> drawTracersMode()
+            "default" -> currentTarget?.let {
+                val color = ColorUtils.reAlpha(getEntityColor(it), colorAlphaValue.get())
+                RenderUtils.drawPlatform(it, color, moveMarkValue.get())
             }
-            if (currentTarget != null) {
-                entity = currentTarget
-                bb = entity!!.entityBoundingBox
-            }
-            if (bb == null || entity == null) return
-            val radius = bb!!.maxX - bb!!.minX
-            val height = bb!!.maxY - bb!!.minY
-            val posX = entity!!.lastTickPosX + (entity!!.posX - entity!!.lastTickPosX) * mc.timer.renderPartialTicks
-            val posY = entity!!.lastTickPosY + (entity!!.posY - entity!!.lastTickPosY) * mc.timer.renderPartialTicks
-            val posZ = entity!!.lastTickPosZ + (entity!!.posZ - entity!!.lastTickPosZ) * mc.timer.renderPartialTicks
-            yPos = easeInOutQuart(progress) * height
-            val deltaY =
-                (if (direction > 0) yPos - lastY else lastY - yPos) * -direction * jelloGradientHeightValue.get()
-            if (al <= 0 && entity != null) {
-                entity = null
-                return
-            }
-            val colour = getColor(entity)
-            val r = colour!!.red / 255.0f
-            val g = colour.green / 255.0f
-            val b = colour.blue / 255.0f
-            pre3D()
-            //post circles
-            GL11.glTranslated(-mc.renderManager.viewerPosX, -mc.renderManager.viewerPosY, -mc.renderManager.viewerPosZ)
-            GL11.glBegin(GL11.GL_QUAD_STRIP)
-            for (i in 0..360) {
-                val calc = i * Math.PI / 180
-                val posX2 = posX - sin(calc) * radius
-                val posZ2 = posZ + cos(calc) * radius
-                GL11.glColor4f(r, g, b, 0f)
-                GL11.glVertex3d(posX2, posY + yPos + deltaY, posZ2)
-                GL11.glColor4f(r, g, b, al * jelloAlphaValue.get())
-                GL11.glVertex3d(posX2, posY + yPos, posZ2)
-            }
-            GL11.glEnd()
-            drawCircle(posX, posY + yPos, posZ, jelloWidthValue.get(), radius, r, g, b, al)
-            post3D()
-        } else if (modeValue.get().equals("default", true)) {
-            if (!aura!!.targetModeValue.get()
-                    .equals("multi", true) && currentTarget != null
-            ) currentTarget?.let {
-                RenderUtils.drawPlatform(
-                    it,
-                    if (aura!!.hitable) ColorUtils.reAlpha(getColor(currentTarget)!!, colorAlphaValue.get()) else Color(
-                        255,
-                        0,
-                        0,
-                        colorAlphaValue.get()
-                    )
-                )
-            }
-        } else { // = cai multi nay la box à
-            if (!aura!!.targetModeValue.get().equals("multi", true) && currentTarget != null
-            ) currentTarget?.let {
-                RenderUtils.drawEntityBox(
-                    it,
-                    if (aura!!.hitable) ColorUtils.reAlpha(getColor(currentTarget)!!, colorAlphaValue.get()) else Color(
-                        255,
-                        0,
-                        0,
-                        colorAlphaValue.get()
-                    ),
-                    false
-                )
+            else -> currentTarget?.let {
+                val color = ColorUtils.reAlpha(getEntityColor(it), colorAlphaValue.get())
+                RenderUtils.drawEntityBox(it, color, false)
             }
         }
     }
 
-    fun getColor(ent: Entity?): Color? {
-        if (ent is EntityLivingBase) {
-            if (colorModeValue.get().equals("Health", true)) return BlendUtils.getHealthColor(
-                ent.health,
-                ent.maxHealth
-            )
-            if (colorTeam.get()) {
-                val chars = ent.displayName.formattedText.toCharArray()
-                var color = Int.MAX_VALUE
-                for (i in chars.indices) {
-                    if (chars[i] != '§' || i + 1 >= chars.size) continue
-                    val index = getColorIndex(chars[i + 1])
-                    if (index < 0 || index > 15) continue
-                    color = ColorUtils.hexColors[index]
-                    break
-                }
-                return Color(color)
-            }
-        }
-        return when (colorModeValue.get()) {
-            "Custom" -> Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get())
-            "Rainbow" -> Color(
-                ColorUtils.getRainbowOpaque(
-                    mixerSecondsValue.get(),
-                    saturationValue.get(),
-                    brightnessValue.get(),
-                    0
-                )
-            )
-            "Sky" -> Color(ColorUtils.skyRainbow(0, saturationValue.get(), brightnessValue.get()))
-            "LiquidSlowly" -> ColorUtils.liquidSlowly(System.nanoTime(), 0, saturationValue.get(), brightnessValue.get())
-            else -> ColorUtils.fade(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get()), 0, 100)
-        }
-    }
+    private fun drawJelloMode() {
+        lastPosY = currentPosY
 
-    private fun drawCircle(
-        x: Double,
-        y: Double,
-        z: Double,
-        width: Float,
-        radius: Double,
-        red: Float,
-        green: Float,
-        blue: Float,
-        alp: Float
-    ) {
-        GL11.glLineWidth(width)
-        GL11.glBegin(GL11.GL_LINE_LOOP)
-        GL11.glColor4f(red, green, blue, alp)
-        var i = 0
-        while (i <= 360) {
-            val posX = x - sin(i * Math.PI / 180) * radius
-            val posZ = z + cos(i * Math.PI / 180) * radius
-            GL11.glVertex3d(posX, y, posZ)
-            i += 1
+        val currentTime = System.currentTimeMillis()
+
+        if (alphaLevel > 0f) {
+            if (currentTime - lastMS >= 1000L) {
+                direction = -direction
+                lastMS = currentTime
+            }
+            progress = if (direction > 0) (currentTime - lastMS) / 1000.0 else (1000L - currentTime + lastMS) / 1000.0
+            lastDeltaMS = currentTime - lastMS
+        } else lastMS = currentTime - lastDeltaMS
+
+        if (target != currentTarget)
+            target = currentTarget
+
+        val target = this.target ?: return
+        val boundingBox = target.entityBoundingBox
+
+        val radius = boundingBox.maxX - boundingBox.minX
+        val height = boundingBox.maxY - boundingBox.minY
+
+        val posX = MathUtils.interpolate(target.posX, target.lastTickPosX, mc.timer.renderPartialTicks)
+        val posY = MathUtils.interpolate(target.posY, target.lastTickPosY, mc.timer.renderPartialTicks)
+        val posZ = MathUtils.interpolate(target.posZ, target.lastTickPosZ, mc.timer.renderPartialTicks)
+
+        currentPosY = EaseUtils.easeInOutQuart(progress) * height
+        val deltaY = (if (direction < 0) currentPosY - lastPosY else lastPosY - currentPosY) * jelloGradientHeightValue.get()
+        
+        if (alphaLevel <= 0) {
+            this.target = null
+            return
         }
+
+        val color = getEntityColor(target)
+        val reAlphaColor = ColorUtils.reAlpha(color, alphaLevel)
+        
+        GL11.glPushMatrix()
+        GL11.glEnable(GL11.GL_BLEND)
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+        GL11.glShadeModel(GL11.GL_SMOOTH)
+        GL11.glDisable(GL11.GL_TEXTURE_2D)
+        GL11.glEnable(GL11.GL_LINE_SMOOTH)
+        GL11.glDisable(GL11.GL_DEPTH_TEST)
+        GL11.glDisable(GL11.GL_LIGHTING)
+        GL11.glDepthMask(false)
+        GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST)
+        GL11.glDisable(2884)
+        GL11.glTranslated(-mc.renderManager.viewerPosX, -mc.renderManager.viewerPosY, -mc.renderManager.viewerPosZ)
+        GL11.glBegin(GL11.GL_QUAD_STRIP)
+        
+        for (i in 0..360) {
+            val calc = MathUtils.toRadiansDouble(i)
+            val posX2 = posX - sin(calc) * radius
+            val posZ2 = posZ + cos(calc) * radius
+            GLUtils.glColor(reAlphaColor, 0f)
+            GL11.glVertex3d(posX2, posY + currentPosY + deltaY, posZ2)
+            GLUtils.glColor(reAlphaColor, alphaLevel * jelloAlphaValue.get())
+            GL11.glVertex3d(posX2, posY + currentPosY, posZ2)
+        }
+
         GL11.glEnd()
+
+        GL11.glLineWidth(jelloWidthValue.get())
+        GL11.glBegin(GL11.GL_LINE_LOOP)
+        GLUtils.glColor(reAlphaColor)
+
+        for (i in 0..360) {
+            val angle = MathUtils.toRadiansDouble(i)
+
+            val x2 = posX - sin(angle) * radius
+            val z2 = posZ + cos(angle) * radius
+
+            GL11.glVertex3d(x2, posY + currentPosY, z2)
+        }
+
+        GL11.glEnd()
+
+        GL11.glDepthMask(true)
+        GL11.glEnable(GL11.GL_DEPTH_TEST)
+        GL11.glDisable(GL11.GL_LINE_SMOOTH)
+        GL11.glEnable(GL11.GL_TEXTURE_2D)
+        GL11.glDisable(GL11.GL_BLEND)
+        GL11.glPopMatrix()
+        GL11.glColor4f(1f, 1f, 1f, 1f)
     }
 
-    private fun easeInOutQuart(x: Double): Double {
-        return if (x < 0.5) 8 * x * x * x * x else 1 - (-2 * x + 2).pow(4.0) / 2
+    private fun drawTracersMode() {
+        val target = currentTarget ?: return
+
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
+        GL11.glEnable(GL11.GL_BLEND)
+        GL11.glEnable(GL11.GL_LINE_SMOOTH)
+        GL11.glLineWidth(thicknessValue.get())
+        GL11.glDisable(GL11.GL_TEXTURE_2D)
+        GL11.glDisable(GL11.GL_DEPTH_TEST)
+        GL11.glDepthMask(false)
+        GL11.glBegin(GL11.GL_LINES)
+
+        RenderUtils.drawTraces(target, getEntityColor(target), false)
+        
+        GL11.glEnd()
+
+        GL11.glEnable(GL11.GL_TEXTURE_2D)
+        GL11.glDisable(GL11.GL_LINE_SMOOTH)
+        GL11.glEnable(GL11.GL_DEPTH_TEST)
+        GL11.glDepthMask(true)
+        GL11.glDisable(GL11.GL_BLEND)
+        GlStateManager.resetColor()
     }
+
+    val colorByMode: Color
+        get() = when (colorModeValue.get().lowercase()) {
+            "rainbow" -> ColorUtils.getRainbowOpaque(mixerSecondsValue.get(), saturationValue.get(), brightnessValue.get(), 0)
+            "liquidslowly" -> ColorUtils.getLiquidSlowlyColor(0, saturationValue.get(), brightnessValue.get())
+            "sky" -> ColorUtils.getSkyRainbowColor(0, saturationValue.get(), brightnessValue.get())
+            "fade" -> ColorUtils.getFadeColor(Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get()), 0, 100)
+            else -> Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get())
+        }
+
+    private fun getEntityColor(entity: Entity?) = ColorUtils.getEntityColor(entity, colorTeam.get(), colorModeValue.get().equals("health", true), !modeValue.get().equals("jello", true)) ?: colorByMode
+
+    fun canPushPopMatrix() = modeValue.get().equals("tracers", true) && target != null
+
+    private val killAura: KillAura
+        get() = MinusBounce.moduleManager[KillAura::class.java]!!
+
+    private val currentTarget: EntityLivingBase?
+        get() = killAura.target
 
     override val tag: String
         get() = modeValue.get()
-
-    companion object {
-        fun pre3D() {
-            GL11.glPushMatrix()
-            GL11.glEnable(GL11.GL_BLEND)
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
-            GL11.glShadeModel(GL11.GL_SMOOTH)
-            GL11.glDisable(GL11.GL_TEXTURE_2D)
-            GL11.glEnable(GL11.GL_LINE_SMOOTH)
-            GL11.glDisable(GL11.GL_DEPTH_TEST)
-            GL11.glDisable(GL11.GL_LIGHTING)
-            GL11.glDepthMask(false)
-            GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST)
-            GL11.glDisable(2884)
-        }
-
-        fun post3D() {
-            GL11.glDepthMask(true)
-            GL11.glEnable(GL11.GL_DEPTH_TEST)
-            GL11.glDisable(GL11.GL_LINE_SMOOTH)
-            GL11.glEnable(GL11.GL_TEXTURE_2D)
-            GL11.glDisable(GL11.GL_BLEND)
-            GL11.glPopMatrix()
-            GL11.glColor4f(1f, 1f, 1f, 1f)
-        }
-    }
-
-    val currentTarget: EntityLivingBase?
-        get() = MinusBounce.combatManager.target
 }

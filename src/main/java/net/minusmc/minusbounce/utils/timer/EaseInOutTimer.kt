@@ -1,4 +1,4 @@
-package net.minusmc.minusbounce.utils.animation
+package net.minusmc.minusbounce.utils.timer
 
 class EaseInOutTimer(
 	var delay: Long = 500L, 

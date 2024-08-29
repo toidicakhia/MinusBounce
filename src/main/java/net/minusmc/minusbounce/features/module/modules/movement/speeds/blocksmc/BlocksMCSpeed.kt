@@ -32,8 +32,7 @@ class BlocksMCSpeed: SpeedMode("BlocksMC", SpeedType.BLOCKSMC) {
 
         if (damageBoostValue.get() && timerValue.get() && mc.thePlayer.hurtTime > 0) {
             mc.timer.timerSpeed = 1.05f
-        }
-        else
+        } else
             mc.timer.timerSpeed = 1.0f
 
     }

@@ -13,7 +13,6 @@ import net.minusmc.minusbounce.value.FloatValue
 import net.minusmc.minusbounce.value.IntegerValue
 import net.minusmc.minusbounce.value.ListValue
 
-
 @ModuleInfo(name = "Animations", description = "Render items, animations.", category = ModuleCategory.CLIENT)
 object Animations : Module() {
     val Sword: ListValue = ListValue(

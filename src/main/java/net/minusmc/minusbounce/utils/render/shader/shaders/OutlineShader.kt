@@ -8,7 +8,7 @@ package net.minusmc.minusbounce.utils.render.shader.shaders
 import net.minusmc.minusbounce.utils.render.shader.FramebufferShader
 import org.lwjgl.opengl.GL20
 
-class OutlineShader : FramebufferShader("outline.frag") {
+object OutlineShader : FramebufferShader("outline.frag") {
     override fun setupUniforms() {
         setupUniform("texture")
         setupUniform("texelSize")
@@ -27,9 +27,5 @@ class OutlineShader : FramebufferShader("outline.frag") {
         )
         GL20.glUniform4f(getUniform("color"), red, green, blue, alpha)
         GL20.glUniform1f(getUniform("radius"), radius)
-    }
-
-    companion object {
-        val OUTLINE_SHADER = OutlineShader()
     }
 }

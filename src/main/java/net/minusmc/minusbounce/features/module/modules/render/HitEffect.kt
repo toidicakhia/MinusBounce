@@ -35,46 +35,43 @@ object HitEffect : Module() {
     private val lightingSoundValue = BoolValue("LightingSound", true) { modeValue.equals("Lighting") }
 
     private val blockState = Block.getStateId(Blocks.redstone_block.defaultState)
-
-    private var target: Entity? = null
+    private var target: EntityLivingBase? = null
 
     @EventTarget
     fun onAttack(event: AttackEvent) {
-        target = event.targetEntity
-        if(timingValue.equals("Attack") && event.targetEntity?.let { EntityUtils.isSelected(it, true) } == true) {
-            displayEffectFor(event.targetEntity as EntityLivingBase)
-        }
+        val target = event.targetEntity as? EntityLivingBase
+        this.target = target
+
+        if (target != null && timingValue.get().equals("attack", true) && EntityUtils.isSelected(target, true))
+            displayEffectFor(target)
     }
 
     @EventTarget
     fun onUpdate(event: UpdateEvent) {
-        if (target != null && target!!.isDead && timingValue.equals("Kill")) {
-            displayEffectFor(target as EntityLivingBase)
-            target = null
+        val target = this.target ?: return
+
+        if (target is EntityLivingBase && target.isDead && timingValue.get().equals("kill", true)) {
+            displayEffectFor(target)
+            this.target = null
         }
     }
 
-    private fun displayEffectFor(entity: EntityLivingBase) {
-        repeat(timesValue.get()) {
-            when(modeValue.get().lowercase()) {
-                "lighting" -> {
-                    mc.netHandler.handleSpawnGlobalEntity(S2CPacketSpawnGlobalEntity(EntityLightningBolt(mc.theWorld, entity.posX, entity.posY, entity.posZ)))
-                    if(lightingSoundValue.get()) {
-                        mc.soundHandler.playSound(PositionedSoundRecord.create(ResourceLocation("random.explode"), 1.0f))
-                        mc.soundHandler.playSound(PositionedSoundRecord.create(ResourceLocation("ambient.weather.thunder"), 1.0f))
-                    }
+    private fun displayEffectFor(entity: EntityLivingBase) = repeat(timesValue.get()) {
+        when (modeValue.get().lowercase()) {
+            "lighting" -> {
+                mc.netHandler.handleSpawnGlobalEntity(S2CPacketSpawnGlobalEntity(EntityLightningBolt(mc.theWorld, entity.posX, entity.posY, entity.posZ)))
+                if (lightingSoundValue.get()) {
+                    mc.soundHandler.playSound(PositionedSoundRecord.create(ResourceLocation("random.explode"), 1.0f))
+                    mc.soundHandler.playSound(PositionedSoundRecord.create(ResourceLocation("ambient.weather.thunder"), 1.0f))
                 }
-                "blood" -> {
-                    repeat(10) {
-                        mc.effectRenderer.spawnEffectParticle(EnumParticleTypes.BLOCK_CRACK.particleID, entity.posX, entity.posY + entity.height / 2, entity.posZ,
-                            entity.motionX + RandomUtils.nextFloat(-0.5f, 0.5f), entity.motionY + RandomUtils.nextFloat(-0.5f, 0.5f), entity.motionZ + RandomUtils.nextFloat(-0.5f, 0.5f), blockState)
-                    }
-                }
-                "fire" ->
-                    mc.effectRenderer.emitParticleAtEntity(entity, EnumParticleTypes.LAVA)
-                "critical" -> mc.effectRenderer.emitParticleAtEntity(entity, EnumParticleTypes.CRIT)
-                "magiccritical" -> mc.effectRenderer.emitParticleAtEntity(entity, EnumParticleTypes.CRIT_MAGIC)
             }
+            "blood" -> repeat(10) {
+                mc.effectRenderer.spawnEffectParticle(EnumParticleTypes.BLOCK_CRACK.particleID, entity.posX, entity.posY + entity.height / 2, entity.posZ,
+                    entity.motionX + RandomUtils.nextFloat(-0.5f, 0.5f), entity.motionY + RandomUtils.nextFloat(-0.5f, 0.5f), entity.motionZ + RandomUtils.nextFloat(-0.5f, 0.5f), blockState)
+            }
+            "fire" -> mc.effectRenderer.emitParticleAtEntity(entity, EnumParticleTypes.LAVA)
+            "critical" -> mc.effectRenderer.emitParticleAtEntity(entity, EnumParticleTypes.CRIT)
+            "magiccritical" -> mc.effectRenderer.emitParticleAtEntity(entity, EnumParticleTypes.CRIT_MAGIC)
         }
     }
 }

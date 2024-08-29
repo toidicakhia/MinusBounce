@@ -35,7 +35,6 @@ class Target : Element() {
     val backgroundAlpha = IntegerValue("Background-Alpha", 255, 0, 255)
     val radiusValue = FloatValue("Radius-Strength", 0.0f, 0.0f, 10.0f)
 
-
     override fun drawElement(): Border? {
         val kaTarget = MinusBounce.moduleManager[KillAura::class.java]!!.target
 
