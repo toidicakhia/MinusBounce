@@ -16,9 +16,7 @@ import java.awt.Color
 /**
  * @author TheSlowly
  */
-abstract class FramebufferShader(fragmentShader: String?) : Shader(
-    fragmentShader!!
-) {
+abstract class FramebufferShader(fragmentShader: String) : Shader(fragmentShader) {
     protected var red = 0f
     protected var green = 0f
     protected var blue = 0f
@@ -26,13 +24,22 @@ abstract class FramebufferShader(fragmentShader: String?) : Shader(
     protected var radius = 2f
     protected var quality = 1f
     private var entityShadows = false
+
+    companion object {
+        private var framebuffer: Framebuffer? = null
+    }
+
     fun startDraw(partialTicks: Float) {
         GlStateManager.enableAlpha()
         GlStateManager.pushMatrix()
         GlStateManager.pushAttrib()
+
         framebuffer = setupFrameBuffer(framebuffer)
-        framebuffer!!.framebufferClear()
-        framebuffer!!.bindFramebuffer(true)
+        framebuffer?.let {
+            it.framebufferClear()
+            it.bindFramebuffer(true)
+        }
+
         entityShadows = mc.gameSettings.entityShadows
         mc.gameSettings.entityShadows = false
         mc.entityRenderer.setupCameraTransform(partialTicks, 0)
@@ -53,7 +60,7 @@ abstract class FramebufferShader(fragmentShader: String?) : Shader(
         RenderHelper.disableStandardItemLighting()
         startShader()
         mc.entityRenderer.setupOverlayRendering()
-        drawFramebuffer(framebuffer)
+        drawFramebuffer(Companion.framebuffer)
         stopShader()
         mc.entityRenderer.disableLightmap()
         GlStateManager.popMatrix()
@@ -66,32 +73,31 @@ abstract class FramebufferShader(fragmentShader: String?) : Shader(
      * @author TheSlowly
      */
     fun setupFrameBuffer(frameBuffer: Framebuffer?): Framebuffer {
-        var frameBuffer = frameBuffer
         frameBuffer?.deleteFramebuffer()
-        frameBuffer = Framebuffer(mc.displayWidth, mc.displayHeight, true)
-        return frameBuffer
+        return Framebuffer(mc.displayWidth, mc.displayHeight, true)
     }
 
     /**
      * @author TheSlowly
      */
     fun drawFramebuffer(framebuffer: Framebuffer?) {
+        framebuffer ?: return
+
         val scaledResolution = ScaledResolution(mc)
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, framebuffer!!.framebufferTexture)
+        val scaledWidth = scaledResolution.scaledWidth.toDouble()
+        val scaledHeight = scaledResolution.scaledHeight.toDouble()
+
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, framebuffer.framebufferTexture)
         GL11.glBegin(GL11.GL_QUADS)
         GL11.glTexCoord2d(0.0, 1.0)
         GL11.glVertex2d(0.0, 0.0)
         GL11.glTexCoord2d(0.0, 0.0)
-        GL11.glVertex2d(0.0, scaledResolution.scaledHeight.toDouble())
+        GL11.glVertex2d(0.0, scaledHeight)
         GL11.glTexCoord2d(1.0, 0.0)
-        GL11.glVertex2d(scaledResolution.scaledWidth.toDouble(), scaledResolution.scaledHeight.toDouble())
+        GL11.glVertex2d(scaledWidth, scaledHeight)
         GL11.glTexCoord2d(1.0, 1.0)
-        GL11.glVertex2d(scaledResolution.scaledWidth.toDouble(), 0.0)
+        GL11.glVertex2d(scaledWidth, 0.0)
         GL11.glEnd()
         GL20.glUseProgram(0)
-    }
-
-    companion object {
-        private var framebuffer: Framebuffer? = null
     }
 }

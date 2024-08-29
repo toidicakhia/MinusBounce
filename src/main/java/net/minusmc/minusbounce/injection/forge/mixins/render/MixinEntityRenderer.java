@@ -174,20 +174,19 @@ public abstract class MixinEntityRenderer {
             this.cloudFog = this.mc.renderGlobal.hasCloudFog(d0, d1, d2, partialTicks);
         }
     }
+
     @Inject(method = "setupCameraTransform", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/EntityRenderer;setupViewBobbing(F)V", shift = At.Shift.BEFORE))
     private void setupCameraViewBobbingBefore(final CallbackInfo callbackInfo) {
         final TargetMark targetMark = MinusBounce.moduleManager.getModule(TargetMark.class);
-        final KillAura aura = MinusBounce.moduleManager.getModule(KillAura.class);
-
-        if (targetMark != null && aura != null && targetMark.getModeValue().get().equalsIgnoreCase("tracers") && !aura.getTargetModeValue().get().equalsIgnoreCase("multi") && aura.getTarget() != null) GL11.glPushMatrix();
+        
+        if (targetMark != null && targetMark.canPushPopMatrix()) GL11.glPushMatrix();
     }
 
     @Inject(method = "setupCameraTransform", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/EntityRenderer;setupViewBobbing(F)V", shift = At.Shift.AFTER))
     private void setupCameraViewBobbingAfter(final CallbackInfo callbackInfo) {
         final TargetMark targetMark = MinusBounce.moduleManager.getModule(TargetMark.class);
-        final KillAura aura = MinusBounce.moduleManager.getModule(KillAura.class);
-
-        if (targetMark != null && aura != null && targetMark.getModeValue().get().equalsIgnoreCase("tracers") && !aura.getTargetModeValue().get().equalsIgnoreCase("multi") && aura.getTarget() != null) GL11.glPopMatrix();
+        
+        if (targetMark != null && targetMark.canPushPopMatrix()) GL11.glPopMatrix();
     }
 
     /**
@@ -196,8 +195,7 @@ public abstract class MixinEntityRenderer {
      * @author fmcpe
      */
     @Overwrite
-    public void getMouseOver(float partialTicks)
-    {
+    public void getMouseOver(float partialTicks) {
         Entity entity = this.mc.getRenderViewEntity();
 
         if (entity != null && this.mc.theWorld != null) {

@@ -8,7 +8,7 @@ package net.minusmc.minusbounce.utils.render.shader.shaders
 import net.minusmc.minusbounce.utils.render.shader.FramebufferShader
 import org.lwjgl.opengl.GL20
 
-class GlowShader : FramebufferShader("glow.frag") {
+object GlowShader : FramebufferShader("glow.frag") {
     override fun setupUniforms() {
         setupUniform("texture")
         setupUniform("texelSize")
@@ -29,9 +29,5 @@ class GlowShader : FramebufferShader("glow.frag") {
         GL20.glUniform1f(getUniform("divider"), 140f)
         GL20.glUniform1f(getUniform("radius"), radius)
         GL20.glUniform1f(getUniform("maxSample"), 10f)
-    }
-
-    companion object {
-        val GLOW_SHADER = GlowShader()
     }
 }

@@ -64,7 +64,7 @@ object PlayerUtils: MinecraftInstance() {
         get() = mc.theWorld.getBlockState(BlockPos(mc.thePlayer).down()).block.let {it is BlockIce || it is BlockPackedIce}
 
     val isBlockUnder: Boolean
-        get() = isInAir(mc.thePlayer.posY + 2.0, 2.0)
+        get() = mc.thePlayer != null && isInAir(mc.thePlayer.posY + 2.0, 2.0)
 
     fun isInAir(height: Double, plus: Double): Boolean {
         if (mc.thePlayer == null || mc.thePlayer.posY < 0.0) 

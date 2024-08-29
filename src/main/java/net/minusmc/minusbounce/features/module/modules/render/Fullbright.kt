@@ -20,21 +20,25 @@ import java.util.*
 class Fullbright : Module() {
     private val modeValue = ListValue("Mode", arrayOf("Gamma", "NightVision"), "Gamma")
     private var prevGamma = -1f
+    
     override fun onEnable() {
         prevGamma = mc.gameSettings.gammaSetting
     }
 
     override fun onDisable() {
-        if (prevGamma == -1f) return
+        if (prevGamma == -1f)
+            return
+
         mc.gameSettings.gammaSetting = prevGamma
         prevGamma = -1f
-        if (mc.thePlayer != null) mc.thePlayer.removePotionEffectClient(Potion.nightVision.id)
+        if (mc.thePlayer != null)
+            mc.thePlayer.removePotionEffectClient(Potion.nightVision.id)
     }
 
     @EventTarget(ignoreCondition = true)
     fun onUpdate(event: UpdateEvent?) {
         if (state) {
-            when (modeValue.get().lowercase(Locale.getDefault())) {
+            when (modeValue.get().lowercase()) {
                 "gamma" -> if (mc.gameSettings.gammaSetting <= 100f) mc.gameSettings.gammaSetting++
                 "nightvision" -> mc.thePlayer.addPotionEffect(PotionEffect(Potion.nightVision.id, 1337, 1))
             }

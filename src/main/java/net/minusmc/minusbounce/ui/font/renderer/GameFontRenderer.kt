@@ -102,7 +102,7 @@ class GameFontRenderer(font: Font) : FontRenderer(Minecraft.getMinecraft().gameS
                     val words = part.substring(1)
                     val type = part[0]
 
-                    when (val colorIndex = getColorIndex(type)) {
+                    when (val colorIndex = ColorUtils.getColorIndex(type)) {
                         in 0..15 -> {
                             if (!ignoreColor) {
                                 hexColor = ColorUtils.hexColors[colorIndex] or (alpha shl 24)
@@ -162,7 +162,7 @@ class GameFontRenderer(font: Font) : FontRenderer(Minecraft.getMinecraft().gameS
         return (x + getStringWidth(text)).toInt()
     }
 
-    override fun getColorCode(charCode: Char) = ColorUtils.hexColors[getColorIndex(charCode)]
+    override fun getColorCode(charCode: Char) = ColorUtils.hexColors[ColorUtils.getColorIndex(charCode)]
 
     override fun getStringWidth(text: String): Int {
         var currentText = text
@@ -188,7 +188,7 @@ class GameFontRenderer(font: Font) : FontRenderer(Minecraft.getMinecraft().gameS
                 } else {
                     val words = part.substring(1)
                     val type = part[0]
-                    val colorIndex = getColorIndex(type)
+                    val colorIndex = ColorUtils.getColorIndex(type)
                     when {
                         colorIndex < 16 -> {
                             bold = false
@@ -230,17 +230,4 @@ class GameFontRenderer(font: Font) : FontRenderer(Minecraft.getMinecraft().gameS
     override fun onResourceManagerReload(resourceManager: IResourceManager) {}
 
     override fun bindTexture(location: ResourceLocation?) {}
-
-    companion object {
-        @JvmStatic
-        fun getColorIndex(type: Char): Int {
-            return when (type) {
-                in '0'..'9' -> type - '0'
-                in 'a'..'f' -> type - 'a' + 10
-                in 'k'..'o' -> type - 'k' + 16
-                'r' -> 21
-                else -> -1
-            }
-        }
-    }
 }

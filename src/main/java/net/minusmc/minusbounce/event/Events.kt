@@ -8,6 +8,7 @@ package net.minusmc.minusbounce.event
 import net.minecraft.block.Block
 import net.minecraft.client.gui.GuiScreen
 import net.minecraft.client.model.ModelPlayer
+import net.minecraft.client.model.ModelBase
 import net.minecraft.client.multiplayer.WorldClient
 import net.minecraft.entity.Entity
 import net.minecraft.entity.EntityLivingBase
@@ -142,10 +143,14 @@ class PushOutEvent: CancellableEvent()
 class Render2DEvent(val partialTicks: Float) : Event()
 
 /**
- * Called when entity is going to be rendered
+ * Called when rendering model
  */
-class RenderEntityEvent(val entity: Entity, val x: Double, val y: Double, val z: Double, val entityYaw: Float,
-                        val partialTicks: Float) : Event()
+class RenderModelEvent(val modelBase: ModelBase, val entity: EntityLivingBase, val x: Float, val y: Float, val z: Float, val yaw: Float, val pitch: Float, val partialTicks: Float): Event()
+
+/**
+ * Called when name tags will be rendered
+ */
+class RenderNameTagsEvent(val entity: Entity?): CancellableEvent()
 
 /**
  * Called when the screen changes
