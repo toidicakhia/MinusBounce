@@ -40,8 +40,8 @@ class BlockOverlay : Module() {
     @EventTarget
     fun onRender3D(event: Render3DEvent) {
         val color = if (colorRainbow.get())
-            ColorUtils.rainbow()
-        else Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get())
+            ColorUtils.reAlpha(ColorUtils.rainbow(), 102)
+        else Color(colorRedValue.get(), colorGreenValue.get(), colorBlueValue.get(), 102)
 
         RenderUtils.drawBlockBox(currentBlock ?: return, color, true)
     }
